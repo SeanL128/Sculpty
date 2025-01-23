@@ -32,7 +32,7 @@ struct ExerciseList: View {
             exercise.muscleGroup ?? MuscleGroup.other
         })
         .mapValues { exercises in
-            exercises.sorted { $0.name.lowercased() < $1.name.lowercased() } // Sorting exercises alphabetically by name
+            exercises.sorted { $0.name.lowercased() < $1.name.lowercased() }
         }
     }
     
@@ -51,6 +51,18 @@ struct ExerciseList: View {
                     }
                 }
                 .padding()
+                
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.gray)
+                    TextField("Search exercises", text: $searchText)
+                        .foregroundColor(.primary)
+                }
+                .padding(8)
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                .padding(.horizontal)
+                .padding(.top, -10)
                 
                 List {
                     ForEach(MuscleGroup.allCases, id: \.self) { muscleGroup in
@@ -87,7 +99,6 @@ struct ExerciseList: View {
                     }
                 }
                 .backgroundStyle(.clear)
-                .searchable(text: $searchText, prompt: "Search exercises")
                 .confirmationDialog("Are you sure?", isPresented: $delete.0) {
                     Button("Delete \(delete.1.name)?", role: .destructive) {
                         context.delete(delete.1)

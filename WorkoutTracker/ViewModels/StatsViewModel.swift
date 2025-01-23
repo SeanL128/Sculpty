@@ -242,7 +242,7 @@ class StatsViewModel: ObservableObject {
             .scaledToFit()
             .chartForegroundStyleScale(MuscleGroup.colorKeyValuePairs)
             .chartLegend(.visible)
-            .chartLegend(alignment: .center, spacing: 16)
+            .chartLegend(alignment: .center, spacing: 8)
             .chartBackground { chartProxy in
                 GeometryReader { geometry in
                     if let anchor = chartProxy.plotFrame {
@@ -282,7 +282,7 @@ class StatsViewModel: ObservableObject {
             .scaledToFit()
             .chartForegroundStyleScale(MuscleGroup.colorKeyValuePairs)
             .chartLegend(.visible)
-            .chartLegend(alignment: .center, spacing: 16)
+            .chartLegend(alignment: .center, spacing: 8)
             .chartBackground { chartProxy in
                 GeometryReader { geometry in
                     if let anchor = chartProxy.plotFrame {

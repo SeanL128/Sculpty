@@ -49,6 +49,15 @@ struct WorkoutList: View {
                                         
                                         Spacer()
                                         
+                                        if let previousLog = workoutLogs.sorted(by: { $0.start > $1.start }).first(where: { log in
+                                            log.completed &&
+                                            log.workout.id == workout.id &&
+                                            !Calendar.current.isDate(Date(timeIntervalSince1970: log.start), inSameDayAs: Date())
+                                        }) {
+                                            Text(formatDate(Date(timeIntervalSince1970: previousLog.start)))
+                                                .opacity(0.75)
+                                        }
+                                        
                                         Image(systemName: "chevron.right")
                                     }
                                     .foregroundStyle(textColor)

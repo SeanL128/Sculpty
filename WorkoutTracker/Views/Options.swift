@@ -15,6 +15,8 @@ struct Options: View {
     @Query private var exercises: [Exercise]
     @Query private var workoutLogs: [WorkoutLog]
     
+    @State private var showImportConfirmation: Bool = false
+    
     var body: some View {
         VStack {
             HStack(alignment: .center) {
@@ -26,17 +28,23 @@ struct Options: View {
             }
             .padding()
             
+            
+            Button {
+                showImportConfirmation = true
+            } label: {
+                Text("Import Information")
+            }
+            .buttonStyle(.borderedProminent)
+            .confirmationDialog("Importing data will delete all existing data.", isPresented: $showImportConfirmation, titleVisibility: .visible) {
+                Button("Import", role: .destructive) {
+                    showDocumentPicker()
+                }
+            }
+            
             Button {
                 exportData()
             } label: {
                 Text("Export Information")
-            }
-            .buttonStyle(.borderedProminent)
-            
-            Button {
-                showDocumentPicker()
-            } label: {
-                Text("Import Information")
             }
             .buttonStyle(.borderedProminent)
             
