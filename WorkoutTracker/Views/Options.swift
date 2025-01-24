@@ -15,7 +15,22 @@ struct Options: View {
     @Query private var exercises: [Exercise]
     @Query private var workoutLogs: [WorkoutLog]
     
-    @State private var showImportConfirmation: Bool = false
+    @State private var showExportSheet: Bool = false
+    @State private var showImportSheet: Bool = false
+    
+    @State private var showResetConfirmation1: Bool = false
+    @State private var showResetConfirmation2: Bool = false
+    @State private var showResetConfirmation3: Bool = false
+    
+    @State private var showImportSuccessAlert: Bool = false
+    @State private var showImportFailAlert: Bool = false
+    @State private var showResetAlert: Bool = false
+    
+    @State private var workoutsSelected: Bool = true
+    @State private var exercisesSelected: Bool = true
+    @State private var workoutLogsSelected: Bool = true
+    
+    @State private var allowDuplicates: Bool = false
     
     var body: some View {
         VStack {
@@ -28,60 +43,159 @@ struct Options: View {
             }
             .padding()
             
+            Link("GitHub",
+                 destination: URL(string: "https://github.com/SeanL128/WorkoutTracker/")!)
+            .padding(.top)
             
-            Button {
-                showImportConfirmation = true
-            } label: {
-                Text("Import Information")
-            }
-            .buttonStyle(.borderedProminent)
-            .confirmationDialog("Importing data will delete all existing data.", isPresented: $showImportConfirmation, titleVisibility: .visible) {
-                Button("Import", role: .destructive) {
-                    showDocumentPicker()
-                }
-            }
+            Link("Report a bug",
+                 destination: URL(string: "https://github.com/SeanL128/WorkoutTracker/issues/new")!)
+            .padding(.top, 5)
             
-            Button {
-                exportData()
-            } label: {
-                Text("Export Information")
-            }
-            .buttonStyle(.borderedProminent)
             
             Spacer()
+            
+            
+            Button {
+                showImportSheet = true
+            } label: {
+                Text("Import Data")
+            }
+            .buttonStyle(.borderedProminent)
+            .alert(isPresented: $showImportSuccessAlert) {
+                Alert(title: Text("Success"),
+                      message: Text("Your data has successfully been imported."))
+            }
+            .alert(isPresented: $showImportFailAlert) {
+                Alert(title: Text("Error"),
+                      message: Text("There was an error when importing your data. Please make sure that you are uploading the correct file. You may need to try again later or report an issue."))
+            }
+            .sheet(isPresented: $showImportSheet) {
+                VStack {
+                    Text("Select what to import")
+                    
+                    Toggle(isOn: $workoutsSelected) {
+                        Text("Workouts")
+                    }
+                    
+                    Toggle(isOn: $exercisesSelected) {
+                        Text("Exercises")
+                    }
+                    
+                    Toggle(isOn: $workoutLogsSelected) {
+                        Text("Logs")
+                    }
+                    
+                    Divider()
+                        .padding()
+                    
+                    Toggle(isOn: $allowDuplicates) {
+                        Text("Allow Duplicates")
+                    }
+                    
+                    Text("When \"Allow Duplicates\" is disabled, any existing data that overlaps with imported data will be overwritten. To determine if data overlaps, the names are compared.")
+                        .font(.caption)
+                        .fixedSize(horizontal: false, vertical: true)
+                    
+                    Button {
+                        showDocumentPicker()
+                    } label: {
+                        Text("Import")
+                    }
+                    .padding(.top, 10)
+                }
+                .padding()
+                .padding(.top, 20)
+                .presentationDetents([.fraction(0.41), .medium])
+            }
+            
+            
+            Button {
+                showExportSheet = true
+            } label: {
+                Text("Export Data")
+            }
+            .buttonStyle(.borderedProminent)
+            .sheet(isPresented: $showExportSheet) {
+                VStack {
+                    Text("Select what to export")
+                    
+                    Toggle(isOn: $workoutsSelected) {
+                        Text("Workouts")
+                    }
+                    
+                    Toggle(isOn: $exercisesSelected) {
+                        Text("Exercises")
+                    }
+                    
+                    Toggle(isOn: $workoutLogsSelected) {
+                        Text("Logs")
+                    }
+                    
+                    Button {
+                        exportData()
+                    } label: {
+                        Text("Export")
+                    }
+                }
+                .padding()
+                .padding(.top, 20)
+                .presentationDetents([.fraction(0.26), .medium])
+            }
+            
+            
+            Button {
+                showResetConfirmation1 = true
+            } label: {
+                Text("Reset Data")
+            }
+            .padding()
+            .confirmationDialog("Are you sure? This will reset all data.", isPresented: $showResetConfirmation1, titleVisibility: .visible) {
+                Button("Reset", role: .destructive) {
+                    showResetConfirmation2 = true
+                }
+            }
+            .confirmationDialog("Are you 100% sure? This action cannot be undone.", isPresented: $showResetConfirmation2, titleVisibility: .visible) {
+                Button("Reset", role: .destructive) {
+                    showResetConfirmation3 = true
+                }
+            }
+            .confirmationDialog("It is recommended that you export your data before proceeding.", isPresented: $showResetConfirmation3, titleVisibility: .visible) {
+                Button("Export then reset", role: .destructive) {
+                    exportData()
+                    clearContext()
+                    showResetAlert = true
+                }
+                Button("Reset without exporting", role: .destructive) {
+                    clearContext()
+                    showResetAlert = true
+                }
+            }
+            .alert(isPresented: $showResetAlert) {
+                Alert(title: Text("Success"),
+                      message: Text("Your data has successfully been reset. Please restart the app to ensure everything works properly."))
+            }
         }
     }
     
     private func exportData() {
         do {
-            let exportData = ExportData(workouts: workouts, exercises: exercises, workoutLogs: workoutLogs)
+            let exportData = ExportData(workouts: workoutsSelected ? workouts : [], exercises: exercisesSelected ? exercises : [], workoutLogs: workoutLogsSelected ? workoutLogs : [])
             
-            // Step 1: Encode workouts to JSON
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted
             let data = try encoder.encode(exportData)
             
-            // Step 2: Write the data to a temporary file
             let temporaryURL = FileManager.default.temporaryDirectory.appendingPathComponent("WorkoutTrackerData.json")
             try data.write(to: temporaryURL)
             
-            // Step 3: Share the file
             presentShareSheet(url: temporaryURL)
         } catch {
             print("Failed to export workouts: \(error.localizedDescription)")
         }
     }
     
-    private func presentShareSheet(url: URL) {
-        let activityViewController = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootViewController = windowScene.windows.first?.rootViewController {
-            rootViewController.present(activityViewController, animated: true, completion: nil)
-        }
-    }
-    
     private func showDocumentPicker() {
-        let coordinator = DocumentPickerCoordinator { importedData in
+        let coordinator = ExportDataDocumentPickerCoordinator { importedData in
             if let importedData = importedData {
                 self.importData(data: importedData)
             }
@@ -90,22 +204,44 @@ struct Options: View {
     }
     
     private func importData(data: ExportData) {
-        for workout in data.workouts {
-            context.insert(Workout(name: workout.name, exercises: workout.exercises, notes: workout.notes))
+        if workoutsSelected {
+            let existingWorkouts = try? context.fetch(FetchDescriptor<Workout>())
+            for workout in data.workouts {
+                if let result = (existingWorkouts?.filter { $0.name == workout.name }), !result.isEmpty {
+                    for existingWorkout in result {
+                        context.delete(existingWorkout)
+                    }
+                }
+                
+                context.insert(Workout(name: workout.name, exercises: workout.exercises, notes: workout.notes))
+            }
         }
         
-        for exercise in data.exercises {
-            context.insert(Exercise(name: exercise.name, notes: exercise.notes, muscleGroup: exercise.muscleGroup ?? .other))
+        if exercisesSelected {
+            let existingExercises = try? context.fetch(FetchDescriptor<Exercise>())
+            for exercise in data.exercises {
+                if let result = (existingExercises?.filter { $0.name == exercise.name }), !result.isEmpty {
+                    for existingExercise in result {
+                        context.delete(existingExercise)
+                    }
+                }
+                
+                context.insert(Exercise(name: exercise.name, notes: exercise.notes, muscleGroup: exercise.muscleGroup ?? .other))
+            }
         }
         
-        for log in data.workoutLogs {
-            context.insert(WorkoutLog(workout: log.workout, started: log.started, completed: log.completed, start: log.start, end: log.end, exerciseLogs: log.exerciseLogs))
+        if workoutLogsSelected {
+            for log in data.workoutLogs {
+                context.insert(WorkoutLog(workout: log.workout, started: log.started, completed: log.completed, start: log.start, end: log.end, exerciseLogs: log.exerciseLogs))
+            }
         }
         
         do {
             try context.save()
+            showImportSuccessAlert = true
         } catch {
             print("Failed to save imported data: \(error.localizedDescription)")
+            showImportFailAlert = true
         }
     }
     
@@ -137,7 +273,7 @@ struct Options: View {
     }
 }
 
-class DocumentPickerCoordinator: NSObject, UIDocumentPickerDelegate {
+class ExportDataDocumentPickerCoordinator: NSObject, UIDocumentPickerDelegate {
     private let onImport: (ExportData?) -> Void
     
     init(onImport: @escaping (ExportData?) -> Void) {

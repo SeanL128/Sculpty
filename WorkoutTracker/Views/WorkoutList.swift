@@ -26,6 +26,12 @@ struct WorkoutList: View {
                     
                     Spacer()
                     
+                    Button {
+                        showDocumentPicker()
+                    } label: {
+                        Image(systemName: "square.and.arrow.down")
+                    }
+                    
                     NavigationLink(destination: AddWorkout()) {
                         Image(systemName: "plus")
                     }
@@ -76,6 +82,11 @@ struct WorkoutList: View {
                                 delete.1 = workout
                             }
                             .tint(.red)
+                            
+                            Button("Share") {
+                                exportData(workout: workout)
+                            }
+                            .tint(.blue)
                         }
                     }
                 }
@@ -91,6 +102,74 @@ struct WorkoutList: View {
                 }
             }
             .navigationBarHidden(true)
+        }
+    }
+    
+    private func exportData(workout: Workout) {
+        do {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+            let data = try encoder.encode(workout)
+            
+            let temporaryURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(workout.name).json")
+            try data.write(to: temporaryURL)
+            
+            presentShareSheet(url: temporaryURL)
+        } catch {
+            print("Failed to export \(workout.name): \(error.localizedDescription)")
+        }
+    }
+    
+    private func showDocumentPicker() {
+        let coordinator = WorkoutDocumentPickerCoordinator { importedData in
+            if let importedData = importedData {
+                self.importData(workout: importedData)
+            }
+        }
+        coordinator.showDocumentPicker()
+    }
+    
+    private func importData(workout: Workout) {
+        context.insert(Workout(name: workout.name, exercises: workout.exercises, notes: workout.notes))
+        
+        do {
+            try context.save()
+        } catch {
+            print("Failed to save imported \(workout.name): \(error.localizedDescription)")
+        }
+    }
+}
+
+class WorkoutDocumentPickerCoordinator: NSObject, UIDocumentPickerDelegate {
+    private let onImport: (Workout?) -> Void
+    
+    init(onImport: @escaping (Workout?) -> Void) {
+        self.onImport = onImport
+    }
+    
+    func showDocumentPicker() {
+        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.json])
+        documentPicker.delegate = self
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootViewController = windowScene.windows.first?.rootViewController {
+            rootViewController.present(documentPicker, animated: true, completion: nil)
+        }
+    }
+    
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        guard let fileURL = urls.first else {
+            onImport(nil)
+            return
+        }
+        
+        do {
+            let data = try Data(contentsOf: fileURL)
+            let decoder = JSONDecoder()
+            let importedData = try decoder.decode(Workout.self, from: data)
+            onImport(importedData)
+        } catch {
+            print("Failed to import workouts: \(error.localizedDescription)")
+            onImport(nil)
         }
     }
 }

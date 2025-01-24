@@ -18,12 +18,12 @@ struct PerformExercise: View {
     @State private var log: ExerciseLog
     @Binding private var timeRemaining: Double
     
-    @State private var showTempoSheet: Bool = false
     @State private var finish: Bool = false
     
     @State private var editingIndex: IdentifiableIndex = IdentifiableIndex(id: -1)
     @State private var showEditSet: Bool = false
     @State private var exerciseStatus: Int = 1
+    @State private var showTempoSheet: Bool = false
     
     init(workout: Workout, log: WorkoutLog, index: Int, time: Binding<Double> = .constant(0)) {
         self.workout = workout

@@ -11,12 +11,14 @@ import SwiftData
 
 @Query var workouts: [Workout]
 
+// Variable
 var textColor: Color {
     Color(UIColor { traitCollection in
         return traitCollection.userInterfaceStyle == .dark ? .white : .black
     })
 }
 
+// Functions
 func lengthToString(length: Double) -> String {
     let hours = Int(length) / 3600
     let minutes = (Int(length) % 3600) / 60
@@ -28,4 +30,22 @@ func formatDate(_ date: Date) -> String {
     let dateFormatter = DateFormatter()
     dateFormatter.dateFormat = "MMM dd, yyyy"
     return dateFormatter.string(from: date)
+}
+
+func presentShareSheet(url: URL) {
+    let activityViewController = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+       let rootViewController = windowScene.windows.first?.rootViewController {
+        rootViewController.present(activityViewController, animated: true, completion: nil)
+    }
+}
+
+// Extensions
+extension View {
+    func limitText(_ text: Binding<String>, to characterLimit: Int) -> some View {
+        self
+            .onChange(of: text.wrappedValue) {
+                text.wrappedValue = String(text.wrappedValue.prefix(characterLimit))
+            }
+    }
 }
