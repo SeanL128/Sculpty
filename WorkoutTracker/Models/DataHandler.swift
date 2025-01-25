@@ -51,7 +51,7 @@ class DataHandler {
                 let workout = workoutLog.workout
                 let workoutReps = workoutLog.getTotalReps()
                 let workoutWeight = workoutLog.getTotalWeight()
-                let length = workoutLog.getLength()
+                let length = workoutLog.completed ? workoutLog.getLength() : 0
                 workoutMuscleGroupRepBreakdown[workout] = workoutMuscleGroupRepBreakdown[workout] ?? [:]
                 workoutMuscleGroupWeightBreakdown[workout] = workoutMuscleGroupWeightBreakdown[workout] ?? [:]
                 workoutMuscleGroupRepRanges[workout] = workoutMuscleGroupRepRanges[workout] ?? []

@@ -30,7 +30,7 @@ class WorkoutLog: Identifiable, Codable {
             self.exerciseLogs = exerciseLogs!
         } else {
             for exercise in workout.exercises {
-                self.exerciseLogs.append(ExerciseLog(exercise: exercise))
+                self.exerciseLogs.append(ExerciseLog(index: exercise.index, exercise: exercise))
             }
         }
     }
@@ -46,6 +46,8 @@ class WorkoutLog: Identifiable, Codable {
                 }
             }
         }
+        
+        completed = true
     }
 
     

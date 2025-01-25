@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Charts
 
 struct ViewWorkout: View {
     @Environment(\.modelContext) private var context
@@ -52,16 +53,22 @@ struct ViewWorkout: View {
                     Spacer()
                     
                     HStack {
+                        if !log.completed {
+                            Spacer()
+                        }
+                        
                         NavigationLink(destination: EditWorkout(workout: viewModel.workout)) {
                             Image(systemName: "pencil")
                         }
                         
-                        Spacer()
-                        
-                        Button {
-                            finishWorkout = true
-                        } label: {
-                            Image(systemName: "checkmark")
+                        if !log.completed {
+                            Spacer()
+                            
+                            Button {
+                                finishWorkout = true
+                            } label: {
+                                Image(systemName: "checkmark")
+                            }
                         }
                     }
                     .frame(width: 55)
@@ -77,11 +84,102 @@ struct ViewWorkout: View {
                 .padding()
                 
                 if log.completed {
-                    statsViewModel.stats
+                    ScrollView {
+                        VStack {
+                            if statsViewModel.showCharts {
+                                Text("Total Time: \(lengthToString(length: statsViewModel.selectedTotalTime))")
+                                
+                                VStack {
+                                    let keys = Array(statsViewModel.selectedMuscleGroupRepBreakdown.keys)
+                                    
+                                    Chart {
+                                        ForEach(MuscleGroup.displayOrder.reversed(), id: \.self) { key in
+                                            if key != .overall && keys.contains(key) {
+                                                SectorMark(
+                                                    angle: .value(key.rawValue.capitalized, statsViewModel.selectedMuscleGroupRepBreakdown[key] ?? 0),
+                                                    innerRadius: .ratio(0.8),
+                                                    angularInset: 2
+                                                )
+                                                .cornerRadius(3)
+                                                .foregroundStyle(MuscleGroup.colorMap[key]!)
+                                            }
+                                        }
+                                    }
+                                    .scaledToFit()
+                                    .chartForegroundStyleScale(MuscleGroup.colorKeyValuePairs)
+                                    .chartLegend(.visible)
+                                    .chartLegend(alignment: .center, spacing: 8)
+                                    .chartBackground { chartProxy in
+                                        GeometryReader { geometry in
+                                            if let anchor = chartProxy.plotFrame {
+                                                let frame = geometry[anchor]
+                                                Text("\(statsViewModel.selectedMuscleGroupRepBreakdown[.overall] ?? 0) reps")
+                                                    .font(.title)
+                                                    .position(x: frame.midX, y: frame.midY)
+                                            }
+                                        }
+                                    }
+                                    
+                                    VStack {
+                                        ForEach(MuscleGroup.displayOrder.reversed(), id: \.self) { key in
+                                            if key != .overall && keys.contains(key) {
+                                                Text("\(key.rawValue.capitalized): \(statsViewModel.selectedMuscleGroupRepBreakdown[key] ?? 0) reps")
+                                            }
+                                        }
+                                    }
+                                    .padding(.top)
+                                    
+                                    Divider()
+                                        .padding()
+                                    
+                                    Chart {
+                                        ForEach(MuscleGroup.displayOrder.reversed(), id: \.self) { key in
+                                            if key != .overall && keys.contains(key) {
+                                                SectorMark(
+                                                    angle: .value(key.rawValue.capitalized, statsViewModel.selectedMuscleGroupWeightBreakdown[key] ?? 0),
+                                                    innerRadius: .ratio(0.8),
+                                                    angularInset: 2
+                                                )
+                                                .cornerRadius(3)
+                                                .foregroundStyle(MuscleGroup.colorMap[key]!)
+                                            }
+                                        }
+                                    }
+                                    .scaledToFit()
+                                    .chartForegroundStyleScale(MuscleGroup.colorKeyValuePairs)
+                                    .chartLegend(.visible)
+                                    .chartLegend(alignment: .center, spacing: 8)
+                                    .chartBackground { chartProxy in
+                                        GeometryReader { geometry in
+                                            if let anchor = chartProxy.plotFrame {
+                                                let frame = geometry[anchor]
+                                                Text("\(statsViewModel.selectedMuscleGroupWeightBreakdown[.overall]?.formatted() ?? 0.formatted())lbs")
+                                                    .font(.title)
+                                                    .position(x: frame.midX, y: frame.midY)
+                                            }
+                                        }
+                                    }
+                                    
+                                    VStack {
+                                        ForEach(MuscleGroup.displayOrder.reversed(), id: \.self) { key in
+                                            if key != .overall && keys.contains(key) {
+                                                Text("\(key.rawValue.capitalized): \(statsViewModel.selectedMuscleGroupWeightBreakdown[key]?.formatted() ?? 0.formatted())lbs")
+                                            }
+                                        }
+                                    }
+                                    .padding(.top)
+                                }
+                            }
+                            
+                            Spacer()
+                        }
+                        .navigationBarHidden(true)
+                        .padding()
+                    }
                 } else {
                     TabView {
-                        ForEach(viewModel.exercises.indices, id: \.self) { index in
-                            PerformExercise(workout: viewModel.workout, log: log, index: index, time: $restTime)
+                        ForEach(viewModel.exercises.sorted { $0.index < $1.index }, id: \.self) { exercise in
+                            PerformExercise(workout: viewModel.workout, log: log, index: exercise.index, time: $restTime)
                         }
                     }
                     .tabViewStyle(.page(indexDisplayMode: .always))
@@ -93,7 +191,11 @@ struct ViewWorkout: View {
             .navigationBarHidden(true)
             .onAppear() {
                 statsViewModel.updateWorkoutLogs(workoutLogs: [log])
-                statsViewModel.selectWorkout(workout: viewModel.workout)
+                statsViewModel.selectOverall()
+                
+                Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+                    restTime = getRemainingTime()
+                }
             }
             .onChange(of: restTime) {
                 startRestTime(duration: restTime)

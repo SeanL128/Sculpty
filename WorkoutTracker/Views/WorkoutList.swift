@@ -45,6 +45,14 @@ struct WorkoutList: View {
                                 log.workout.id == workout.id &&
                                 Calendar.current.isDate(Date(timeIntervalSince1970: log.start), inSameDayAs: Date())
                             }) {
+                                var backgroundColor: Color {
+                                    if todayLog.completed {
+                                        return .accent
+                                    }
+                                    
+                                    return Color(UIColor.systemBackground)
+                                }
+                                
                                 Button {
                                     withAnimation(.easeInOut(duration: 0.25)) {
                                         onWorkoutSelected(workout, todayLog)
@@ -57,16 +65,16 @@ struct WorkoutList: View {
                                         
                                         if let previousLog = workoutLogs.sorted(by: { $0.start > $1.start }).first(where: { log in
                                             log.completed &&
-                                            log.workout.id == workout.id &&
-                                            !Calendar.current.isDate(Date(timeIntervalSince1970: log.start), inSameDayAs: Date())
+                                            log.workout.id == workout.id
                                         }) {
                                             Text(formatDate(Date(timeIntervalSince1970: previousLog.start)))
-                                                .opacity(0.75)
+                                                .opacity(0.5)
                                         }
                                         
                                         Image(systemName: "chevron.right")
                                     }
                                     .foregroundStyle(textColor)
+                                    .listRowBackground(backgroundColor)
                                 }
                             } else {
                                 HStack {
@@ -89,6 +97,20 @@ struct WorkoutList: View {
                             .tint(.blue)
                         }
                     }
+                    .onMove { from, to in
+                        var copy = workouts
+                        copy.move(fromOffsets: from, toOffset: to)
+                        
+                        for workout in workouts {
+                            context.delete(workout)
+                        }
+                        
+                        for workout in copy {
+                            context.insert(workout)
+                        }
+                        
+                        try? context.save()
+                    }
                 }
                 .backgroundStyle(.clear)
                 .confirmationDialog("Are you sure?", isPresented: $delete.0) {
@@ -102,7 +124,16 @@ struct WorkoutList: View {
                 }
             }
             .navigationBarHidden(true)
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
+                }
+            }
         }
+        .ignoresSafeArea(.keyboard)
     }
     
     private func exportData(workout: Workout) {

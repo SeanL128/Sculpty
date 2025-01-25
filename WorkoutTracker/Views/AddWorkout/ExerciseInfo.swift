@@ -27,6 +27,8 @@ struct ExerciseInfo: View {
     @State private var showTempoSheet: Bool = false
     @State private var showAlert: Bool = false
     
+    @FocusState private var isNotesFocused: Bool
+    
     init(workout: Workout, exercise: Exercise?, workoutExercise: Binding<WorkoutExercise>) {
         self.workout = workout
         self.exercise = exercise
@@ -42,16 +44,12 @@ struct ExerciseInfo: View {
         _restMinutes = State(initialValue: initialRestMinutes)
         _restSeconds = State(initialValue: initialRestSeconds)
         _specNotes = State(initialValue: initialSpecNotes)
-        _sets = State(initialValue: initialSets.isEmpty ? [ExerciseSet()] : initialSets)
+        _sets = State(initialValue: initialSets.isEmpty ? [ExerciseSet()] : initialSets.map { $0.copy() })
         _tempoArr = State(initialValue: initialTempoArr)
         
         if sets.isEmpty {
             addSet()
         }
-    }
-    
-    private func finishInit() {
-        
     }
 
     var body: some View {
@@ -89,6 +87,7 @@ struct ExerciseInfo: View {
                     .textFieldStyle(.roundedBorder)
                     .padding(.top, -10)
                     .padding(.horizontal)
+                    .focused($isNotesFocused)
                 
                 
                 Spacer()
@@ -96,7 +95,8 @@ struct ExerciseInfo: View {
                 
                 // Sets
                 List {
-                    ForEach(sets.indices, id: \.self) { index in
+                    ForEach(sets.sorted { $0.index < $1.index }, id: \.self) { set in
+                        let index = sets.firstIndex(of: set)!
                         Button {
                             editingSet = (true, index)
                         } label: {
@@ -111,6 +111,19 @@ struct ExerciseInfo: View {
                         }
                     }
                     .onDelete(perform: deleteSet)
+                    .onMove { from, to in
+                        var reordered = sets
+                        
+                        reordered.move(fromOffsets: from, toOffset: to)
+                        
+                        for (newIndex, set) in reordered.enumerated() {
+                            if set.index != newIndex {
+                                set.index = newIndex
+                            }
+                        }
+                        
+                        sets = reordered
+                    }
                 }
                 .backgroundStyle(.clear)
                 .sheet(isPresented: $editingSet.0) {
@@ -215,7 +228,19 @@ struct ExerciseInfo: View {
                 }
             }
             .padding()
+            .toolbar {
+                ToolbarItemGroup (placement: .keyboard) {
+                    Spacer()
+                    
+                    Button {
+                        isNotesFocused = false
+                    } label: {
+                        Text("Done")
+                    }
+                }
+            }
         }
+        .ignoresSafeArea(.keyboard)
     }
     
     
@@ -233,7 +258,7 @@ struct ExerciseInfo: View {
         for set in sets {
             set.reps = max(0, set.reps)
         }
-        workoutExercise.sets = sets
+        workoutExercise.sets = sets.map { $0.copy() }
         
         // Rest
         let restTotalSeconds = (Double(restMinutes) * 60) + Double(restSeconds)
@@ -249,7 +274,7 @@ struct ExerciseInfo: View {
         if !workout.exercises.contains(workoutExercise) {
             workout.exercises.append(workoutExercise)
         }
-        try? context.save()
+        
         dismiss()
     }
     
@@ -258,7 +283,8 @@ struct ExerciseInfo: View {
     }
 
     private func addSet() {
-        sets.append(ExerciseSet())
+        let nextIndex = sets.map { $0.index }.max() ?? -1
+        sets.append(ExerciseSet(index: nextIndex + 1))
     }
     
     private func setView(for set: ExerciseSet) -> some View {

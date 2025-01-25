@@ -22,10 +22,6 @@ class Workout: Identifiable, Codable {
         self.notes = notes
     }
     
-    func addWorkout(exercise: Exercise, sets: [ExerciseSet], restTime: TimeInterval) {
-        exercises.append(WorkoutExercise(exercise: exercise, sets: sets, restTime: restTime))
-    }
-    
     enum CodingKeys: String, CodingKey {
         case id, name, exercises, notes
     }

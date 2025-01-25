@@ -32,6 +32,8 @@ struct Options: View {
     
     @State private var allowDuplicates: Bool = false
     
+    @State private var showStats: Bool = true
+    
     var body: some View {
         VStack {
             HStack(alignment: .center) {
@@ -42,18 +44,6 @@ struct Options: View {
                 Spacer()
             }
             .padding()
-            
-            Link("GitHub",
-                 destination: URL(string: "https://github.com/SeanL128/WorkoutTracker/")!)
-            .padding(.top)
-            
-            Link("Report a bug",
-                 destination: URL(string: "https://github.com/SeanL128/WorkoutTracker/issues/new")!)
-            .padding(.top, 5)
-            
-            
-            Spacer()
-            
             
             Button {
                 showImportSheet = true
@@ -174,7 +164,24 @@ struct Options: View {
                 Alert(title: Text("Success"),
                       message: Text("Your data has successfully been reset. Please restart the app to ensure everything works properly."))
             }
+            
+            
+            Spacer()
+            
+            
+            Link("GitHub",
+                 destination: URL(string: "https://github.com/SeanL128/WorkoutTracker/")!)
+            
+            Link("Report a bug",
+                 destination: URL(string: "https://github.com/SeanL128/WorkoutTracker/issues/new")!)
+            .padding(.vertical, 5)
+            
+            if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String, let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
+                Text("Workout Tracker Version \(version) Build \(build)")
+                    .font(.caption)
+            }
         }
+        .padding()
     }
     
     private func exportData() {
@@ -247,25 +254,10 @@ struct Options: View {
     
     private func clearContext() {
         do {
-            // Fetch all entities for Workout
-            let workoutsToDelete = try context.fetch(FetchDescriptor<Workout>())
-            for workout in workoutsToDelete {
-                context.delete(workout)
-            }
+            try context.delete(model: Workout.self)
+            try context.delete(model: Exercise.self)
+            try context.delete(model: WorkoutLog.self)
             
-            // Fetch all entities for Exercise
-            let exercisesToDelete = try context.fetch(FetchDescriptor<Exercise>())
-            for exercise in exercisesToDelete {
-                context.delete(exercise)
-            }
-            
-            // Fetch all entities for WorkoutLog
-            let logsToDelete = try context.fetch(FetchDescriptor<WorkoutLog>())
-            for log in logsToDelete {
-                context.delete(log)
-            }
-            
-            // Save changes to commit deletions
             try context.save()
         } catch {
             print("Failed to clear context: \(error.localizedDescription)")

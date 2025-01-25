@@ -21,8 +21,9 @@ class WorkoutViewModel: ObservableObject {
         self.notes = workout.notes
     }
     
-    func addExercise(exercise: WorkoutExercise = WorkoutExercise()) {
-        exercises.append(exercise)
+    func addExercise() {
+        let nextIndex = exercises.map { $0.index }.max() ?? -1
+        exercises.append(WorkoutExercise(index: nextIndex + 1))
     }
     
     func removeExercise(at index: Int) {

@@ -18,6 +18,9 @@ struct EditSet: View {
     @State private var weightString: String
     @State private var repsString: String
     
+    @FocusState private var isRepsFocused: Bool
+    @FocusState private var isWeightFocused: Bool
+    
     init (set: Binding<ExerciseSet>, exerciseStatus: Binding<Int> = .constant(0), isPresented: Binding<Bool> = .constant(false)) {
         self._set = set
         self._exerciseStatus = exerciseStatus
@@ -39,22 +42,15 @@ struct EditSet: View {
                         TextField("Reps", text: $repsString)
                             .keyboardType(.numberPad)
                             .textFieldStyle(.roundedBorder)
+                            .focused($isRepsFocused)
                             .onChange(of: repsString) {
                                 repsString = repsString.filter { "0123456789".contains($0) }
                                 
                                 if repsString.isEmpty {
-                                    repsString = "0"
+                                    set.reps = 0
                                 }
                                 
                                 set.reps = (repsString as NSString).integerValue
-                            }
-                            .toolbar {
-                                ToolbarItemGroup(placement: .keyboard) {
-                                    Spacer()
-                                    Button("Done") {
-                                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                    }
-                                }
                             }
                         
                         Text("reps")
@@ -82,6 +78,7 @@ struct EditSet: View {
                         TextField("Weight", text: $weightString)
                             .keyboardType(.decimalPad)
                             .textFieldStyle(.roundedBorder)
+                            .focused($isWeightFocused)
                             .onChange(of: weightString) {
                                 let filtered = weightString.filter { "0123456789.".contains($0) }
                                 
@@ -92,18 +89,12 @@ struct EditSet: View {
                                     weightString = filtered
                                 }
                                 
-                                if weightString.hasSuffix(".") {
+                                if weightString.isEmpty {
+                                    set.weight = 0
+                                } else if weightString.hasSuffix(".") {
                                     set.weight = ("\(weightString)0" as NSString).doubleValue
                                 } else {
                                     set.weight = (weightString as NSString).doubleValue
-                                }
-                            }
-                            .toolbar {
-                                ToolbarItemGroup(placement: .keyboard) {
-                                    Spacer()
-                                    Button("Done") {
-                                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                    }
                                 }
                             }
                         
@@ -128,7 +119,7 @@ struct EditSet: View {
                         .padding(.horizontal, 5)
                     
                     Picker("RIR", selection: $set.rir) {
-                        ForEach(Array(0...5), id: \.self) { rir in
+                        ForEach(["Failure", "0", "1", "2"], id: \.self) { rir in
                             Text("\(rir)")
                                 .tag(rir)
                         }
@@ -141,32 +132,46 @@ struct EditSet: View {
             .padding(.bottom)
             .padding(.top, -10)
             .toolbar {
-                if exerciseStatus >= 1 {
-                    Button {
-                        exerciseStatus = 4
-                        isPresented = false
-                    } label: {
-                        Image(systemName: "xmark")
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    if exerciseStatus >= 1 {
+                        Button {
+                            exerciseStatus = 4
+                            isPresented = false
+                        } label: {
+                            Image(systemName: "xmark")
+                        }
+                        
+                        Button {
+                            exerciseStatus = 3
+                            isPresented = false
+                        } label: {
+                            Image(systemName: "arrowshape.turn.up.right.fill")
+                        }
+                        
+                        Button {
+                            exerciseStatus = 2
+                            isPresented = false
+                        } label: {
+                            Image(systemName: "checkmark")
+                        }
                     }
+                }
+                
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
                     
                     Button {
-                        exerciseStatus = 3
-                        isPresented = false
+                        isRepsFocused = false
+                        isWeightFocused = false
                     } label: {
-                        Image(systemName: "arrowshape.turn.up.right.fill")
-                    }
-                    
-                    Button {
-                        exerciseStatus = 2
-                        isPresented = false
-                    } label: {
-                        Image(systemName: "checkmark")
+                        Text("Done")
                     }
                 }
             }
             
             Spacer()
         }
+        .ignoresSafeArea(.keyboard)
     }
 }
 

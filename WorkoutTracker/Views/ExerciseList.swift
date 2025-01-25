@@ -17,6 +17,8 @@ struct ExerciseList: View {
     
     @State private var searchText: String = ""
     
+    @FocusState private var isSearchFocused: Bool
+    
     var filteredExercises: [Exercise] {
             if searchText.isEmpty {
                 return exercises
@@ -57,6 +59,7 @@ struct ExerciseList: View {
                         .foregroundColor(.gray)
                     TextField("Search exercises", text: $searchText)
                         .foregroundColor(.primary)
+                        .focused($isSearchFocused)
                 }
                 .padding(8)
                 .background(Color(.systemGray6))
@@ -110,7 +113,19 @@ struct ExerciseList: View {
                 }
             }
             .navigationBarHidden(true)
+            .toolbar {
+                ToolbarItemGroup (placement: .keyboard) {
+                    Spacer()
+                    
+                    Button {
+                        isSearchFocused = false
+                    } label: {
+                        Text("Done")
+                    }
+                }
+            }
         }
+        .ignoresSafeArea(.keyboard)
     }
 }
 

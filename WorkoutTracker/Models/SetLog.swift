@@ -12,6 +12,7 @@ import SwiftData
 class SetLog: Identifiable, Codable {
     @Attribute(.unique) var id: UUID = UUID()
     
+    var index: Int
     var completed: Bool
     var skipped: Bool
     var start: Double
@@ -20,7 +21,8 @@ class SetLog: Identifiable, Codable {
     var reps: Int
     var weight: Double
     
-    init() {
+    init(index: Int) {
+        self.index = index
         completed = false
         skipped = false
         start = Date().timeIntervalSince1970.rounded()
@@ -62,12 +64,13 @@ class SetLog: Identifiable, Codable {
     }
     
     enum CodingKeys: String, CodingKey {
-        case id, completed, skipped, start, end, weight, reps
+        case id, index, completed, skipped, start, end, weight, reps
     }
     
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
+        index = try container.decode(Int.self, forKey: .index)
         completed = try container.decode(Bool.self, forKey: .completed)
         skipped = try container.decode(Bool.self, forKey: .skipped)
         start = try container.decode(Double.self, forKey: .start)
@@ -79,6 +82,7 @@ class SetLog: Identifiable, Codable {
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
+        try container.encode(index, forKey: .index)
         try container.encode(completed, forKey: .completed)
         try container.encode(skipped, forKey: .skipped)
         try container.encode(start, forKey: .start)

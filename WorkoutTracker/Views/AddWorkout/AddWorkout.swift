@@ -17,15 +17,20 @@ struct AddWorkout: View {
     @State private var titleAlert: Bool = false
     @State private var exercisesAlert: Bool = false
     
+    @FocusState private var isNameFocused: Bool
+    @FocusState private var isNotesFocused: Bool
+     
     var body: some View {
         NavigationStack {
             VStack {
                 TextField("Workout Name", text: $viewModel.workoutName)
                     .textFieldStyle(.roundedBorder)
+                    .textInputAutocapitalization(.words)
+                    .focused($isNameFocused)
                 
                 List {
-                    ForEach(viewModel.exercises.indices, id: \.self) { index in
-                        let exercise = viewModel.exercises[index]
+                    ForEach(viewModel.exercises.sorted { $0.index < $1.index }, id: \.self) { exercise in
+                        let index = viewModel.exercises.firstIndex(of: exercise)!
                         HStack {
                             Text(exercise.exercise?.name ?? "Select Exercise")
                             NavigationLink(destination: ExerciseInfo(workout: viewModel.workout, exercise: exercise.exercise ?? nil, workoutExercise: $viewModel.exercises[index])) {
@@ -39,7 +44,17 @@ struct AddWorkout: View {
                         }
                     }
                     .onMove { from, to in
-                        viewModel.exercises.move(fromOffsets: from, toOffset: to)
+                        var reordered = viewModel.exercises
+                        
+                        reordered.move(fromOffsets: from, toOffset: to)
+                        
+                        for (newIndex, exercise) in reordered.enumerated() {
+                            if exercise.index != newIndex {
+                                exercise.index = newIndex
+                            }
+                        }
+                        
+                        viewModel.exercises = reordered
                     }
                 }
                 .backgroundStyle(.clear)
@@ -56,6 +71,7 @@ struct AddWorkout: View {
                 
                 TextField("Notes", text: $viewModel.notes, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
+                    .focused($isNotesFocused)
                 
                 
                 Button {
@@ -108,15 +124,23 @@ struct AddWorkout: View {
             }
             .padding()
             .navigationTitle("Add Workout")
+            .toolbar {
+                ToolbarItemGroup (placement: .keyboard) {
+                    Spacer()
+                    
+                    Button {
+                        isNameFocused = false
+                        isNotesFocused = false
+                    } label: {
+                        Text("Done")
+                    }
+                }
+            }
         }
+        .ignoresSafeArea(.keyboard)
     }
 }
 
 #Preview {
     AddWorkout()
 }
-
-/*
- clicking an exercise brings up it's info, a rest time picker, and a button to save it in that slot
-    this page can also be accessed through a tab on the main screen for easy exercise creation
- */

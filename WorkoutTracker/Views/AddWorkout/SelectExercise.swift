@@ -97,5 +97,6 @@ struct SelectExercise: View {
             .searchable(text: $searchText, prompt: "Search exercises")
             .navigationTitle(Text("Select Exercise"))
         }
+        .ignoresSafeArea(.keyboard)
     }
 }

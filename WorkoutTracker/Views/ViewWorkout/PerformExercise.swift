@@ -20,7 +20,7 @@ struct PerformExercise: View {
     
     @State private var finish: Bool = false
     
-    @State private var editingIndex: IdentifiableIndex = IdentifiableIndex(id: -1)
+    @State private var editingIndex: (IdentifiableIndex, IdentifiableIndex) = (IdentifiableIndex(id: -1), IdentifiableIndex(id: -1))
     @State private var showEditSet: Bool = false
     @State private var exerciseStatus: Int = 1
     @State private var showTempoSheet: Bool = false
@@ -31,8 +31,8 @@ struct PerformExercise: View {
         self.index = index
         self._timeRemaining = time
         
-        self.exercise = workout.exercises[index]
-        self.log = log.exerciseLogs[index]
+        self.exercise = workout.exercises[workout.exercises.firstIndex { $0.index == index }!]
+        self.log = log.exerciseLogs[log.exerciseLogs.firstIndex { $0.index == index }!]
     }
     
     var body: some View {
@@ -42,13 +42,20 @@ struct PerformExercise: View {
                     .font(.headline)
                 
                 List {
-                    ForEach(exercise.sets.indices, id: \.self) { index in
+                    ForEach(exercise.sets.sorted { $0.index < $1.index }, id: \.self) { set in
+                        var setIndex: Int {
+                            exercise.sets.firstIndex { $0.index == set.index } ?? -1
+                        }
+                        var logIndex: Int {
+                            return log.setLogs.firstIndex { $0.index == set.index } ?? -1
+                        }
+                        
                         var backgroundColor: Color {
-                            if log.setLogs[index].completed {
+                            if log.setLogs[logIndex].completed {
                                 return .accent
                             }
                             
-                            if log.setLogs[index].skipped {
+                            if log.setLogs[logIndex].skipped {
                                 return .gray
                             }
                             
@@ -56,16 +63,17 @@ struct PerformExercise: View {
                         }
                         
                         Button {
-                            editingIndex.id = index
+                            editingIndex.0.id = setIndex
+                            editingIndex.1.id = logIndex
                             showEditSet = true
                         } label: {
-                            setView(for: exercise.sets[index])
+                            setView(for: set)
                         }
                         .foregroundStyle(textColor)
                         .swipeActions {
                             Button("Skip") {
-                                log.setLogs[index].unfinish()
-                                log.setLogs[index].skip()
+                                log.setLogs[logIndex].unfinish()
+                                log.setLogs[logIndex].skip()
                                 checkAllDone()
                             }
                             .tint(.gray)
@@ -74,8 +82,8 @@ struct PerformExercise: View {
                     }
                 }
                 .backgroundStyle(.clear)
-                .sheet(isPresented: $showEditSet, onDismiss: dismissed(index: $editingIndex.id)) {
-                    EditSet(set: $exercise.sets[editingIndex.id], exerciseStatus: $exerciseStatus, isPresented: $showEditSet)
+                .sheet(isPresented: $showEditSet, onDismiss: dismissed(setIndex: $editingIndex.0.id, logIndex: $editingIndex.1.id)) {
+                    EditSet(set: $exercise.sets[editingIndex.0.id], exerciseStatus: $exerciseStatus, isPresented: $showEditSet)
                         .presentationDetents([.fraction(0.35), .medium])
                 }
                 
@@ -121,16 +129,17 @@ struct PerformExercise: View {
         .frame(height: 37)
     }
     
-    private func dismissed(index: Int) -> () -> Void {
+    private func dismissed(setIndex: Int, logIndex: Int) -> () -> Void {
         {
             if exerciseStatus == 2 {
                 workoutLog.started = true
+                workoutLog.start = Date().timeIntervalSince1970.rounded(.down)
                 
-                let set = exercise.sets[index]
+                let set = exercise.sets[setIndex]
                 let weight = set.measurement == "x" ? Double(set.reps) * set.weight : 0
                 
-                log.setLogs[index].unskip()
-                log.setLogs[index].finish(weight: weight, reps: set.reps)
+                log.setLogs[logIndex].unskip()
+                log.setLogs[logIndex].finish(weight: weight, reps: set.reps)
                 
                 switch (set.type) {
                 case ("Warm Up"):
@@ -143,18 +152,19 @@ struct PerformExercise: View {
             } else if exerciseStatus == 3 {
                 workoutLog.started = true
                 
-                log.setLogs[index].unfinish()
-                log.setLogs[index].skip()
+                log.setLogs[logIndex].unfinish()
+                log.setLogs[logIndex].skip()
             } else if exerciseStatus == 4 {
                 workoutLog.started = true
                 
-                log.setLogs[index].unskip()
-                log.setLogs[index].unfinish()
+                log.setLogs[logIndex].unskip()
+                log.setLogs[logIndex].unfinish()
                 
                 timeRemaining = 0
             }
             
-            editingIndex.id = -1
+            editingIndex.0.id = -1
+            editingIndex.1.id = -1
             exerciseStatus = 1
             
             checkAllDone()

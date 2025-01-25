@@ -17,6 +17,9 @@ struct EditWorkout: View {
     @State private var titleAlert: Bool = false
     @State private var exercisesAlert: Bool = false
     
+    @FocusState private var isNameFocused: Bool
+    @FocusState private var isNotesFocused: Bool
+    
     init(workout: Workout) {
         _viewModel = StateObject(wrappedValue: WorkoutViewModel(workout: workout))
     }
@@ -26,10 +29,12 @@ struct EditWorkout: View {
             VStack {
                 TextField("Workout Name", text: $viewModel.workoutName)
                     .textFieldStyle(.roundedBorder)
+                    .textInputAutocapitalization(.words)
+                    .focused($isNameFocused)
                 
                 List {
-                    ForEach(viewModel.exercises.indices, id: \.self) { index in
-                        let exercise = viewModel.exercises[index]
+                    ForEach(viewModel.exercises.sorted { $0.index < $1.index }, id: \.self) { exercise in
+                        let index = viewModel.exercises.firstIndex(of: exercise)!
                         HStack {
                             Text(exercise.exercise?.name ?? "Select Exercise")
                             NavigationLink(destination: ExerciseInfo(workout: viewModel.workout, exercise: exercise.exercise ?? nil, workoutExercise: $viewModel.exercises[index])) {
@@ -42,12 +47,26 @@ struct EditWorkout: View {
                             .tint(.red)
                         }
                     }
+                    .onMove { from, to in
+                        var reordered = viewModel.exercises
+                        
+                        reordered.move(fromOffsets: from, toOffset: to)
+                        
+                        for (newIndex, exercise) in reordered.enumerated() {
+                            if exercise.index != newIndex {
+                                exercise.index = newIndex
+                            }
+                        }
+                        
+                        viewModel.exercises = reordered
+                    }
                 }
                 .backgroundStyle(.clear)
                 
                 
                 TextField("Notes", text: $viewModel.notes, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
+                    .focused($isNotesFocused)
                 
                 
                 Button {
@@ -96,7 +115,20 @@ struct EditWorkout: View {
             }
             .padding()
             .navigationTitle("Edit Workout")
+            .toolbar {
+                ToolbarItemGroup (placement: .keyboard) {
+                    Spacer()
+                    
+                    Button {
+                        isNameFocused = false
+                        isNotesFocused = false
+                    } label: {
+                        Text("Done")
+                    }
+                }
+            }
         }
+        .ignoresSafeArea(.keyboard)
     }
 }
 

@@ -15,6 +15,9 @@ struct EditExercise: View {
     
     // View Model
     @StateObject private var viewModel: ExerciseViewModel
+    
+    @FocusState private var isNameFocused: Bool
+    @FocusState private var isNotesFocused: Bool
 
     init(exercise: Exercise) {
         _viewModel = StateObject(wrappedValue: ExerciseViewModel(exercise: exercise))
@@ -26,10 +29,13 @@ struct EditExercise: View {
                 // Name
                 TextField("Name", text: $viewModel.name)
                     .textFieldStyle(.roundedBorder)
+                    .textInputAutocapitalization(.words)
+                    .focused($isNameFocused)
                 
                 // Notes
                 TextField("Notes", text: $viewModel.notes, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
+                    .focused($isNotesFocused)
                 
                 
                 Spacer()
@@ -72,7 +78,20 @@ struct EditExercise: View {
             }
             .padding()
             .navigationTitle(Text("Edit Exercise"))
+            .toolbar {
+                ToolbarItemGroup (placement: .keyboard) {
+                    Spacer()
+                    
+                    Button {
+                        isNameFocused = false
+                        isNotesFocused = false
+                    } label: {
+                        Text("Done")
+                    }
+                }
+            }
         }
+        .ignoresSafeArea(.keyboard)
     }
 }
 
