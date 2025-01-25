@@ -28,6 +28,7 @@ struct ExerciseInfo: View {
     @State private var showAlert: Bool = false
     
     @FocusState private var isNotesFocused: Bool
+    var isAnyFieldFocused: Bool { isNotesFocused }
     
     init(workout: Workout, exercise: Exercise?, workoutExercise: Binding<WorkoutExercise>) {
         self.workout = workout
@@ -237,6 +238,7 @@ struct ExerciseInfo: View {
                     } label: {
                         Text("Done")
                     }
+                    .disabled(!isAnyFieldFocused)
                 }
             }
         }

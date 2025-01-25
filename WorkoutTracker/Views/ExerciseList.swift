@@ -18,6 +18,7 @@ struct ExerciseList: View {
     @State private var searchText: String = ""
     
     @FocusState private var isSearchFocused: Bool
+    var isAnyFieldFocused: Bool { isSearchFocused }
     
     var filteredExercises: [Exercise] {
             if searchText.isEmpty {
@@ -122,6 +123,7 @@ struct ExerciseList: View {
                     } label: {
                         Text("Done")
                     }
+                    .disabled(!isAnyFieldFocused)
                 }
             }
         }

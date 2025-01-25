@@ -35,6 +35,20 @@ class WorkoutLog: Identifiable, Codable {
         }
     }
     
+    func updateWorkoutLog() {
+        for exercise in workout.exercises {
+            if exerciseLogs.firstIndex (where: { $0.exercise.id == exercise.id }) == -1 {
+                exerciseLogs.append(ExerciseLog(index: exercise.index, exercise: exercise))
+            }
+        }
+        
+        for exerciseLog in exerciseLogs {
+            if workout.exercises.firstIndex (where: { $0.id == exerciseLog.exercise.id }) == -1 {
+                exerciseLogs.remove(at: exerciseLogs.firstIndex(of: exerciseLog)!)
+            }
+        }
+    }
+    
     func finishWorkout() {
         for exerciseLog in exerciseLogs {
             if !exerciseLog.completed {

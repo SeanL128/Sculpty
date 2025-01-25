@@ -15,6 +15,8 @@ struct WorkoutList: View {
     
     @State var delete: (Bool, Workout) = (false, Workout())
     
+    @State private var shareSheetURL: IdentifiableURL?
+    
     var onWorkoutSelected: (Workout, WorkoutLog) -> Void
     
     var body: some View {
@@ -95,6 +97,9 @@ struct WorkoutList: View {
                                 exportData(workout: workout)
                             }
                             .tint(.blue)
+                            .sheet(item: $shareSheetURL) { url in
+                                ShareSheet(url: url.url)
+                            }
                         }
                     }
                     .onMove { from, to in
@@ -124,14 +129,6 @@ struct WorkoutList: View {
                 }
             }
             .navigationBarHidden(true)
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") {
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                    }
-                }
-            }
         }
         .ignoresSafeArea(.keyboard)
     }
@@ -145,7 +142,7 @@ struct WorkoutList: View {
             let temporaryURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(workout.name).json")
             try data.write(to: temporaryURL)
             
-            presentShareSheet(url: temporaryURL)
+            shareSheetURL = IdentifiableURL(url: temporaryURL)
         } catch {
             print("Failed to export \(workout.name): \(error.localizedDescription)")
         }

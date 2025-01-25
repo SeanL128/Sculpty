@@ -57,9 +57,9 @@ struct ViewWorkout: View {
                             Spacer()
                         }
                         
-                        NavigationLink(destination: EditWorkout(workout: viewModel.workout)) {
-                            Image(systemName: "pencil")
-                        }
+//                        NavigationLink(destination: EditWorkout(workout: viewModel.workout)) {
+//                            Image(systemName: "pencil")
+//                        }
                         
                         if !log.completed {
                             Spacer()

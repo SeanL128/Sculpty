@@ -20,6 +20,9 @@ struct EditSet: View {
     
     @FocusState private var isRepsFocused: Bool
     @FocusState private var isWeightFocused: Bool
+    var isAnyFieldFocused: Bool {
+        isRepsFocused || isWeightFocused
+    }
     
     init (set: Binding<ExerciseSet>, exerciseStatus: Binding<Int> = .constant(0), isPresented: Binding<Bool> = .constant(false)) {
         self._set = set
@@ -166,6 +169,7 @@ struct EditSet: View {
                     } label: {
                         Text("Done")
                     }
+                    .disabled(!isAnyFieldFocused)
                 }
             }
             

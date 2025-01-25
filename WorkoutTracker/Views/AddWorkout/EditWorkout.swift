@@ -19,6 +19,9 @@ struct EditWorkout: View {
     
     @FocusState private var isNameFocused: Bool
     @FocusState private var isNotesFocused: Bool
+    var isAnyFieldFocused: Bool {
+        isNameFocused || isNotesFocused
+    }
     
     init(workout: Workout) {
         _viewModel = StateObject(wrappedValue: WorkoutViewModel(workout: workout))
@@ -125,6 +128,7 @@ struct EditWorkout: View {
                     } label: {
                         Text("Done")
                     }
+                    .disabled(!isAnyFieldFocused)
                 }
             }
         }

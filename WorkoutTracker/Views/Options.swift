@@ -16,6 +16,8 @@ struct Options: View {
     @Query private var workoutLogs: [WorkoutLog]
     
     @State private var showExportSheet: Bool = false
+    @State private var shareSheetURL: IdentifiableURL?
+    
     @State private var showImportSheet: Bool = false
     
     @State private var showResetConfirmation1: Bool = false
@@ -130,6 +132,9 @@ struct Options: View {
                 .padding()
                 .padding(.top, 20)
                 .presentationDetents([.fraction(0.26), .medium])
+                .sheet(item: $shareSheetURL) { url in
+                    ShareSheet(url: url.url)
+                }
             }
             
             
@@ -195,7 +200,7 @@ struct Options: View {
             let temporaryURL = FileManager.default.temporaryDirectory.appendingPathComponent("WorkoutTrackerData.json")
             try data.write(to: temporaryURL)
             
-            presentShareSheet(url: temporaryURL)
+            shareSheetURL = IdentifiableURL(url: temporaryURL)
         } catch {
             print("Failed to export workouts: \(error.localizedDescription)")
         }

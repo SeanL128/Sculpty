@@ -19,6 +19,9 @@ struct AddWorkout: View {
     
     @FocusState private var isNameFocused: Bool
     @FocusState private var isNotesFocused: Bool
+    var isAnyFieldFocused: Bool {
+        isNameFocused || isNotesFocused
+    }
      
     var body: some View {
         NavigationStack {
@@ -99,6 +102,7 @@ struct AddWorkout: View {
                     
                     viewModel.workout.name = viewModel.workoutName
                     viewModel.workout.exercises = viewModel.exercises
+                    viewModel.workout.notes = viewModel.notes
                     
                     context.insert(viewModel.workout)
                     context.insert(WorkoutLog(workout: viewModel.workout))
@@ -134,6 +138,7 @@ struct AddWorkout: View {
                     } label: {
                         Text("Done")
                     }
+                    .disabled(!isAnyFieldFocused)
                 }
             }
         }

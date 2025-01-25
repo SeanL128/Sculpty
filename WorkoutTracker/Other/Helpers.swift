@@ -32,14 +32,6 @@ func formatDate(_ date: Date) -> String {
     return dateFormatter.string(from: date)
 }
 
-func presentShareSheet(url: URL) {
-    let activityViewController = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-       let rootViewController = windowScene.windows.first?.rootViewController {
-        rootViewController.present(activityViewController, animated: true, completion: nil)
-    }
-}
-
 // Extensions
 extension View {
     func limitText(_ text: Binding<String>, to characterLimit: Int) -> some View {
@@ -48,4 +40,16 @@ extension View {
                 text.wrappedValue = String(text.wrappedValue.prefix(characterLimit))
             }
     }
+}
+
+// Structs
+struct ShareSheet: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let activityVC = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+        return activityVC
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) { }
 }
