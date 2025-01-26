@@ -34,14 +34,14 @@ struct WorkoutList: View {
                         Image(systemName: "square.and.arrow.down")
                     }
                     
-                    NavigationLink(destination: AddWorkout()) {
+                    NavigationLink(destination: AddWorkout(index: (workouts.map { $0.index }.max() ?? -1) + 1)) {
                         Image(systemName: "plus")
                     }
                 }
                 .padding()
                 
                 List {
-                    ForEach(workouts) { workout in
+                    ForEach(workouts.sorted { $0.index < $1.index }) { workout in
                         HStack {
                             if let todayLog = workoutLogs.first(where: { log in
                                 log.workout.id == workout.id &&
@@ -103,21 +103,28 @@ struct WorkoutList: View {
                         }
                     }
                     .onMove { from, to in
-                        var copy = workouts
-                        copy.move(fromOffsets: from, toOffset: to)
+                        var reordered = workouts
+                        
+                        reordered.move(fromOffsets: from, toOffset: to)
+                        
+                        for (newIndex, workout) in reordered.enumerated() {
+                            if workout.index != newIndex {
+                                workout.index = newIndex
+                            }
+                        }
                         
                         for workout in workouts {
                             context.delete(workout)
                         }
                         
-                        for workout in copy {
+                        for workout in reordered {
                             context.insert(workout)
                         }
                         
                         try? context.save()
                     }
                 }
-                .backgroundStyle(.clear)
+                .scrollContentBackground(.hidden)
                 .confirmationDialog("Are you sure?", isPresented: $delete.0) {
                     Button("Delete \(delete.1.name)?", role: .destructive) {
                         context.delete(delete.1)

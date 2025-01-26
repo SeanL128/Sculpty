@@ -77,7 +77,7 @@ struct SelectExercise: View {
                     }
                 }
             }
-            .backgroundStyle(.clear)
+            .scrollContentBackground(.hidden)
             .listStyle(.sidebar)
             .toolbar {
                 ToolbarItem (placement: .topBarLeading) {

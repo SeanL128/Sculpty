@@ -81,7 +81,7 @@ struct PerformExercise: View {
                         .listRowBackground(backgroundColor)
                     }
                 }
-                .backgroundStyle(.clear)
+                .scrollContentBackground(.hidden)
                 .sheet(isPresented: $showEditSet, onDismiss: dismissed(setIndex: $editingIndex.0.id, logIndex: $editingIndex.1.id)) {
                     EditSet(set: $exercise.sets[editingIndex.0.id], exerciseStatus: $exerciseStatus, isPresented: $showEditSet)
                         .presentationDetents([.fraction(0.35), .medium])

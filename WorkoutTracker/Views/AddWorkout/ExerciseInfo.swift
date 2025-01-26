@@ -19,7 +19,6 @@ struct ExerciseInfo: View {
     @State private var restMinutes: Int
     @State private var restSeconds: Int
     @State private var specNotes: String
-    @State private var sets: [ExerciseSet]
     @State private var tempoArr: [String]
     
     @State private var selectingExercise: Bool = false
@@ -39,23 +38,21 @@ struct ExerciseInfo: View {
         let initialRestMinutes = Int(restTotalSeconds / 60)
         let initialRestSeconds = Int(restTotalSeconds - Double(initialRestMinutes * 60))
         let initialSpecNotes = workoutExercise.specNotes.wrappedValue
-        let initialSets = workoutExercise.sets.wrappedValue
         let initialTempoArr = workoutExercise.tempo.wrappedValue.map { String($0) }
         
         _restMinutes = State(initialValue: initialRestMinutes)
         _restSeconds = State(initialValue: initialRestSeconds)
         _specNotes = State(initialValue: initialSpecNotes)
-        _sets = State(initialValue: initialSets.isEmpty ? [ExerciseSet()] : initialSets.map { $0.copy() })
         _tempoArr = State(initialValue: initialTempoArr)
         
-        if sets.isEmpty {
+        if workoutExercise.sets.isEmpty {
             addSet()
         }
     }
 
     var body: some View {
         NavigationStack {
-            VStack {
+            ScrollView {
                 // Exercise Display
                 List {
                     HStack {
@@ -69,7 +66,7 @@ struct ExerciseInfo: View {
                     .lineLimit(2)
                     .truncationMode(.tail)
                 }
-                .backgroundStyle(.clear)
+                .scrollContentBackground(.hidden)
                 .frame(height: 100)
                 .sheet(isPresented: $selectingExercise) {
                     SelectExercise(selectedExercise: $exercise, selectingExercise: $selectingExercise)
@@ -86,7 +83,6 @@ struct ExerciseInfo: View {
                 // Workout-specific notes
                 TextField("Workout-Specific Notes", text: $specNotes, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
-                    .padding(.top, -10)
                     .padding(.horizontal)
                     .focused($isNotesFocused)
                 
@@ -96,24 +92,24 @@ struct ExerciseInfo: View {
                 
                 // Sets
                 List {
-                    ForEach(sets.sorted { $0.index < $1.index }, id: \.self) { set in
-                        let index = sets.firstIndex(of: set)!
+                    ForEach(workoutExercise.sets.sorted { $0.index < $1.index }, id: \.self) { set in
+                        let index = workoutExercise.sets.firstIndex(of: set)!
                         Button {
                             editingSet = (true, index)
                         } label: {
-                            setView(for: sets[index])
+                            setView(for: workoutExercise.sets[index])
                         }
                         .foregroundStyle(textColor)
                         .swipeActions {
                             Button("Delete") {
-                                sets.remove(at: index)
+                                workoutExercise.sets.remove(at: index)
                             }
                             .tint(.red)
                         }
                     }
                     .onDelete(perform: deleteSet)
                     .onMove { from, to in
-                        var reordered = sets
+                        var reordered = workoutExercise.sets
                         
                         reordered.move(fromOffsets: from, toOffset: to)
                         
@@ -123,12 +119,14 @@ struct ExerciseInfo: View {
                             }
                         }
                         
-                        sets = reordered
+                        workoutExercise.sets = reordered
                     }
                 }
-                .backgroundStyle(.clear)
+                .frame(height: CGFloat((workoutExercise.sets.count * 66) + (workoutExercise.sets.count < 5 ? (workoutExercise.sets.count < 4 ? (workoutExercise.sets.count < 3 ? (workoutExercise.sets.count < 2 ? 50 : 40) : 30) : 20) : 0)), alignment: .top)
+                .scrollDisabled(true)
+                .scrollContentBackground(.hidden)
                 .sheet(isPresented: $editingSet.0) {
-                    EditSet(set: $sets[editingSet.1])
+                    EditSet(set: $workoutExercise.sets[editingSet.1])
                         .presentationDetents([.fraction(0.35), .medium])
                 }
 
@@ -248,7 +246,7 @@ struct ExerciseInfo: View {
     
     
     private func save() {
-        guard !sets.isEmpty && exercise != nil else {
+        guard !workoutExercise.sets.isEmpty && exercise != nil else {
             showAlert = true
             return
         }
@@ -257,10 +255,9 @@ struct ExerciseInfo: View {
         workoutExercise.exercise = exercise
         
         // Sets
-        for set in sets {
+        for set in workoutExercise.sets {
             set.reps = max(0, set.reps)
         }
-        workoutExercise.sets = sets.map { $0.copy() }
         
         // Rest
         let restTotalSeconds = (Double(restMinutes) * 60) + Double(restSeconds)
@@ -281,12 +278,12 @@ struct ExerciseInfo: View {
     }
     
     private func deleteSet(at offsets: IndexSet) {
-        sets.remove(atOffsets: offsets)
+        workoutExercise.sets.remove(atOffsets: offsets)
     }
 
     private func addSet() {
-        let nextIndex = sets.map { $0.index }.max() ?? -1
-        sets.append(ExerciseSet(index: nextIndex + 1))
+        let nextIndex = (workoutExercise.sets.map { $0.index }.max() ?? -1) + 1
+        workoutExercise.sets.append(ExerciseSet(index: nextIndex))
     }
     
     private func setView(for set: ExerciseSet) -> some View {

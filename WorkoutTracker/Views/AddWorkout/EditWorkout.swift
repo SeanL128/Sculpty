@@ -1,8 +1,8 @@
 //
-//  EditWorkout.swift
+//  AddWorkout.swift
 //  WorkoutTracker
 //
-//  Created by Sean Lindsay on 1/12/25.
+//  Created by Sean Lindsay on 1/25/25.
 //
 
 import SwiftUI
@@ -10,9 +10,11 @@ import SwiftData
 
 struct EditWorkout: View {
     @Environment(\.modelContext) var context
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss) var dismiss
     
-    @StateObject private var viewModel: WorkoutViewModel
+    @Query var workouts: [Workout]
+    
+    @State var workout: Workout
     
     @State private var titleAlert: Bool = false
     @State private var exercisesAlert: Bool = false
@@ -24,34 +26,34 @@ struct EditWorkout: View {
     }
     
     init(workout: Workout) {
-        _viewModel = StateObject(wrappedValue: WorkoutViewModel(workout: workout))
+        self._workout = State(initialValue: workout)
     }
     
     var body: some View {
         NavigationStack {
             VStack {
-                TextField("Workout Name", text: $viewModel.workoutName)
+                TextField("Workout Name", text: $workout.name)
                     .textFieldStyle(.roundedBorder)
                     .textInputAutocapitalization(.words)
                     .focused($isNameFocused)
                 
                 List {
-                    ForEach(viewModel.exercises.sorted { $0.index < $1.index }, id: \.self) { exercise in
-                        let index = viewModel.exercises.firstIndex(of: exercise)!
+                    ForEach(workout.exercises.sorted { $0.index < $1.index }, id: \.self) { exercise in
+                        let index = workout.exercises.firstIndex(of: exercise)!
                         HStack {
                             Text(exercise.exercise?.name ?? "Select Exercise")
-                            NavigationLink(destination: ExerciseInfo(workout: viewModel.workout, exercise: exercise.exercise ?? nil, workoutExercise: $viewModel.exercises[index])) {
+                            NavigationLink(destination: ExerciseInfo(workout: workout, exercise: exercise.exercise ?? nil, workoutExercise: $workout.exercises[index])) {
                             }
                         }
                         .swipeActions {
                             Button("Delete") {
-                                viewModel.removeExercise(at: index)
+                                workout.exercises.remove(at: index)
                             }
                             .tint(.red)
                         }
                     }
                     .onMove { from, to in
-                        var reordered = viewModel.exercises
+                        var reordered = workout.exercises
                         
                         reordered.move(fromOffsets: from, toOffset: to)
                         
@@ -61,19 +63,14 @@ struct EditWorkout: View {
                             }
                         }
                         
-                        viewModel.exercises = reordered
+                        workout.exercises = reordered
                     }
                 }
-                .backgroundStyle(.clear)
-                
-                
-                TextField("Notes", text: $viewModel.notes, axis: .vertical)
-                    .textFieldStyle(.roundedBorder)
-                    .focused($isNotesFocused)
-                
+                .scrollContentBackground(.hidden)
                 
                 Button {
-                    viewModel.addExercise()
+                    let nextIndex = (workout.exercises.map { $0.index }.max() ?? -1) + 1
+                    workout.exercises.append(WorkoutExercise(index: nextIndex))
                 } label: {
                     HStack {
                         Image(systemName: "plus")
@@ -81,21 +78,37 @@ struct EditWorkout: View {
                     }
                 }
                 
+                
+                TextField("Notes", text: $workout.notes, axis: .vertical)
+                    .textFieldStyle(.roundedBorder)
+                    .focused($isNotesFocused)
+                
+                
                 Button {
-                    guard !viewModel.workoutName.isEmpty else {
+                    guard !workout.name.isEmpty else {
                         titleAlert = true
                         return
                     }
                     
-                    guard viewModel.exercises.count > 0 else {
+                    var blanks: [Int] = []
+                    for exercise in workout.exercises {
+                        if exercise.exercise == nil {
+                            blanks.append(exercise.index)
+                            workout.exercises.remove(at: workout.exercises.firstIndex(of: exercise)!)
+                        }
+                    }
+                    
+                    guard workout.exercises.count > 0 else {
+                        for index in blanks {
+                            workout.exercises.append(WorkoutExercise(index: index))
+                        }
+                        
                         exercisesAlert = true
                         return
                     }
                     
-                    viewModel.workout.name = viewModel.workoutName
-                    viewModel.workout.exercises = viewModel.exercises
-                    
-                    context.insert(WorkoutLog(workout: viewModel.workout))
+                    context.insert(workout)
+                    context.insert(WorkoutLog(workout: workout))
 
                     try? context.save()
                     
@@ -117,7 +130,7 @@ struct EditWorkout: View {
                 }
             }
             .padding()
-            .navigationTitle("Edit Workout")
+            .navigationTitle("Add Workout")
             .toolbar {
                 ToolbarItemGroup (placement: .keyboard) {
                     Spacer()
