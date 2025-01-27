@@ -124,7 +124,13 @@ struct PerformExercise: View {
             
             Spacer()
             
-            Text("\(set.rir) RIR")
+            if !["Warm Up", "Cool Down"].contains(set.type) {
+                if set.rir == "Failure" {
+                    Text(set.rir)
+                } else {
+                    Text("\(set.rir) RIR")
+                }
+            }
         }
         .frame(height: 37)
     }

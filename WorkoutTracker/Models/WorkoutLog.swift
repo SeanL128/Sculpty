@@ -61,6 +61,7 @@ class WorkoutLog: Identifiable, Codable {
             }
         }
         
+        end = Date().timeIntervalSince1970.rounded()
         completed = true
     }
 
@@ -87,6 +88,18 @@ class WorkoutLog: Identifiable, Codable {
     
     func getLength() -> Double {
         return end - start
+    }
+    
+    func getMuscleGroupBreakdown() -> [MuscleGroup] {
+        var muscleGroups: [MuscleGroup] = []
+        
+        for log in exerciseLogs {
+            if !muscleGroups.contains(MuscleGroup(rawValue: (log.exercise.exercise?.muscleGroup)!.rawValue) ?? .other) {
+                muscleGroups.append(MuscleGroup(rawValue: (log.exercise.exercise?.muscleGroup)!.rawValue) ?? .other)
+            }
+        }
+        
+        return muscleGroups
     }
     
     enum CodingKeys: String, CodingKey {

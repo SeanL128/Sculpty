@@ -80,12 +80,6 @@ struct ExerciseInfo: View {
                     }
                 }
                 
-                // Workout-specific notes
-                TextField("Workout-Specific Notes", text: $specNotes, axis: .vertical)
-                    .textFieldStyle(.roundedBorder)
-                    .padding(.horizontal)
-                    .focused($isNotesFocused)
-                
                 
                 Spacer()
                 
@@ -217,6 +211,12 @@ struct ExerciseInfo: View {
                         .presentationDetents([.fraction(0.2), .medium])
                 }
                 
+                // Workout-specific notes
+                TextField("Workout-Specific Notes", text: $specNotes, axis: .vertical)
+                    .textFieldStyle(.roundedBorder)
+                    .padding(.horizontal)
+                    .focused($isNotesFocused)
+                
                 Button("Save") {
                     save()
                 }
@@ -277,15 +277,15 @@ struct ExerciseInfo: View {
         dismiss()
     }
     
-    private func deleteSet(at offsets: IndexSet) {
-        workoutExercise.sets.remove(atOffsets: offsets)
-    }
-
     private func addSet() {
         let nextIndex = (workoutExercise.sets.map { $0.index }.max() ?? -1) + 1
         workoutExercise.sets.append(ExerciseSet(index: nextIndex))
     }
     
+    private func deleteSet(at offsets: IndexSet) {
+        workoutExercise.sets.remove(atOffsets: offsets)
+    }
+
     private func setView(for set: ExerciseSet) -> some View {
         HStack {
             ZStack {
@@ -306,7 +306,13 @@ struct ExerciseInfo: View {
             
             Spacer()
             
-            Text("\(set.rir) RIR")
+            if !["Warm Up", "Cool Down"].contains(set.type) {
+                if set.rir == "Failure" {
+                    Text(set.rir)
+                } else {
+                    Text("\(set.rir) RIR")
+                }
+            }
         }
         .frame(height: 37)
     }

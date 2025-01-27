@@ -47,6 +47,11 @@ struct MainView: View {
                         Label("Stats", systemImage: "chart.xyaxis.line")
                     }
                 
+                ViewLogs()
+                    .tabItem {
+                        Label("Logs", systemImage: "list.bullet.clipboard.fill")
+                    }
+                
                 Options()
                     .tabItem {
                         Label("Options", systemImage: "gearshape.fill")

@@ -15,7 +15,8 @@ struct WorkoutList: View {
     
     @State var delete: (Bool, Workout) = (false, Workout())
     
-    @State private var shareSheetURL: IdentifiableURL?
+    @State private var exporting: Bool = false
+    @State private var importing: Bool = false
     
     var onWorkoutSelected: (Workout, WorkoutLog) -> Void
     
@@ -29,9 +30,36 @@ struct WorkoutList: View {
                     Spacer()
                     
                     Button {
-                        showDocumentPicker()
+                        importing = true
                     } label: {
                         Image(systemName: "square.and.arrow.down")
+                    }
+                    .fileImporter(
+                        isPresented: $importing,
+                        allowedContentTypes: [.json],
+                        allowsMultipleSelection: false
+                    ) { result in
+                        print("result: \(result)")
+                        
+                        switch result {
+                        case .success(let urls):
+                            guard let url = urls.first else { return }
+                            guard let importedData = try? Data(contentsOf: url) else { return }
+                            let decoder = JSONDecoder()
+                            let workout = try? decoder.decode(Workout.self, from: importedData)
+                            
+                            context.insert(Workout(name: workout!.name, exercises: workout!.exercises, notes: workout!.notes))
+                            context.insert(WorkoutLog(workout: workout!))
+
+                            do {
+                                try context.save()
+                                importing = false
+                            } catch {
+                                print("Failed to save imported data: \(error.localizedDescription)")
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
                     }
                     
                     NavigationLink(destination: AddWorkout(index: (workouts.map { $0.index }.max() ?? -1) + 1)) {
@@ -94,12 +122,22 @@ struct WorkoutList: View {
                             .tint(.red)
                             
                             Button("Share") {
-                                exportData(workout: workout)
+                                exporting = true
+                            }
+                            .fileExporter(
+                                isPresented: $exporting,
+                                document: workout,
+                                contentType: .json,
+                                defaultFilename: "\(workout.name).json"
+                            ) { result in
+                                switch result {
+                                case .success(_):
+                                    exporting = false
+                                case .failure(let error):
+                                    print(error.localizedDescription)
+                                }
                             }
                             .tint(.blue)
-                            .sheet(item: $shareSheetURL) { url in
-                                ShareSheet(url: url.url)
-                            }
                         }
                     }
                     .onMove { from, to in
@@ -138,74 +176,6 @@ struct WorkoutList: View {
             .navigationBarHidden(true)
         }
         .ignoresSafeArea(.keyboard)
-    }
-    
-    private func exportData(workout: Workout) {
-        do {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            let data = try encoder.encode(workout)
-            
-            let temporaryURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(workout.name).json")
-            try data.write(to: temporaryURL)
-            
-            shareSheetURL = IdentifiableURL(url: temporaryURL)
-        } catch {
-            print("Failed to export \(workout.name): \(error.localizedDescription)")
-        }
-    }
-    
-    private func showDocumentPicker() {
-        let coordinator = WorkoutDocumentPickerCoordinator { importedData in
-            if let importedData = importedData {
-                self.importData(workout: importedData)
-            }
-        }
-        coordinator.showDocumentPicker()
-    }
-    
-    private func importData(workout: Workout) {
-        context.insert(Workout(name: workout.name, exercises: workout.exercises, notes: workout.notes))
-        
-        do {
-            try context.save()
-        } catch {
-            print("Failed to save imported \(workout.name): \(error.localizedDescription)")
-        }
-    }
-}
-
-class WorkoutDocumentPickerCoordinator: NSObject, UIDocumentPickerDelegate {
-    private let onImport: (Workout?) -> Void
-    
-    init(onImport: @escaping (Workout?) -> Void) {
-        self.onImport = onImport
-    }
-    
-    func showDocumentPicker() {
-        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.json])
-        documentPicker.delegate = self
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootViewController = windowScene.windows.first?.rootViewController {
-            rootViewController.present(documentPicker, animated: true, completion: nil)
-        }
-    }
-    
-    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        guard let fileURL = urls.first else {
-            onImport(nil)
-            return
-        }
-        
-        do {
-            let data = try Data(contentsOf: fileURL)
-            let decoder = JSONDecoder()
-            let importedData = try decoder.decode(Workout.self, from: data)
-            onImport(importedData)
-        } catch {
-            print("Failed to import workouts: \(error.localizedDescription)")
-            onImport(nil)
-        }
     }
 }
 

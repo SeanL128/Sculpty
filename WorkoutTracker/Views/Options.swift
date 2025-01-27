@@ -15,10 +15,11 @@ struct Options: View {
     @Query private var exercises: [Exercise]
     @Query private var workoutLogs: [WorkoutLog]
     
-    @State private var showExportSheet: Bool = false
-    @State private var shareSheetURL: IdentifiableURL?
-    
     @State private var showImportSheet: Bool = false
+    @State private var showExportSheet: Bool = false
+    
+    @State private var importing: Bool = false
+    @State private var exporting: Bool = false
     
     @State private var showResetConfirmation1: Bool = false
     @State private var showResetConfirmation2: Bool = false
@@ -61,7 +62,9 @@ struct Options: View {
                 Alert(title: Text("Error"),
                       message: Text("There was an error when importing your data. Please make sure that you are uploading the correct file. You may need to try again later or report an issue."))
             }
-            .sheet(isPresented: $showImportSheet) {
+            .sheet(isPresented: $showImportSheet, onDismiss: {
+                importing = false
+            }) {
                 VStack {
                     Text("Select what to import")
                     
@@ -89,15 +92,70 @@ struct Options: View {
                         .fixedSize(horizontal: false, vertical: true)
                     
                     Button {
-                        showDocumentPicker()
+                        importing = true
                     } label: {
                         Text("Import")
                     }
-                    .padding(.top, 10)
+                    .buttonStyle(.borderedProminent)
+                    .fileImporter(
+                        isPresented: $importing,
+                        allowedContentTypes: [.json],
+                        allowsMultipleSelection: false
+                    ) { result in
+                        print("result: \(result)")
+                        
+                        switch result {
+                        case .success(let urls):
+                            guard let url = urls.first else { return }
+                            guard let importedData = try? Data(contentsOf: url) else { return }
+                            let decoder = JSONDecoder()
+                            let data = try? decoder.decode(ExportData.self, from: importedData)
+                            
+                            if workoutsSelected {
+                                let existingWorkouts = try? context.fetch(FetchDescriptor<Workout>())
+                                for workout in data!.workouts {
+                                    if !allowDuplicates && existingWorkouts?.contains(where: { $0.name == workout.name}) ?? false {
+                                        context.delete(existingWorkouts!.first(where: { $0.name == workout.name })!)
+                                    }
+                                    
+                                    context.insert(Workout(name: workout.name, exercises: workout.exercises, notes: workout.notes))
+                                    context.insert(WorkoutLog(workout: workout))
+                                }
+                            }
+
+                            if exercisesSelected {
+                                let existingExercises = try? context.fetch(FetchDescriptor<Exercise>())
+                                for exercise in data!.exercises {
+                                    if !allowDuplicates && existingExercises?.contains(where: { $0.name == exercise.name }) ?? false {
+                                        context.delete(existingExercises!.first(where: { $0.name == exercise.name })!)
+                                    }
+                                    
+                                    context.insert(Exercise(name: exercise.name, notes: exercise.notes, muscleGroup: exercise.muscleGroup ?? .other))
+                                }
+                            }
+
+                            if workoutLogsSelected {
+                                for log in data!.workoutLogs {
+                                    context.insert(WorkoutLog(workout: log.workout, started: log.started, completed: log.completed, start: log.start, end: log.end, exerciseLogs: log.exerciseLogs))
+                                }
+                            }
+
+                            do {
+                                try context.save()
+                                importing = false
+                                showImportSuccessAlert = true
+                            } catch {
+                                print("Failed to save imported data: \(error.localizedDescription)")
+                                showImportFailAlert = true
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
                 }
                 .padding()
                 .padding(.top, 20)
-                .presentationDetents([.fraction(0.41), .medium])
+                .presentationDetents([.fraction(0.42), .medium])
             }
             
             
@@ -107,7 +165,9 @@ struct Options: View {
                 Text("Export Data")
             }
             .buttonStyle(.borderedProminent)
-            .sheet(isPresented: $showExportSheet) {
+            .sheet(isPresented: $showExportSheet, onDismiss: {
+                exporting = false
+            }) {
                 VStack {
                     Text("Select what to export")
                     
@@ -124,17 +184,27 @@ struct Options: View {
                     }
                     
                     Button {
-                        exportData()
+                        exporting = true
                     } label: {
                         Text("Export")
+                    }
+                    .fileExporter(
+                        isPresented: $exporting,
+                        document: ExportData(workouts: workouts, exercises: exercises.filter { !defaultExercises.contains($0) }, workoutLogs: workoutLogs),
+                        contentType: .json,
+                        defaultFilename: "WorkoutTrackerData.json"
+                    ) { result in
+                        switch result {
+                        case .success(_):
+                            exporting = false
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
                     }
                 }
                 .padding()
                 .padding(.top, 20)
                 .presentationDetents([.fraction(0.26), .medium])
-                .sheet(item: $shareSheetURL) { url in
-                    ShareSheet(url: url.url)
-                }
             }
             
             
@@ -156,7 +226,7 @@ struct Options: View {
             }
             .confirmationDialog("It is recommended that you export your data before proceeding.", isPresented: $showResetConfirmation3, titleVisibility: .visible) {
                 Button("Export then reset", role: .destructive) {
-                    exportData()
+                    exporting = true
                     clearContext()
                     showResetAlert = true
                 }
@@ -189,74 +259,6 @@ struct Options: View {
         .padding()
     }
     
-    private func exportData() {
-        do {
-            let exportData = ExportData(workouts: workoutsSelected ? workouts : [], exercises: exercisesSelected ? exercises : [], workoutLogs: workoutLogsSelected ? workoutLogs : [])
-            
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            let data = try encoder.encode(exportData)
-            
-            let temporaryURL = FileManager.default.temporaryDirectory.appendingPathComponent("WorkoutTrackerData.json")
-            try data.write(to: temporaryURL)
-            
-            shareSheetURL = IdentifiableURL(url: temporaryURL)
-        } catch {
-            print("Failed to export workouts: \(error.localizedDescription)")
-        }
-    }
-    
-    private func showDocumentPicker() {
-        let coordinator = ExportDataDocumentPickerCoordinator { importedData in
-            if let importedData = importedData {
-                self.importData(data: importedData)
-            }
-        }
-        coordinator.showDocumentPicker()
-    }
-    
-    private func importData(data: ExportData) {
-        if workoutsSelected {
-            let existingWorkouts = try? context.fetch(FetchDescriptor<Workout>())
-            for workout in data.workouts {
-                if let result = (existingWorkouts?.filter { $0.name == workout.name }), !result.isEmpty {
-                    for existingWorkout in result {
-                        context.delete(existingWorkout)
-                    }
-                }
-                
-                context.insert(Workout(name: workout.name, exercises: workout.exercises, notes: workout.notes))
-            }
-        }
-        
-        if exercisesSelected {
-            let existingExercises = try? context.fetch(FetchDescriptor<Exercise>())
-            for exercise in data.exercises {
-                if let result = (existingExercises?.filter { $0.name == exercise.name }), !result.isEmpty {
-                    for existingExercise in result {
-                        context.delete(existingExercise)
-                    }
-                }
-                
-                context.insert(Exercise(name: exercise.name, notes: exercise.notes, muscleGroup: exercise.muscleGroup ?? .other))
-            }
-        }
-        
-        if workoutLogsSelected {
-            for log in data.workoutLogs {
-                context.insert(WorkoutLog(workout: log.workout, started: log.started, completed: log.completed, start: log.start, end: log.end, exerciseLogs: log.exerciseLogs))
-            }
-        }
-        
-        do {
-            try context.save()
-            showImportSuccessAlert = true
-        } catch {
-            print("Failed to save imported data: \(error.localizedDescription)")
-            showImportFailAlert = true
-        }
-    }
-    
     private func clearContext() {
         do {
             try context.delete(model: Workout.self)
@@ -266,40 +268,6 @@ struct Options: View {
             try context.save()
         } catch {
             print("Failed to clear context: \(error.localizedDescription)")
-        }
-    }
-}
-
-class ExportDataDocumentPickerCoordinator: NSObject, UIDocumentPickerDelegate {
-    private let onImport: (ExportData?) -> Void
-    
-    init(onImport: @escaping (ExportData?) -> Void) {
-        self.onImport = onImport
-    }
-    
-    func showDocumentPicker() {
-        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.json])
-        documentPicker.delegate = self
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootViewController = windowScene.windows.first?.rootViewController {
-            rootViewController.present(documentPicker, animated: true, completion: nil)
-        }
-    }
-    
-    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        guard let fileURL = urls.first else {
-            onImport(nil)
-            return
-        }
-        
-        do {
-            let data = try Data(contentsOf: fileURL)
-            let decoder = JSONDecoder()
-            let importedData = try decoder.decode(ExportData.self, from: data)
-            onImport(importedData)
-        } catch {
-            print("Failed to import workouts: \(error.localizedDescription)")
-            onImport(nil)
         }
     }
 }

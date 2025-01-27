@@ -117,18 +117,20 @@ struct EditSet: View {
                 .clipped()
                 
                 // RIR
-                HStack {
-                    Text("RIR")
-                        .padding(.horizontal, 5)
-                    
-                    Picker("RIR", selection: $set.rir) {
-                        ForEach(["Failure", "0", "1", "2"], id: \.self) { rir in
-                            Text("\(rir)")
-                                .tag(rir)
+                if ["Main", "Drop Set"].contains(set.type) {
+                    HStack {
+                        Text("RIR")
+                            .padding(.horizontal, 5)
+                        
+                        Picker("RIR", selection: $set.rir) {
+                            ForEach(["Failure", "0", "1", "2"], id: \.self) { rir in
+                                Text("\(rir)")
+                                    .tag(rir)
+                            }
                         }
+                        .pickerStyle(.segmented)
+                        .clipped()
                     }
-                    .pickerStyle(.segmented)
-                    .clipped()
                 }
             }
             .padding(.horizontal)

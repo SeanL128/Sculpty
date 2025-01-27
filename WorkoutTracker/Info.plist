@@ -4,5 +4,9 @@
 <dict>
 	<key>UIBackgroundModes</key>
 	<array/>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict/>
+	</array>
 </dict>
 </plist>
