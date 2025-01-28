@@ -28,6 +28,12 @@ To install this app, you need to be able to sideload a .ipa file on your iPhone.
 - **SwiftData**: For local data storage
 - **Swift Charts**: To visualize user's stats and progress
 
+## Roadmap
+Here are some planned features for future updates:
+- Simple calorie tracking
+- Ability to track weight and other measurements
+- Workout templates for quicker startup
+
 ## Contribution
 We welcome contributions! If you'd like to contribute:
 1. Fork this repository
@@ -41,3 +47,4 @@ This project is licensed under the [MIT License](LICENSE). See the LICENSE file 
 
 ## Acknowledgements
 - [AltStore](https://altstore.io/) and [SideStore](https://sidestore.io/) for sideloading guidance
+- Special thanks to my friend Matthew for help with brainstorming ideas
