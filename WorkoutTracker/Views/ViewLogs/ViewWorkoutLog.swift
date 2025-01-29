@@ -41,7 +41,7 @@ struct ViewWorkoutLog: View {
                 }
                 .confirmationDialog("Are you sure?", isPresented: $delete.0) {
                     Button("Delete log from \(formatDateWithTime(Date(timeIntervalSince1970: delete.1.start)))?", role: .destructive) {
-                        context.delete(delete.1)
+                        workoutLog.exerciseLogs.removeAll { $0.id == delete.1.id }
                         
                         try? context.save()
                         

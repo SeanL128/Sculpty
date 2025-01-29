@@ -46,7 +46,9 @@ struct ExerciseInfo: View {
         _tempoArr = State(initialValue: initialTempoArr)
         
         if workoutExercise.sets.isEmpty {
-            addSet()
+            let newSet = ExerciseSet(index: 0)
+            context.insert(newSet)
+            self.workoutExercise.sets.append(newSet)
         }
     }
 
@@ -125,7 +127,10 @@ struct ExerciseInfo: View {
                 }
 
                 Button {
-                    addSet()
+                    let nextIndex = (workoutExercise.sets.map { $0.index }.max() ?? -1) + 1
+                    let newSet = ExerciseSet(index: nextIndex)
+                    context.insert(newSet)
+                    workoutExercise.sets.append(newSet)
                 } label: {
                     HStack {
                         Image(systemName: "plus")
@@ -240,7 +245,6 @@ struct ExerciseInfo: View {
                 }
             }
         }
-        .ignoresSafeArea(.keyboard)
     }
     
     
@@ -275,11 +279,6 @@ struct ExerciseInfo: View {
         }
         
         dismiss()
-    }
-    
-    private func addSet() {
-        let nextIndex = (workoutExercise.sets.map { $0.index }.max() ?? -1) + 1
-        workoutExercise.sets.append(ExerciseSet(index: nextIndex))
     }
     
     private func deleteSet(at offsets: IndexSet) {
