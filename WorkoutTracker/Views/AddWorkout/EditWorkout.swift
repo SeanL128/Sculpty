@@ -70,9 +70,7 @@ struct EditWorkout: View {
                 
                 Button {
                     let nextIndex = (workout.exercises.map { $0.index }.max() ?? -1) + 1
-                    let newExercise = WorkoutExercise(index: nextIndex)
-                    context.insert(newExercise)
-                    workout.exercises.append(newExercise)
+                    workout.exercises.append(WorkoutExercise(index: nextIndex))
                 } label: {
                     HStack {
                         Image(systemName: "plus")

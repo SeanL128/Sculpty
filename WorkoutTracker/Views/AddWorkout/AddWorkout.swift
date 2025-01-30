@@ -27,6 +27,10 @@ struct AddWorkout: View {
     
     init(index: Int) {
         _workout = State(initialValue: Workout(index: index, name: "", exercises: [], notes: ""))
+        
+        for exercise in workout.exercises {
+            workout.exercises.removeAll { $0 == exercise }
+        }
     }
     
     var body: some View {
@@ -70,9 +74,7 @@ struct AddWorkout: View {
                 
                 Button {
                     let nextIndex = (workout.exercises.map { $0.index }.max() ?? -1) + 1
-                    let newExercise = WorkoutExercise(index: nextIndex)
-                    context.insert(newExercise)
-                    workout.exercises.append(newExercise)
+                    workout.exercises.append(WorkoutExercise(index: nextIndex))
                 } label: {
                     HStack {
                         Image(systemName: "plus")

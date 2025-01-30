@@ -87,8 +87,7 @@ struct MainView: View {
 
             if existingLogs.isEmpty {
                 for workout in workouts {
-                    let newLog = WorkoutLog(workout: workout)
-                    context.insert(newLog)
+                    context.insert(WorkoutLog(workout: workout))
                 }
 
                 try? context.save()

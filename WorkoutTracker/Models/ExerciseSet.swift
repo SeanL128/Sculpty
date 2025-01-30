@@ -11,6 +11,7 @@ import SwiftData
 @Model
 class ExerciseSet: Identifiable, Codable {
     @Attribute(.unique) var id = UUID()
+    var workoutExercise: WorkoutExercise?
     
     var index: Int
     var reps: Int

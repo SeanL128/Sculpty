@@ -11,10 +11,11 @@ import SwiftData
 @Model
 class WorkoutExercise: Identifiable, Codable {
     @Attribute(.unique) var id = UUID()
+    var workout: Workout?
     
     var index: Int
     var exercise: Exercise?
-    var sets: [ExerciseSet]
+    @Relationship(deleteRule: .cascade, inverse: \ExerciseSet.workoutExercise) var sets: [ExerciseSet]
     var restTime: TimeInterval
     var specNotes: String
     var tempo: String

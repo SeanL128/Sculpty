@@ -46,9 +46,7 @@ struct ExerciseInfo: View {
         _tempoArr = State(initialValue: initialTempoArr)
         
         if workoutExercise.sets.isEmpty {
-            let newSet = ExerciseSet(index: 0)
-            context.insert(newSet)
-            self.workoutExercise.sets.append(newSet)
+            self.workoutExercise.sets.append(ExerciseSet(index: 0))
         }
     }
 
@@ -128,9 +126,7 @@ struct ExerciseInfo: View {
 
                 Button {
                     let nextIndex = (workoutExercise.sets.map { $0.index }.max() ?? -1) + 1
-                    let newSet = ExerciseSet(index: nextIndex)
-                    context.insert(newSet)
-                    workoutExercise.sets.append(newSet)
+                    workoutExercise.sets.append(ExerciseSet(index: nextIndex))
                 } label: {
                     HStack {
                         Image(systemName: "plus")
