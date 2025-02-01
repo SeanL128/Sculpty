@@ -103,8 +103,8 @@ struct ExerciseList: View {
                     }
                 }
                 .scrollContentBackground(.hidden)
-                .confirmationDialog("Are you sure?", isPresented: $delete.0) {
-                    Button("Delete \(delete.1.name)?", role: .destructive) {
+                .confirmationDialog("Delete \(delete.1.name)?", isPresented: $delete.0, titleVisibility: .visible) {
+                    Button("Delete", role: .destructive) {
                         context.delete(delete.1)
                         try? context.save()
 

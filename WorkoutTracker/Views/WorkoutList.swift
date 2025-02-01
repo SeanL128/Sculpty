@@ -18,6 +18,8 @@ struct WorkoutList: View {
     @State private var exporting: Bool = false
     @State private var importing: Bool = false
     
+    @State private var showImportFailAlert: Bool = false
+    
     var onWorkoutSelected: (Workout, WorkoutLog) -> Void
     
     var body: some View {
@@ -34,29 +36,81 @@ struct WorkoutList: View {
                     } label: {
                         Image(systemName: "square.and.arrow.down")
                     }
+                    .padding(.horizontal, 10)
+                    .alert(isPresented: $showImportFailAlert) {
+                        Alert(title: Text("Error"),
+                              message: Text("There was an error when importing this workout. Please make sure that you are selecting the correct file. You may need to try again later or report an issue."))
+                    }
                     .fileImporter(
                         isPresented: $importing,
                         allowedContentTypes: [.json],
                         allowsMultipleSelection: false
                     ) { result in
-                        print("result: \(result)")
-                        
                         switch result {
                         case .success(let urls):
                             guard let url = urls.first else { return }
-                            guard let importedData = try? Data(contentsOf: url) else { return }
-                            let decoder = JSONDecoder()
-                            let workout = try? decoder.decode(Workout.self, from: importedData)
                             
-                            context.insert(Workout(name: workout!.name, exercises: workout!.exercises, notes: workout!.notes))
-                            context.insert(WorkoutLog(workout: workout!))
-
-                            do {
-                                try context.save()
-                                importing = false
-                            } catch {
-                                print("Failed to save imported data: \(error.localizedDescription)")
+                            guard url.startAccessingSecurityScopedResource() else {
+                                showImportFailAlert = true
+                                return
                             }
+                            
+                            guard let importedData = try? Data(contentsOf: url) else {
+                                showImportFailAlert = true
+                                return
+                            }
+                            
+                            url.stopAccessingSecurityScopedResource()
+                            
+                            let decoder = JSONDecoder()
+                            
+                            guard let workout = try? decoder.decode(Workout.self, from: importedData) else {
+                                showImportFailAlert = true
+                                return
+                            }
+                            
+                            DispatchQueue.main.async {
+                                var exercises: [WorkoutExercise] = []
+                                for workoutExercise in workout.exercises {
+                                    let exercise: Exercise = workoutExercise.exercise!
+                                    let existingExercise = try? context.fetch(FetchDescriptor<Exercise>()).first(where: { $0.name == exercise.name && $0.notes == exercise.notes && $0.muscleGroup == exercise.muscleGroup })
+                                    
+                                    if existingExercise != nil {
+                                        workoutExercise.exercise = existingExercise!
+                                    } else {
+                                        let newExercise = Exercise(name: exercise.name, notes: exercise.notes, muscleGroup: exercise.muscleGroup ?? .other)
+                                        workoutExercise.exercise = newExercise
+                                        context.insert(newExercise)
+                                    }
+                                    
+                                    exercises.append(workoutExercise)
+                                }
+                                
+                                let newWorkout = Workout(name: workout.name, exercises: [], notes: workout.notes)
+                                for workoutExercise in exercises {
+                                    workoutExercise.workout = newWorkout
+                                }
+                                
+                                context.insert(newWorkout)
+                                do {
+                                    try context.save()
+                                } catch {
+                                    print("Failed to save workout: \(error.localizedDescription)")
+                                }
+                                
+                                newWorkout.exercises = exercises
+                                
+                                context.insert(WorkoutLog(workout: newWorkout))
+
+                                do {
+                                    try context.save()
+                                } catch {
+                                    print("Failed to save imported data: \(error.localizedDescription)")
+                                    showImportFailAlert = true
+                                }
+                            }
+                            
+                            importing = false
                         case .failure(let error):
                             print(error.localizedDescription)
                         }
@@ -65,6 +119,7 @@ struct WorkoutList: View {
                     NavigationLink(destination: AddWorkout(index: (workouts.map { $0.index }.max() ?? -1) + 1)) {
                         Image(systemName: "plus")
                     }
+                    .padding(.horizontal, 10)
                 }
                 .padding()
                 
@@ -120,22 +175,10 @@ struct WorkoutList: View {
                                 delete.1 = workout
                             }
                             .tint(.red)
-                            
-                            Button("Share") {
-                                exporting = true
-                            }
-                            .fileExporter(
-                                isPresented: $exporting,
-                                document: workout,
-                                contentType: .json,
-                                defaultFilename: "\(workout.name).json"
-                            ) { result in
-                                switch result {
-                                case .success(_):
-                                    exporting = false
-                                case .failure(let error):
-                                    print(error.localizedDescription)
-                                }
+                        }
+                        .swipeActions(edge: .leading) {
+                            Button("Copy") {
+                                copyWorkout(workout: workout)
                             }
                             .tint(.blue)
                         }
@@ -163,8 +206,12 @@ struct WorkoutList: View {
                     }
                 }
                 .scrollContentBackground(.hidden)
-                .confirmationDialog("Are you sure?", isPresented: $delete.0) {
-                    Button("Delete \(delete.1.name)?", role: .destructive) {
+                .confirmationDialog("Delete \(delete.1.name)? This will also delete all related logs.", isPresented: $delete.0, titleVisibility: .visible) {
+                    Button("Delete", role: .destructive) {
+                        for log in (workoutLogs.filter { $0.workout == delete.1 }) {
+                            context.delete(log)
+                        }
+                        
                         context.delete(delete.1)
                         try? context.save()
                         
@@ -176,6 +223,29 @@ struct WorkoutList: View {
             .navigationBarHidden(true)
         }
         .ignoresSafeArea(.keyboard)
+    }
+    
+    private func copyWorkout(workout: Workout) {
+        let workoutCopy = Workout(index: (workouts.map { $0.index }.max() ?? -1) + 1, name: "Copy of \(workout.name)", exercises: [], notes: workout.notes)
+        
+        for exercise in workout.exercises {
+            let exerciseCopy = WorkoutExercise(index: exercise.index, exercise: exercise.exercise, sets: [], restTime: exercise.restTime, specNotes: exercise.specNotes, tempo: exercise.tempo)
+            
+            for exerciseSet in exercise.sets {
+                exerciseCopy.sets.append(ExerciseSet(index: exerciseSet.index, reps: exerciseSet.reps, weight: exerciseSet.weight, measurement: exerciseSet.measurement, type: exerciseSet.type, rir: exerciseSet.rir))
+            }
+            
+            workoutCopy.exercises.append(exerciseCopy)
+        }
+        
+        context.insert(workoutCopy)
+        context.insert(WorkoutLog(workout: workoutCopy))
+        
+        do {
+            try context.save()
+        } catch {
+            print("Failed to save workout copy: \(error.localizedDescription)")
+        }
     }
 }
 

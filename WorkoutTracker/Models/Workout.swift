@@ -18,7 +18,7 @@ class Workout: Identifiable, Codable, FileDocument {
     
     var index: Int
     var name: String
-    @Relationship(deleteRule: .cascade, inverse: \WorkoutExercise.workout) var exercises: [WorkoutExercise]
+    @Relationship(deleteRule: .deny, inverse: \WorkoutExercise.workout) var exercises: [WorkoutExercise]
     var notes: String
     
     init(index: Int = 0, name: String = "Workout", exercises: [WorkoutExercise] = [], notes: String = "Notes") {

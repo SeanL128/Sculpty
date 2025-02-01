@@ -17,7 +17,7 @@ class WorkoutLog: Identifiable, Codable {
     var completed: Bool
     var start: Double
     var end: Double
-    var exerciseLogs: [ExerciseLog] = []
+    @Relationship(deleteRule: .cascade, inverse: \ExerciseLog.workoutLog) var exerciseLogs: [ExerciseLog] = []
     
     init(workout: Workout, started: Bool = false, completed: Bool = false, start: Double = Date().timeIntervalSince1970.rounded(), end: Double = 0, exerciseLogs: [ExerciseLog]? = nil) {
         self.workout = workout

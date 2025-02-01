@@ -10,13 +10,13 @@ import SwiftData
 
 struct Options: View {
     @Environment(\.modelContext) var context
+    @Environment(\.dismiss) var dismiss
     
     @Query private var workouts: [Workout]
     @Query private var exercises: [Exercise]
     @Query private var workoutLogs: [WorkoutLog]
     
     @State private var showImportSheet: Bool = false
-    @State private var showExportSheet: Bool = false
     
     @State private var importing: Bool = false
     @State private var exporting: Bool = false
@@ -56,7 +56,7 @@ struct Options: View {
             .buttonStyle(.borderedProminent)
             .alert(isPresented: $showImportSuccessAlert) {
                 Alert(title: Text("Success"),
-                      message: Text("Your data has successfully been imported."))
+                      message: Text("Your data has successfully been imported.\n\nPlease note that there is a known issue with workout logs and they have not been imported."))
             }
             .alert(isPresented: $showImportFailAlert) {
                 Alert(title: Text("Error"),
@@ -76,9 +76,10 @@ struct Options: View {
                         Text("Exercises")
                     }
                     
-                    Toggle(isOn: $workoutLogsSelected) {
-                        Text("Logs")
-                    }
+                    // Will (hopefully) be re-enabled in a future update
+//                    Toggle(isOn: $workoutLogsSelected) {
+//                        Text("Logs")
+//                    }
                     
                     Divider()
                         .padding()
@@ -102,52 +103,104 @@ struct Options: View {
                         allowedContentTypes: [.json],
                         allowsMultipleSelection: false
                     ) { result in
-                        print("result: \(result)")
-                        
                         switch result {
                         case .success(let urls):
                             guard let url = urls.first else { return }
-                            guard let importedData = try? Data(contentsOf: url) else { return }
-                            let decoder = JSONDecoder()
-                            let data = try? decoder.decode(ExportData.self, from: importedData)
                             
-                            if workoutsSelected {
-                                let existingWorkouts = try? context.fetch(FetchDescriptor<Workout>())
-                                for workout in data!.workouts {
-                                    if !allowDuplicates && existingWorkouts?.contains(where: { $0.name == workout.name}) ?? false {
-                                        context.delete(existingWorkouts!.first(where: { $0.name == workout.name })!)
-                                    }
-                                    
-                                    context.insert(Workout(name: workout.name, exercises: workout.exercises, notes: workout.notes))
-                                    context.insert(WorkoutLog(workout: workout))
-                                }
-                            }
-
-                            if exercisesSelected {
-                                let existingExercises = try? context.fetch(FetchDescriptor<Exercise>())
-                                for exercise in data!.exercises {
-                                    if !allowDuplicates && existingExercises?.contains(where: { $0.name == exercise.name }) ?? false {
-                                        context.delete(existingExercises!.first(where: { $0.name == exercise.name })!)
-                                    }
-                                    
-                                    context.insert(Exercise(name: exercise.name, notes: exercise.notes, muscleGroup: exercise.muscleGroup ?? .other))
-                                }
-                            }
-
-                            if workoutLogsSelected {
-                                for log in data!.workoutLogs {
-                                    context.insert(WorkoutLog(workout: log.workout, started: log.started, completed: log.completed, start: log.start, end: log.end, exerciseLogs: log.exerciseLogs))
-                                }
-                            }
-
-                            do {
-                                try context.save()
-                                importing = false
-                                showImportSuccessAlert = true
-                            } catch {
-                                print("Failed to save imported data: \(error.localizedDescription)")
+                            guard url.startAccessingSecurityScopedResource() else {
                                 showImportFailAlert = true
+                                return
                             }
+                            
+                            guard let importedData = try? Data(contentsOf: url) else {
+                                showImportFailAlert = true
+                                return
+                            }
+                            
+                            url.stopAccessingSecurityScopedResource()
+                            
+                            let decoder = JSONDecoder()
+                            
+                            guard let data = try? decoder.decode(ExportData.self, from: importedData) else {
+                                showImportFailAlert = true
+                                return
+                            }
+                            
+                            DispatchQueue.main.async {
+                                let logs = (try? context.fetch(FetchDescriptor<WorkoutLog>())) ?? []
+                                for log in logs {
+                                    for exerciseLog in log.exerciseLogs {
+                                        if exerciseLog.exercise.exercise == nil {
+                                            log.exerciseLogs.remove(at: log.exerciseLogs.firstIndex(where: { $0 === exerciseLog })!)
+                                        }
+                                    }
+                                }
+                                
+                                if exercisesSelected {
+                                    let existingExercises = (try? context.fetch(FetchDescriptor<Exercise>())) ?? []
+                                    for exercise in data.exercises {
+                                        guard !exercise.name.isEmpty && exercise.muscleGroup != nil else { continue }
+                                        if exercise.notes.isEmpty { exercise.notes = "" }
+                                        
+                                        if !allowDuplicates && existingExercises.contains(where: { $0.name == exercise.name }) {
+                                            context.delete(existingExercises.first(where: { $0.name == exercise.name })!)
+                                        }
+                                        
+                                        context.insert(Exercise(name: exercise.name, notes: exercise.notes, muscleGroup: exercise.muscleGroup ?? .other))
+                                    }
+                                }
+                                
+                                if workoutsSelected {
+                                    let existingWorkouts = (try? context.fetch(FetchDescriptor<Workout>())) ?? []
+                                    
+                                    for workout in data.workouts {
+                                        if !allowDuplicates && existingWorkouts.contains(where: { $0.name == workout.name}) {
+                                            context.delete(existingWorkouts.first(where: { $0.name == workout.name })!)
+                                        }
+                                        
+                                        var exercises: [WorkoutExercise] = []
+                                        for workoutExercise in workout.exercises {
+                                            let exercise: Exercise = workoutExercise.exercise!
+                                            let existingExercise = try? context.fetch(FetchDescriptor<Exercise>()).first(where: { $0.name == exercise.name && $0.notes == exercise.notes && $0.muscleGroup == exercise.muscleGroup })
+                                            
+                                            if existingExercise != nil {
+                                                workoutExercise.exercise = existingExercise!
+                                            } else {
+                                                let newExercise = Exercise(name: exercise.name, notes: exercise.notes, muscleGroup: exercise.muscleGroup ?? .other)
+                                                workoutExercise.exercise = newExercise
+                                                context.insert(newExercise)
+                                            }
+                                            
+                                            exercises.append(workoutExercise)
+                                        }
+                                        
+                                        let newWorkout = Workout(name: workout.name, exercises: [], notes: workout.notes)
+                                        for workoutExercise in exercises {
+                                            workoutExercise.workout = newWorkout
+                                        }
+                                        
+                                        context.insert(newWorkout)
+                                        do {
+                                            try context.save()
+                                        } catch {
+                                            print("Failed to save workout: \(error.localizedDescription)")
+                                        }
+                                        
+                                        newWorkout.exercises = exercises
+                                        
+                                        context.insert(WorkoutLog(workout: newWorkout))
+                                    }
+                                }
+
+                                do {
+                                    try context.save()
+                                    showImportSuccessAlert = true
+                                } catch {
+                                    print("Failed to save imported data: \(error.localizedDescription)")
+                                    showImportFailAlert = true
+                                }
+                            }
+                            importing = false
                         case .failure(let error):
                             print(error.localizedDescription)
                         }
@@ -160,51 +213,23 @@ struct Options: View {
             
             
             Button {
-                showExportSheet = true
+                exporting = true
             } label: {
                 Text("Export Data")
             }
             .buttonStyle(.borderedProminent)
-            .sheet(isPresented: $showExportSheet, onDismiss: {
-                exporting = false
-            }) {
-                VStack {
-                    Text("Select what to export")
-                    
-                    Toggle(isOn: $workoutsSelected) {
-                        Text("Workouts")
-                    }
-                    
-                    Toggle(isOn: $exercisesSelected) {
-                        Text("Exercises")
-                    }
-                    
-                    Toggle(isOn: $workoutLogsSelected) {
-                        Text("Logs")
-                    }
-                    
-                    Button {
-                        exporting = true
-                    } label: {
-                        Text("Export")
-                    }
-                    .fileExporter(
-                        isPresented: $exporting,
-                        document: ExportData(workouts: workouts, exercises: exercises.filter { !defaultExercises.contains($0) }, workoutLogs: workoutLogs),
-                        contentType: .json,
-                        defaultFilename: "WorkoutTrackerData.json"
-                    ) { result in
-                        switch result {
-                        case .success(_):
-                            exporting = false
-                        case .failure(let error):
-                            print(error.localizedDescription)
-                        }
-                    }
+            .fileExporter(
+                isPresented: $exporting,
+                document: ExportData(workouts: workouts, exercises: exercises.filter { !defaultExercises.contains($0) }, workoutLogs: workoutLogs),
+                contentType: .json,
+                defaultFilename: "WorkoutTrackerData.json"
+            ) { result in
+                switch result {
+                case .success(_):
+                    exporting = false
+                case .failure(let error):
+                    print(error.localizedDescription)
                 }
-                .padding()
-                .padding(.top, 20)
-                .presentationDetents([.fraction(0.26), .medium])
             }
             
             
@@ -243,7 +268,6 @@ struct Options: View {
             
             Spacer()
             
-            
             Link("GitHub",
                  destination: URL(string: "https://github.com/SeanL128/WorkoutTracker/")!)
             
@@ -261,13 +285,30 @@ struct Options: View {
     
     private func clearContext() {
         do {
-            try context.delete(model: Workout.self)
-            try context.delete(model: Exercise.self)
-            try context.delete(model: WorkoutLog.self)
+            let workouts = try context.fetch(FetchDescriptor<Workout>())
+            
+            for workout in workouts {
+                context.delete(workout)
+            }
+            
+            
+            let logs = try context.fetch(FetchDescriptor<WorkoutLog>())
+            
+            for log in logs {
+                context.delete(log)
+            }
+            
+            
+            let exercises = try context.fetch(FetchDescriptor<Exercise>())
+            
+            for exercise in exercises {
+                context.delete(exercise)
+            }
+            
             
             try context.save()
         } catch {
-            print("Failed to clear context: \(error.localizedDescription)")
+            print("Failed to clear context: \(error)")
         }
     }
 }

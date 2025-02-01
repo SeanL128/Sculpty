@@ -53,8 +53,13 @@ struct ViewLogs: View {
                         }
                     }
                 }
-                .confirmationDialog("Are you sure?", isPresented: $delete.0) {
-                    Button("Delete \(delete.1.workout.name) log from \(formatDate(Date(timeIntervalSince1970: delete.1.start)))?", role: .destructive) {
+                .confirmationDialog("Delete \(delete.1.workout.name) log from \(formatDate(Date(timeIntervalSince1970: delete.1.start)))?", isPresented: $delete.0, titleVisibility: .visible) {
+                    Button("Delete", role: .destructive) {
+                        if Calendar.current.isDate(Date(timeIntervalSince1970: delete.1.start), inSameDayAs: Date()) {
+                            let newLog = WorkoutLog(workout: delete.1.workout)
+                            context.insert(newLog)
+                        }
+                        
                         context.delete(delete.1)
                         
                         try? context.save()

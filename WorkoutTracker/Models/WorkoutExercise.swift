@@ -14,7 +14,7 @@ class WorkoutExercise: Identifiable, Codable {
     var workout: Workout?
     
     var index: Int
-    var exercise: Exercise?
+    @Relationship(deleteRule: .deny) var exercise: Exercise?
     @Relationship(deleteRule: .cascade, inverse: \ExerciseSet.workoutExercise) var sets: [ExerciseSet]
     var restTime: TimeInterval
     var specNotes: String

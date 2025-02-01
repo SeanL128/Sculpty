@@ -11,6 +11,7 @@ import SwiftData
 @Model
 class SetLog: Identifiable, Codable {
     @Attribute(.unique) var id: UUID = UUID()
+    var exerciseLog: ExerciseLog?
     
     var index: Int
     var completed: Bool

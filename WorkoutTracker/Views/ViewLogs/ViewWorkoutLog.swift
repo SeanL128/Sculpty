@@ -23,24 +23,27 @@ struct ViewWorkoutLog: View {
             VStack {
                 List {
                     ForEach(workoutLog.exerciseLogs.sorted { $0.exercise.index < $1.exercise.index }) { exerciseLog in
-                        Section {
-                            ForEach(exerciseLog.setLogs.sorted { $0.start < $1.start }) { setLog in
-                                Text("\(formatDateWithTime(Date(timeIntervalSince1970: setLog.start)))")
-                                .swipeActions {
-                                    Button("Delete") {
-                                        delete.0 = true
-                                        delete.1 = exerciseLog
+                        let setLogs = exerciseLog.setLogs.sorted { $0.start < $1.start }
+                        if !(setLogs.filter { $0.completed }).isEmpty {
+                            Section {
+                                ForEach(setLogs.filter { $0.completed }) { setLog in
+                                    Text("\(formatDateWithTime(Date(timeIntervalSince1970: setLog.start)))")
+                                    .swipeActions {
+                                        Button("Delete") {
+                                            delete.0 = true
+                                            delete.1 = exerciseLog
+                                        }
+                                        .tint(.red)
                                     }
-                                    .tint(.red)
                                 }
+                            } header: {
+                                Text(exerciseLog.exercise.exercise?.name ?? "")
                             }
-                        } header: {
-                            Text(exerciseLog.exercise.exercise?.name ?? "")
                         }
                     }
                 }
-                .confirmationDialog("Are you sure?", isPresented: $delete.0) {
-                    Button("Delete log from \(formatDateWithTime(Date(timeIntervalSince1970: delete.1.start)))?", role: .destructive) {
+                .confirmationDialog("Delete log from \(formatDateWithTime(Date(timeIntervalSince1970: delete.1.start)))?", isPresented: $delete.0, titleVisibility: .visible) {
+                    Button("Delete", role: .destructive) {
                         workoutLog.exerciseLogs.removeAll { $0.id == delete.1.id }
                         
                         try? context.save()

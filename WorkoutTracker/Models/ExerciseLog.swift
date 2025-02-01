@@ -11,13 +11,14 @@ import SwiftData
 @Model
 class ExerciseLog: Identifiable, Codable {
     @Attribute(.unique) var id: UUID = UUID()
+    var workoutLog: WorkoutLog?
     
     var index: Int
     var exercise: WorkoutExercise
     var completed: Bool
     var start: Double
     var end: Double
-    var setLogs: [SetLog] = []
+    @Relationship(deleteRule: .cascade, inverse: \SetLog.exerciseLog) var setLogs: [SetLog] = []
     
     init(index: Int, exercise: WorkoutExercise) {
         self.index = index

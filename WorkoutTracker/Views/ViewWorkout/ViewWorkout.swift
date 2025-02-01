@@ -14,6 +14,8 @@ struct ViewWorkout: View {
     @StateObject private var viewModel: WorkoutViewModel
     @StateObject private var statsViewModel: StatsViewModel = StatsViewModel()
     
+    @State private var exporting: Bool = false
+    
     @State private var restTime: Double = 0
     
     @State private var showSummary: Bool = false
@@ -41,6 +43,27 @@ struct ViewWorkout: View {
                         } label: {
                             Image(systemName: "chevron.left")
                         }
+                        .padding(.horizontal, 5)
+                        
+                        Button {
+                            exporting = true
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                        .fileExporter(
+                            isPresented: $exporting,
+                            document: viewModel.workout,
+                            contentType: .json,
+                            defaultFilename: "\(viewModel.workout.name).json"
+                        ) { result in
+                            switch result {
+                            case .success(_):
+                                exporting = false
+                            case .failure(let error):
+                                print(error.localizedDescription)
+                            }
+                        }
+                        .padding(.horizontal, 5)
                         
                         Spacer()
                     }
@@ -60,6 +83,7 @@ struct ViewWorkout: View {
                         NavigationLink(destination: EditWorkout(workout: viewModel.workout)) {
                             Image(systemName: "pencil")
                         }
+                        .padding(.horizontal, 5)
                         
                         Spacer()
                         
@@ -69,17 +93,19 @@ struct ViewWorkout: View {
                             } label: {
                                 Image(systemName: "info.circle")
                             }
+                            .padding(.horizontal, 5)
                         } else {
                             Button {
                                 finishWorkout = true
                             } label: {
                                 Image(systemName: "checkmark")
                             }
+                            .padding(.horizontal, 5)
                         }
                     }
                     .frame(width: 55)
-                    .confirmationDialog("Are you sure? This will skip all remaining sets", isPresented: $finishWorkout) {
-                        Button("Finish \(viewModel.workoutName)?", role: .destructive) {
+                    .confirmationDialog("Are you sure? This will skip all remaining sets", isPresented: $finishWorkout, titleVisibility: .visible) {
+                        Button("Finish \(viewModel.workoutName)", role: .destructive) {
                             log.finishWorkout()
                             
                             try? context.save()
