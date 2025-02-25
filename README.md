@@ -47,4 +47,4 @@ This project is licensed under the [MIT License](LICENSE). See the LICENSE file 
 
 ## Acknowledgements
 - [AltStore](https://altstore.io/) and [SideStore](https://sidestore.io/) for sideloading guidance
-- Special thanks to my friend Matthew for help with brainstorming ideas
+- Special thanks to my friends Matthew for help with brainstorming ideas and Andy for helpful feedback
