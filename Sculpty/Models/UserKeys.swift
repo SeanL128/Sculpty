@@ -18,6 +18,15 @@ enum UserKeys: String, CaseIterable {
     case lastCheckedDate = "LAST_CHECKED_DATE"
     case onboarded = "ONBOARDED"
     case restEndTime = "REST_END_TIME"
-    case scheduleDay = "SCHEDULE_DAY"
+    case showRir = "SHOW_RIR"
+    case showTempo = "SHOW_TEMPO"
     case units = "UNITS"
+    
+    // Default Set
+    case defaultMeasurement = "DEFAULT_MEASUREMENT"
+    case defaultReps = "DEFAULT_REPS"
+    case defaultRir = "DEFAULT_RIR"
+    case defaultType = "DEFAULT_TYPE"
+    case defaultUnits = "DEFAULT_UNITS"
+    case defaultWeight = "DEFAULT_WEIGHT"
 }

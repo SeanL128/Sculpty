@@ -31,6 +31,16 @@ struct Options: View {
     @AppStorage(UserKeys.accent.rawValue) private var accentColorHex: String = "#C50A2B"
     
     @AppStorage(UserKeys.disableAutoLock.rawValue) private var disableAutoLock: Bool = false
+    @AppStorage(UserKeys.showRir.rawValue) private var showRir: Bool = false
+    @AppStorage(UserKeys.showTempo.rawValue) private var showTempo: Bool = false
+    
+    @AppStorage(UserKeys.defaultReps.rawValue) private var defaultReps: Int = 12
+    @AppStorage(UserKeys.defaultWeight.rawValue) private var defaultWeight: Double = 40
+    @AppStorage(UserKeys.defaultUnits.rawValue) private var defaultUnits: String = UnitsManager.weight
+    @AppStorage(UserKeys.defaultMeasurement.rawValue) private var defaultMeasurement: String = "x"
+    @AppStorage(UserKeys.defaultType.rawValue) private var defaultType: String = "Main"
+    @AppStorage(UserKeys.defaultRir.rawValue) private var defaultRir: String = "0"
+    @State private var defaultSet: ExerciseSet = ExerciseSet()
     
     @AppStorage(UserKeys.dailyCalories.rawValue) private var dailyCalories: String = "0"
     @FocusState private var isDailyCaloriesFocused: Bool
@@ -137,6 +147,34 @@ struct Options: View {
                             
                             Toggle(isOn: $disableAutoLock) {
                                 Text("Disable Auto Lock")
+                            }
+                            
+                            Toggle(isOn: $showRir) {
+                                Text("Enable RIR")
+                            }
+                            
+                            Toggle(isOn: $showTempo) {
+                                Text("Enable Tempo")
+                            }
+                            
+                            Button {
+                                Task {
+                                    await EditSetPopup(set: $defaultSet).present()
+                                }
+                            } label: {
+                                HStack {
+                                    Text("Edit Default Set")
+                                    
+                                    Spacer()
+                                }
+                            }
+                            .onChange(of: defaultSet) {
+                                defaultReps = defaultSet.reps
+                                defaultWeight = defaultSet.weight
+                                defaultUnits = defaultSet.unit
+                                defaultMeasurement = defaultSet.measurement
+                                defaultType = defaultSet.type.rawValue
+                                defaultRir = defaultSet.rir
                             }
                         }
                         .padding()

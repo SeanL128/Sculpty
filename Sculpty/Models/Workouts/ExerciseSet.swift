@@ -21,7 +21,7 @@ class ExerciseSet: Identifiable, Codable {
     var type: ExerciseSetType
     var rir: String
     
-    init(index: Int = 0, reps: Int = 12, weight: Double = 0, unit: String = UnitsManager.weight, measurement: String = "x", type: ExerciseSetType = .main, rir: String = "0") {
+    init(index: Int = 0, reps: Int = UserDefaults.standard.object(forKey: UserKeys.defaultReps.rawValue) as? Int ?? 12, weight: Double = UserDefaults.standard.object(forKey: UserKeys.defaultWeight.rawValue) as? Double ?? 40, unit: String = UserDefaults.standard.object(forKey: UserKeys.defaultUnits.rawValue) as? String ?? UnitsManager.weight, measurement: String = UserDefaults.standard.object(forKey: UserKeys.defaultMeasurement.rawValue) as? String ?? "x", type: ExerciseSetType = ExerciseSetType(rawValue: UserDefaults.standard.object(forKey: UserKeys.defaultType.rawValue) as? String ?? "Main") ?? .main, rir: String = UserDefaults.standard.object(forKey: UserKeys.defaultRir.rawValue) as? String ?? "0") {
         self.index = index
         self.reps = reps
         self.weight = weight

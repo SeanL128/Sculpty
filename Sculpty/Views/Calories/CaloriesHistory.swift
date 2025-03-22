@@ -15,28 +15,47 @@ struct CaloriesHistory: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
-                List {
-                    ForEach(caloriesLogs) { log in
-                        Section {
-                            ForEach(log.entries.sorted { $0.calories > $1.calories }) { entry in
-                                Text("\(entry.name) - \(entry.calories.formatted())cal (\(entry.carbs.formatted())g Carbs, \(entry.protein.formatted())g Protein, \(entry.fat.formatted())g Fat)")
-                                    .swipeActions {
-                                        Button("Delete") {
-                                            if let index = log.entries.firstIndex(where: { $0.id == entry.id }) {
-                                                log.entries.remove(at: index)
+            ZStack {
+                ColorManager.background
+                    .ignoresSafeArea(edges: .all)
+                
+                VStack {
+                    HStack {
+                        Text("Calories History")
+                            .font(.largeTitle)
+                            .bold()
+                        
+                        Spacer()
+                    }
+                    .padding()
+                    
+                    if caloriesLogs.isEmpty {
+                        Text("NO DATA")
+                            .font(.title3)
+                    } else {
+                        List {
+                            ForEach(caloriesLogs) { log in
+                                Section {
+                                    ForEach(log.entries.sorted { $0.calories > $1.calories }) { entry in
+                                        Text("\(entry.name) - \(entry.calories.formatted())cal (\(entry.carbs.formatted())g Carbs, \(entry.protein.formatted())g Protein, \(entry.fat.formatted())g Fat)")
+                                            .swipeActions {
+                                                Button("Delete") {
+                                                    if let index = log.entries.firstIndex(where: { $0.id == entry.id }) {
+                                                        log.entries.remove(at: index)
+                                                    }
+                                                }
+                                                .tint(.red)
                                             }
-                                        }
-                                        .tint(.red)
                                     }
+                                    .font(.caption)
+                                } header: {
+                                    Text("\(formatDate(log.date)) - \(log.getTotalCalories().formatted())cal")
+                                }
                             }
-                            .font(.caption)
-                        } header: {
-                            Text("\(formatDate(log.date)) - \(log.getTotalCalories().formatted())cal")
                         }
+                        .scrollContentBackground(.hidden)
                     }
                 }
-                .scrollContentBackground(.hidden)
             }
         }
     }

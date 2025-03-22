@@ -13,11 +13,13 @@ class Measurement: Identifiable, Codable {
     @Attribute(.unique) var id: UUID = UUID()
     
     var date: Date
+    var unit: String
     var measurement: Double
     var type: MeasurementType
     
-    init(date: Date = Date(), measurement: Double = 0, type: MeasurementType = .other) {
+    init(date: Date = Date(), measurement: Double = 0, unit: String = UnitsManager.weight, type: MeasurementType = .other) {
         self.date = date
+        self.unit = unit
         self.measurement = measurement
         self.type = type
     }
@@ -58,13 +60,14 @@ class Measurement: Identifiable, Codable {
     }
     
     enum CodingKeys: String, CodingKey {
-        case id, date, measurement, type
+        case id, date, unit, measurement, type
     }
     
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         date = try container.decode(Date.self, forKey: .date)
+        unit = try container.decode(String.self, forKey: .unit)
         measurement = try container.decode(Double.self, forKey: .measurement)
         type = try container.decode(MeasurementType.self, forKey: .type)
     }
@@ -73,6 +76,7 @@ class Measurement: Identifiable, Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(date, forKey: .date)
+        try container.encode(unit, forKey: .unit)
         try container.encode(measurement, forKey: .measurement)
         try container.encode(type, forKey: .type)
     }

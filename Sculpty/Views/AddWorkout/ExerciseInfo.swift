@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Neumorphic
+import MijickPopups
 
 struct ExerciseInfo: View {
     @Environment(\.modelContext) var context
@@ -23,11 +24,11 @@ struct ExerciseInfo: View {
     @State private var tempoArr: [String]
     
     @State private var selectingExercise: Bool = false
-    @State private var editingSet: (Bool, Int) = (false, -1)
-    @State private var showTempoSheet: Bool = false
     @State private var showAlert: Bool = false
     
     @FocusState private var isNotesFocused: Bool
+    
+    @AppStorage(UserKeys.showTempo.rawValue) private var showTempo: Bool = false
     
     init(workout: Workout, exercise: Exercise?, workoutExercise: Binding<WorkoutExercise>) {
         self.workout = workout
@@ -44,10 +45,6 @@ struct ExerciseInfo: View {
         _restSeconds = State(initialValue: initialRestSeconds)
         _specNotes = State(initialValue: initialSpecNotes)
         _tempoArr = State(initialValue: initialTempoArr)
-        
-        if workoutExercise.sets.isEmpty {
-            self.workoutExercise.sets.append(ExerciseSet(index: 0))
-        }
     }
 
     var body: some View {
@@ -94,7 +91,9 @@ struct ExerciseInfo: View {
                         ForEach(workoutExercise.sets.sorted { $0.index < $1.index }, id: \.self) { set in
                             let index = workoutExercise.sets.firstIndex(of: set)!
                             Button {
-                                editingSet = (true, index)
+                                Task {
+                                    await EditSetPopup(set: $workoutExercise.sets[index]).present()
+                                }
                             } label: {
                                 SetView(set: workoutExercise.sets[index])
                             }
@@ -124,10 +123,6 @@ struct ExerciseInfo: View {
                     .frame(height: CGFloat((workoutExercise.sets.count * 66) + (workoutExercise.sets.count < 5 ? (workoutExercise.sets.count < 4 ? (workoutExercise.sets.count < 3 ? (workoutExercise.sets.count < 2 ? 50 : 40) : 30) : 20) : 0)), alignment: .top)
                     .scrollDisabled(true)
                     .scrollContentBackground(.hidden)
-                    .sheet(isPresented: $editingSet.0) {
-                        EditSet(set: $workoutExercise.sets[editingSet.1])
-                            .presentationDetents([.fraction(0.35), .medium])
-                    }
 
                     Button {
                         let nextIndex = (workoutExercise.sets.map { $0.index }.max() ?? -1) + 1
@@ -175,46 +170,46 @@ struct ExerciseInfo: View {
                     .frame(height: 125)
                     
                     // Tempo
-                    HStack (spacing: 5) {
-                        Button {
-                            showTempoSheet = true
-                        } label: {
-                            Text("Tempo")
+                    if showTempo {
+                        HStack (spacing: 5) {
+                            Button {
+                                Task {
+                                    await TempoPopup(tempo: tempoArr.joined(separator: "")).present()
+                                }
+                            } label: {
+                                Text("Tempo")
+                            }
+                            
+                            Picker("Tempo 1", selection: $tempoArr[0]) {
+                                tempoPicker()
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: 50)
+                            .clipped()
+                            
+                            Picker("Tempo 2", selection: $tempoArr[1]) {
+                                tempoPicker()
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: 50)
+                            .clipped()
+                            
+                            Picker("Tempo 3", selection: $tempoArr[2]) {
+                                tempoPicker()
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: 50)
+                            .clipped()
+                            
+                            Picker("Tempo 4", selection: $tempoArr[3]) {
+                                tempoPicker()
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: 50)
+                            .clipped()
                         }
-                        
-                        Picker("Tempo 1", selection: $tempoArr[0]) {
-                            tempoPicker()
-                        }
-                        .pickerStyle(WheelPickerStyle())
-                        .frame(maxWidth: 50)
-                        .clipped()
-                        
-                        Picker("Tempo 2", selection: $tempoArr[1]) {
-                            tempoPicker()
-                        }
-                        .pickerStyle(WheelPickerStyle())
-                        .frame(maxWidth: 50)
-                        .clipped()
-                        
-                        Picker("Tempo 3", selection: $tempoArr[2]) {
-                            tempoPicker()
-                        }
-                        .pickerStyle(WheelPickerStyle())
-                        .frame(maxWidth: 50)
-                        .clipped()
-                        
-                        Picker("Tempo 4", selection: $tempoArr[3]) {
-                            tempoPicker()
-                        }
-                        .pickerStyle(WheelPickerStyle())
-                        .frame(maxWidth: 50)
-                        .clipped()
-                    }
-                    .frame(height: 100)
-                    .padding(.bottom)
-                    .sheet(isPresented: $showTempoSheet) {
-                        TempoSheet(tempo: tempoArr.joined(separator: ""))
-                            .presentationDetents([.fraction(0.2), .medium])
+                        .frame(height: 100)
+                        .padding(.bottom)
                     }
                     
                     // Workout-specific notes

@@ -10,6 +10,8 @@ import SwiftUI
 struct SetView: View {
     var set: ExerciseSet
     
+    @AppStorage(UserKeys.showRir.rawValue) private var showRir: Bool = false
+    
     var body: some View {
         HStack {
             ZStack {
@@ -30,7 +32,7 @@ struct SetView: View {
             
             Spacer()
             
-            if ![.warmUp, .coolDown].contains(set.type) {
+            if showRir && [.main, .dropSet].contains(set.type) {
                 if set.rir == "Failure" {
                     Text(set.rir)
                 } else {

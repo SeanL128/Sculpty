@@ -1,13 +1,14 @@
 //
-//  TempoSheet.swift
+//  TempoPopup.swift
 //  Sculpty
 //
-//  Created by Sean Lindsay on 1/18/25.
+//  Created by Sean Lindsay on 3/9/25.
 //
 
 import SwiftUI
+import MijickPopups
 
-struct TempoSheet: View {
+struct TempoPopup: BottomPopup {
     private var arr: [String]
     private var xPresent: Bool
     
@@ -45,8 +46,12 @@ struct TempoSheet: View {
             }
         }
     }
-}
-
-#Preview {
-    TempoSheet()
+    
+    func configurePopup(config: BottomPopupConfig) -> BottomPopupConfig {
+        config
+            .heightMode(.auto)
+            .dragDetents([.fraction(1.2)])
+            .enableDragGesture(false)
+            .backgroundColor(ColorManager.background)
+    }
 }

@@ -12,7 +12,7 @@ import Neumorphic
 
 @Query private var workouts: [Workout]
 
-// Variables
+// MARK: Variables
 let defaultExercises = [
     Exercise(name: "Push-Up", muscleGroup: .chest),
     Exercise(name: "Barbell Bench Press", muscleGroup: .chest),
@@ -100,7 +100,7 @@ let defaultExercises = [
     Exercise(name: "Smith Machine Bulgarian Split Squat", muscleGroup: .quads)
 ]
 
-// Functions
+// MARK: Functions
 func lengthToString(length: Double) -> String {
     let hours = Int(length) / 3600
     let minutes = (Int(length) % 3600) / 60
@@ -111,6 +111,12 @@ func lengthToString(length: Double) -> String {
 func formatDate(_ date: Date) -> String {
     let dateFormatter = DateFormatter()
     dateFormatter.dateFormat = "MMM dd, yyyy"
+    return dateFormatter.string(from: date)
+}
+
+func formatDateNoYear(_ date: Date) -> String {
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "MMM dd"
     return dateFormatter.string(from: date)
 }
 
@@ -126,10 +132,11 @@ func formatDateWithTime(_ date: Date) -> String {
     return dateFormatter.string(from: date)
 }
 
-// Classes
+// MARK: Classes
 final class ColorManager {
     static let background = Color("BackgroundColor")
     static let text = Color("TextColor")
+    static let secondary = Color("SecondaryTextColor")
     static let lightShadow = Color("LightShadow")
     static let darkShadow = Color("DarkShadow")
 }
@@ -174,7 +181,7 @@ final class UnitsManager {
     }
 }
 
-// Extensions
+// MARK: Extensions
 extension View {
     func limitText(_ text: Binding<String>, to characterLimit: Int) -> some View {
         self

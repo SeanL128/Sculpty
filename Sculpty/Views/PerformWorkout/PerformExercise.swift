@@ -6,13 +6,13 @@
 //
 
 import SwiftUI
+import MijickPopups
 
 struct PerformExercise: View {
     @Environment(\.modelContext) private var context
     
     private var workout: Workout
     private var workoutLog: WorkoutLog
-    private var index: Int
     
     @State private var exercise: WorkoutExercise
     @State private var log: ExerciseLog
@@ -20,22 +20,22 @@ struct PerformExercise: View {
     
     @State private var finish: Bool = false
     
-    @State private var editingIndex: (IdentifiableIndex, IdentifiableIndex) = (IdentifiableIndex(id: -1), IdentifiableIndex(id: -1))
-    @State private var showEditSet: Bool = false
     @State private var exerciseStatus: Int = 1
-    @State private var showTempoSheet: Bool = false
     
-    init(workout: Workout, log: WorkoutLog, index: Int, time: Binding<Double> = .constant(0)) {
-        self.workout = workout
-        self.workoutLog = log
-        self.index = index
+    @AppStorage(UserKeys.showTempo.rawValue) private var showTempo: Bool = false
+    
+    init(exerciseLog: ExerciseLog, time: Binding<Double> = .constant(0)) {
+        self.log = exerciseLog
+        
+        self.workoutLog = exerciseLog.workoutLog!
+        self.workout = exerciseLog.workoutLog!.workout
         self._timeRemaining = time
         
-        self.exercise = workout.exercises[workout.exercises.firstIndex { $0.index == index }!]
-        self.log = log.exerciseLogs[log.exerciseLogs.firstIndex { $0.index == index }!]
+        self.exercise = exerciseLog.exercise
     }
     
     var body: some View {
+        let _ = Self._printChanges()
         NavigationStack {
             ZStack {
                 ColorManager.background
@@ -47,9 +47,8 @@ struct PerformExercise: View {
                     
                     List {
                         ForEach(exercise.sets.sorted { $0.index < $1.index }, id: \.id) { set in
-                            var setIndex: Int {
-                                exercise.sets.firstIndex { $0.index == set.index } ?? -1
-                            }
+                            let setIndex: Int = set.index
+                            
                             var logIndex: Int {
                                 return log.setLogs.firstIndex { $0.index == set.index } ?? -1
                             }
@@ -67,12 +66,26 @@ struct PerformExercise: View {
                             }
                             
                             Button {
-                                editingIndex.0.id = setIndex
-                                editingIndex.1.id = logIndex
-                                showEditSet = true
+                                Task {
+                                    await EditSetPopup(set: $exercise.sets[setIndex], log: $log.setLogs[logIndex], timeRemaining: $timeRemaining, restTime: exercise.restTime).present()
+                                    
+                                    if log.setLogs[logIndex].completed {
+                                        switch (set.type) {
+                                        case (.warmUp):
+                                            timeRemaining = 30
+                                        case (.coolDown):
+                                            timeRemaining = 60
+                                        default:
+                                            timeRemaining = exercise.restTime
+                                        }
+                                    }
+                                    
+                                    checkAllDone()
+                                }
                             } label: {
                                 SetView(set: set)
                             }
+                            .disabled(log.setLogs.filter { $0.completed || $0.skipped }.count < setIndex)
                             .textColor()
                             .swipeActions {
                                 Button("Skip") {
@@ -86,21 +99,17 @@ struct PerformExercise: View {
                         }
                     }
                     .scrollContentBackground(.hidden)
-                    .sheet(isPresented: $showEditSet, onDismiss: dismissed(setIndex: $editingIndex.0.id, logIndex: $editingIndex.1.id)) {
-                        EditSet(set: $exercise.sets[editingIndex.0.id], exerciseStatus: $exerciseStatus, isPresented: $showEditSet)
-                            .presentationDetents([.fraction(0.35), .medium])
-                    }
                     
-                    HStack {
-                        Button {
-                            showTempoSheet = true
-                        } label: {
-                            Text(exercise.tempo)
+                    if showTempo {
+                        HStack {
+                            Button {
+                                Task {
+                                    await TempoPopup(tempo: exercise.tempo).present()
+                                }
+                            } label: {
+                                Text(exercise.tempo)
+                            }
                         }
-                    }
-                    .sheet(isPresented: $showTempoSheet) {
-                        TempoSheet(tempo: exercise.tempo)
-                            .presentationDetents([.fraction(0.2), .medium])
                     }
                 }
                 .padding(.bottom, 50)
@@ -108,43 +117,39 @@ struct PerformExercise: View {
         }
     }
     
-    private func dismissed(setIndex: Int, logIndex: Int) -> () -> Void {
-        {
-            if !workoutLog.started {
-                workoutLog.startWorkout()
-            }
-            
-            if exerciseStatus == 2 {
-                let set = exercise.sets[setIndex]
-                let weight = set.measurement == "x" ? Double(set.reps) * set.weight : 0
-                
-                log.setLogs[logIndex].unskip()
-                log.setLogs[logIndex].finish(reps: set.reps, weight: weight, measurement: set.measurement)
-                
-                switch (set.type) {
-                case (.warmUp):
-                    timeRemaining = 30
-                case (.coolDown):
-                    timeRemaining = 60
-                default:
-                    timeRemaining = exercise.restTime
-                }
-            } else if exerciseStatus == 3 {
-                log.setLogs[logIndex].unfinish()
-                log.setLogs[logIndex].skip()
-            } else if exerciseStatus == 4 {
-                log.setLogs[logIndex].unskip()
-                log.setLogs[logIndex].unfinish()
-                
-                timeRemaining = 0
-            }
-            
-            editingIndex.0.id = -1
-            editingIndex.1.id = -1
-            exerciseStatus = 1
-            
-            checkAllDone()
+    private func dismissed(setIndex: Int, logIndex: Int) {
+        if !workoutLog.started {
+            workoutLog.startWorkout()
         }
+        
+        if exerciseStatus == 2 {
+            let set = exercise.sets[setIndex]
+            let weight = set.measurement == "x" ? Double(set.reps) * set.weight : 0
+            
+            log.setLogs[logIndex].unskip()
+            log.setLogs[logIndex].finish(reps: set.reps, weight: weight, measurement: set.measurement)
+            
+            switch (set.type) {
+            case (.warmUp):
+                timeRemaining = 30
+            case (.coolDown):
+                timeRemaining = 60
+            default:
+                timeRemaining = exercise.restTime
+            }
+        } else if exerciseStatus == 3 {
+            log.setLogs[logIndex].unfinish()
+            log.setLogs[logIndex].skip()
+        } else if exerciseStatus == 4 {
+            log.setLogs[logIndex].unskip()
+            log.setLogs[logIndex].unfinish()
+            
+            timeRemaining = 0
+        }
+        
+        exerciseStatus = 1
+        
+        checkAllDone()
     }
     
     private func checkAllDone() {
@@ -168,5 +173,5 @@ struct PerformExercise: View {
 #Preview {
     let workout = Workout(exercises: [WorkoutExercise(exercise: Exercise(), sets: [ExerciseSet(), ExerciseSet(), ExerciseSet()])])
     let workoutLog = WorkoutLog(workout: workout)
-    PerformExercise(workout: workout, log: workoutLog, index: 0)
+    PerformExercise(exerciseLog: workoutLog.exerciseLogs[0])
 }

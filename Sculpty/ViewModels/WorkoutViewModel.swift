@@ -17,17 +17,19 @@ class WorkoutViewModel: ObservableObject {
     init(workout: Workout = Workout()) {
         self.workout = workout
         self.workoutName = workout.name
-        self.exercises = workout.exercises
+        self.exercises = workout.exercises.sorted { $0.index < $1.index }
         self.notes = workout.notes
     }
     
     func addExercise() {
         let nextIndex = exercises.map { $0.index }.max() ?? -1
         exercises.append(WorkoutExercise(index: nextIndex + 1))
+        exercises = exercises.sorted { $0.index < $1.index }
     }
     
     func removeExercise(at index: Int) {
         guard index < exercises.count else { return }
         exercises.remove(at: index)
+        exercises = exercises.sorted { $0.index < $1.index }
     }
 }

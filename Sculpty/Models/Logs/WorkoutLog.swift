@@ -107,7 +107,7 @@ class WorkoutLog: Identifiable, Codable {
             for setLog in exerciseLog.setLogs {
                 total += 1
                 
-                if setLog.completed {
+                if setLog.completed || setLog.skipped {
                     completed += 1
                 }
             }

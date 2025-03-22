@@ -20,17 +20,9 @@ struct MeasurementPage: View {
     @Binding var unit: String
     @FocusState var isFocused: Bool
     
-    var data: [Double] {
-        do {
-            let data = try context.fetch(FetchDescriptor<Measurement>()).map { $0.measurement }
-            
-            return data.count > 0 ? data : [0]
-        } catch {
-            print(error.localizedDescription)
-            
-            return [0]
-        }
-    }
+    @State var data: [Measurement] = []
+    
+    @State var toDelete: Measurement? = nil
     
     var body: some View {
         NavigationStack {
@@ -49,70 +41,37 @@ struct MeasurementPage: View {
                     }
                     .padding()
                     
-                    VStack {
-                        HStack {
-                            TextField(title, text: $text)
-                                .keyboardType(.decimalPad)
-                                .focused($isFocused)
-                                .onChange(of: text) {
-                                    text = text.filteredNumeric()
-                                }
-                                .padding(.horizontal)
-                                .padding(.vertical, 5)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 15).fill(ColorManager.background)
-                                        .softInnerShadow(RoundedRectangle(cornerRadius: 15), darkShadow: ColorManager.darkShadow, lightShadow: ColorManager.lightShadow, spread: 0.05, radius: 2)
-                                )
-                            
-                            if type == .bodyFat {
-                                Text("%")
-                                    .frame(width: 25, height: 125)
-                                    .padding(.leading, 5)
-                            } else {
-                                Picker("Unit", selection: $unit) {
-                                    if type == .weight {
-                                        Text("lbs").tag("lbs")
-                                        
-                                        Text("kg").tag("kg")
-                                    } else {
-                                        Text("in").tag("in")
-                                        
-                                        Text("cm").tag("cm")
+                    if !data.isEmpty {
+                        List {
+                            ForEach(data, id: \.self) { measurement in
+                                Text("\(formatDateWithTime(measurement.date)) - \(measurement.measurement.formatted())\(measurement.unit)")
+                                    .swipeActions {
+                                        Button("Delete") {
+                                            toDelete = measurement
+                                        }
+                                        .tint(.red)
                                     }
+                            }
+                        }
+                        .scrollContentBackground(.hidden)
+                        .confirmationDialog("Delete measurement?", isPresented: Binding(
+                            get: { toDelete != nil },
+                            set: { if !$0 { toDelete = nil } }
+                        ), titleVisibility: .visible) {
+                            Button("Delete", role: .destructive) {
+                                if let measurement = toDelete {
+                                    context.delete(measurement)
+                                    try? context.save()
+                                    
+                                    setData()
+                                    
+                                    toDelete = nil
                                 }
-                                .pickerStyle(.wheel)
-                                .clipped()
-                                .frame(width: 75, height: 125)
-                                .padding(.leading, 5)
                             }
                         }
-                        
-                        Button {
-                            guard var value = Double(text) else {
-                                print("Error saving measurement")
-                                return
-                            }
-                            
-                            if type == .weight {
-                                value = WeightUnit(rawValue: unit)!.convert(value, to: WeightUnit.kg)
-                            } else if ![.bodyFat, .height].contains(type) {
-                                value = ShortLengthUnit(rawValue: unit)!.convert(value, to: ShortLengthUnit.cm)
-                            }
-                            
-                            let measurement = Measurement(measurement: value, type: type)
-                            
-                            context.insert(measurement)
-                            try? context.save()
-                            
-                            text = ""
-                        } label: {
-                            Text("Save")
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(text.isEmpty)
-                        .padding(.top, -25)
+                    } else {
+                        Text("No measurements yet.")
                     }
-                    .padding(.top, -50)
                     
                     Spacer()
                 }
@@ -130,6 +89,21 @@ struct MeasurementPage: View {
                     .disabled(!isFocused)
                 }
             }
+        }
+        .onAppear() {
+            setData()
+        }
+    }
+    
+    private func setData() {
+        do {
+            let fetched = try context.fetch(FetchDescriptor<Measurement>()).filter({ $0.type == type })
+            
+            data = fetched.isEmpty ? [] : fetched
+        } catch {
+            print(error.localizedDescription)
+            
+            data = []
         }
     }
 }

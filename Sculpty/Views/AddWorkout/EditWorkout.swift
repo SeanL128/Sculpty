@@ -1,5 +1,5 @@
 //
-//  AddWorkout.swift
+//  EditWorkout.swift
 //  Sculpty
 //
 //  Created by Sean Lindsay on 1/25/25.
@@ -13,30 +13,28 @@ struct EditWorkout: View {
     @Environment(\.modelContext) var context
     @Environment(\.dismiss) var dismiss
     
-    @Query private var workouts: [Workout]
+    @Query private var workoutLogs: [WorkoutLog]
     
-    @State var workout: Workout
+    @Bindable var workout: Workout
     
-    @State private var alertType: AlertType? = nil
-
-    enum AlertType: Identifiable {
-        case title, exercises
-        
-        var id: Int {
-            switch self {
-            case .title: return 0
-            case .exercises: return 1
-            }
-        }
-    }
+    @State private var workoutName: String
+    @State private var workoutNotes: String
+    @State private var exercises: [WorkoutExercise]
+    
+    @State private var showAlert: Bool = false
+    @State private var alertMessage: String = ""
+    
+    @State private var deleteWorkout: Bool = false
     
     @FocusState private var isNameFocused: Bool
     @FocusState private var isNotesFocused: Bool
     
     init(workout: Workout) {
-        self._workout = State(initialValue: workout)
-        
-        workout.exercises.removeAll { $0.exercise == nil }
+        self.workout = workout
+        // Initialize state with the workout's current values
+        _workoutName = State(initialValue: workout.name)
+        _workoutNotes = State(initialValue: workout.notes)
+        _exercises = State(initialValue: workout.exercises)
     }
     
     var body: some View {
@@ -46,7 +44,7 @@ struct EditWorkout: View {
                     .ignoresSafeArea(edges: .all)
                 
                 VStack {
-                    TextField("Workout Name", text: $workout.name)
+                    TextField("WORKOUT NAME", text: $workoutName)
                         .textInputAutocapitalization(.words)
                         .focused($isNameFocused)
                         .padding(.horizontal)
@@ -57,22 +55,22 @@ struct EditWorkout: View {
                         )
                     
                     List {
-                        ForEach(workout.exercises.sorted { $0.index < $1.index }, id: \.id) { exercise in
-                            let index = workout.exercises.firstIndex(of: exercise)!
+                        ForEach(exercises.sorted { $0.index < $1.index }, id: \.id) { exercise in
+                            let index = exercises.firstIndex(of: exercise)!
                             HStack {
                                 Text(exercise.exercise?.name ?? "Select Exercise")
-                                NavigationLink(destination: ExerciseInfo(workout: workout, exercise: exercise.exercise ?? nil, workoutExercise: $workout.exercises[index])) {
+                                NavigationLink(destination: ExerciseInfo(workout: workout, exercise: exercise.exercise ?? nil, workoutExercise: $exercises[index])) {
                                 }
                             }
                             .swipeActions {
                                 Button("Delete") {
-                                    workout.exercises.remove(at: index)
+                                    exercises.remove(at: index)
                                 }
                                 .tint(.red)
                             }
                         }
                         .onMove { from, to in
-                            var reordered = workout.exercises
+                            var reordered = exercises
                             
                             reordered.move(fromOffsets: from, toOffset: to)
                             
@@ -82,14 +80,14 @@ struct EditWorkout: View {
                                 }
                             }
                             
-                            workout.exercises = reordered
+                            exercises = reordered
                         }
                     }
                     .scrollContentBackground(.hidden)
                     
                     Button {
-                        let nextIndex = (workout.exercises.map { $0.index }.max() ?? -1) + 1
-                        workout.exercises.append(WorkoutExercise(index: nextIndex))
+                        let nextIndex = (exercises.map { $0.index }.max() ?? -1) + 1
+                        exercises.append(WorkoutExercise(index: nextIndex))
                     } label: {
                         HStack {
                             Image(systemName: "plus")
@@ -97,8 +95,7 @@ struct EditWorkout: View {
                         }
                     }
                     
-                    
-                    TextField("Notes", text: $workout.notes, axis: .vertical)
+                    TextField("Notes", text: $workoutNotes, axis: .vertical)
                         .focused($isNotesFocused)
                         .padding(.horizontal)
                         .padding(.vertical, 5)
@@ -107,39 +104,36 @@ struct EditWorkout: View {
                                 .softInnerShadow(RoundedRectangle(cornerRadius: 15), darkShadow: ColorManager.darkShadow, lightShadow: ColorManager.lightShadow, spread: 0.05, radius: 2)
                         )
                     
-                    
                     Button {
-                        guard !workout.name.isEmpty else {
-                            alertType = .title
+                        guard !workoutName.isEmpty else {
+                            alertMessage = "Please name this workout."
+                            showAlert = true
                             return
                         }
                         
-                        var blanks: [Int] = []
-                        for exercise in workout.exercises {
-                            if exercise.exercise == nil {
-                                blanks.append(exercise.index)
-                                workout.exercises.remove(at: workout.exercises.firstIndex(of: exercise)!)
-                            }
-                        }
+                        var validExercises = exercises
+                        validExercises.removeAll { $0.exercise == nil }
                         
-                        guard workout.exercises.count > 0 else {
-                            for index in blanks {
-                                workout.exercises.append(WorkoutExercise(index: index))
-                            }
-                            
-                            alertType = .exercises
+                        guard !validExercises.isEmpty else {
+                            alertMessage = "Please add at least one exercise."
+                            showAlert = true
                             return
                         }
                         
-                        context.insert(workout)
-                        context.insert(WorkoutLog(workout: workout))
-
+                        // Update the workout with the edited values
+                        workout.name = workoutName
+                        workout.notes = workoutNotes
+                        
+                        // Update exercises
+                        workout.exercises = validExercises
+                        
+                        // Save changes
                         try? context.save()
                         
                         dismiss()
                     } label: {
                         HStack {
-                            Text("Save")
+                            Text("Save Changes")
                         }
                     }
                     .padding(.top)
@@ -147,16 +141,34 @@ struct EditWorkout: View {
                 }
                 .padding()
                 .navigationTitle("Edit Workout")
-                .alert(item: $alertType) { type in
-                    switch type {
-                    case .title:
-                        return Alert(title: Text("Error"), message: Text("Please name this workout."))
-                    case .exercises:
-                        return Alert(title: Text("Error"), message: Text("Please add at least one exercise."))
+                .alert(isPresented: $showAlert) {
+                    Alert(title: Text("Error"), message: Text(alertMessage))
+                }
+                .confirmationDialog("Delete \(workoutName)? This will also delete all related logs.", isPresented: $deleteWorkout, titleVisibility: .visible) {
+                    Button("Delete", role: .destructive) {
+                        for log in (workoutLogs.filter { $0.workout == workout }) {
+                            context.delete(log)
+                        }
+                        
+                        context.delete(workout)
+                        try? context.save()
+                        
+                        deleteWorkout = false
                     }
                 }
                 .toolbar {
-                    ToolbarItemGroup (placement: .keyboard) {
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        Spacer()
+                        
+                        Button {
+                            deleteWorkout = true
+                        } label: {
+                            Image(systemName: "document.on.document")
+                                .padding(.horizontal, 5)
+                        }
+                    }
+                    
+                    ToolbarItemGroup(placement: .keyboard) {
                         Spacer()
                         
                         Button {
@@ -169,13 +181,6 @@ struct EditWorkout: View {
                     }
                 }
             }
-            .onDisappear {
-                workout.exercises.removeAll { $0.exercise == nil }
-            }
         }
     }
-}
-
-#Preview {
-    EditWorkout(workout: Workout())
 }

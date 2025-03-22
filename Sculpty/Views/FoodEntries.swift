@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import Neumorphic
+import SwiftUICharts
 import MijickPopups
 
 struct FoodEntries: View {
@@ -15,6 +16,8 @@ struct FoodEntries: View {
     
     @State var log: CaloriesLog
     @State private var entryToDelete: FoodEntry? = nil
+    
+    @State var caloriesBreakdown: (Double, Double, Double, Double)
     
     var body: some View {
         NavigationStack {
@@ -43,104 +46,115 @@ struct FoodEntries: View {
                     .padding(.horizontal)
                     .padding(.bottom)
                     
-                    VStack {
-                        if !log.entries.isEmpty {
-                            ForEach(log.entries.indices, id: \.self) { index in
-                                if log.entries.count > index {
-                                    let entry = log.entries[index]
-                                    
-                                    VStack {
-                                        HStack {
-                                            Text("\(entry.name) - \(entry.calories.formatted())cal")
-                                            
-                                            Spacer()
-                                            
-                                            HStack {
-                                                Button {
-                                                    Task {
-                                                        await AddFoodPopup(entry: entry, log: log).present()
-                                                    }
-                                                } label: {
-                                                    Image(systemName: "pencil")
-                                                }
-                                                .foregroundStyle(Color.accentColor)
-                                                .padding(.horizontal, 5)
-                                                
-                                                Button {
-                                                    entryToDelete = entry
-                                                } label: {
-                                                    Image(systemName: "xmark")
-                                                }
-                                                .foregroundStyle(Color.accentColor)
-                                                .padding(.horizontal, 5)
-                                            }
-                                        }
-                                        
-                                        HStack {
-                                            HStack {
-                                                Circle()
-                                                    .fill(.blue)
-                                                    .frame(width: 10, height: 10)
-                                                
-                                                Text("\(entry.carbs.formatted())g Carbs")
-                                            }
-                                            
-                                            HStack {
-                                                Circle()
-                                                    .fill(.red)
-                                                    .frame(width: 10, height: 10)
-                                                
-                                                Text("\(entry.protein.formatted())g Protein")
-                                            }
-                                            
-                                            HStack {
-                                                Circle()
-                                                    .fill(.orange)
-                                                    .frame(width: 10, height: 10)
-                                                
-                                                Text("\(entry.fat.formatted())g Fat")
-                                            }
-                                            
-                                            Spacer()
-                                        }
-                                    }
+                    VStack(spacing: 20) {
+                        if (caloriesBreakdown.1 + caloriesBreakdown.2 + caloriesBreakdown.3) > 0 {
+                            HStack {
+                                PieChartView(data: [caloriesBreakdown.1, caloriesBreakdown.2, caloriesBreakdown.3], labels: ["\(caloriesBreakdown.1.formatted())g Carbs", "\(caloriesBreakdown.2.formatted())g Protein", "\(caloriesBreakdown.3.formatted())g Fat"], title: "Calories Breakdown", form: ChartForm.small, segmentColors: [Color.blue, Color.red, Color.orange], unit: "g", showTitle: false)
                                     .frame(maxWidth: .infinity)
-                                    .transition(.opacity)
-                                    
-                                    if entry != log.entries.last {
-                                        Divider()
-                                            .background(ColorManager.text)
-                                            .padding(.vertical)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                RoundedRectangle(cornerRadius: 15).fill(ColorManager.background)
+                                    .softOuterShadow(darkShadow: ColorManager.darkShadow, lightShadow: ColorManager.lightShadow, radius: 2)
+                            )
+                        }
+                        
+                        VStack {
+                            if !log.entries.isEmpty {
+                                ForEach(log.entries.indices, id: \.self) { index in
+                                    if log.entries.count > index {
+                                        let entry = log.entries[index]
+                                        
+                                        VStack {
+                                            HStack {
+                                                Text("\(entry.name) - \(entry.calories.formatted())cal")
+                                                
+                                                Spacer()
+                                                
+                                                HStack {
+                                                    NavigationLink(destination: AddFoodEntry(entry: entry, log: log)) {
+                                                        Image(systemName: "pencil")
+                                                    }
+                                                    .foregroundStyle(Color.accentColor)
+                                                    .padding(.horizontal, 5)
+                                                    
+                                                    Button {
+                                                        entryToDelete = entry
+                                                    } label: {
+                                                        Image(systemName: "xmark")
+                                                    }
+                                                    .foregroundStyle(Color.accentColor)
+                                                    .padding(.horizontal, 5)
+                                                }
+                                            }
+                                            
+                                            HStack {
+                                                HStack {
+                                                    Circle()
+                                                        .fill(.blue)
+                                                        .frame(width: 10, height: 10)
+                                                    
+                                                    Text("\(entry.carbs.formatted())g Carbs")
+                                                }
+                                                
+                                                HStack {
+                                                    Circle()
+                                                        .fill(.red)
+                                                        .frame(width: 10, height: 10)
+                                                    
+                                                    Text("\(entry.protein.formatted())g Protein")
+                                                }
+                                                
+                                                HStack {
+                                                    Circle()
+                                                        .fill(.orange)
+                                                        .frame(width: 10, height: 10)
+                                                    
+                                                    Text("\(entry.fat.formatted())g Fat")
+                                                }
+                                                
+                                                Spacer()
+                                            }
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .transition(.opacity)
+                                        
+                                        if entry != log.entries.last {
+                                            Divider()
+                                                .background(ColorManager.text)
+                                                .padding(.vertical)
+                                        }
                                     }
                                 }
+                            } else {
+                                Text("No entries for \(formatDate(log.date))")
                             }
-                        } else {
-                            Text("No entries for \(formatDate(log.date))")
                         }
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .animation(.easeInOut, value: log.entries)
-                    .background(
-                        RoundedRectangle(cornerRadius: 15).fill(ColorManager.background)
-                            .softOuterShadow(darkShadow: ColorManager.darkShadow, lightShadow: ColorManager.lightShadow, radius: 2)
-                    )
-                    .confirmationDialog("Delete \(entryToDelete?.name ?? "food entry")? This cannot be undone.", isPresented: Binding(
-                        get: { entryToDelete != nil },
-                        set: { if !$0 { entryToDelete = nil } }
-                    ), titleVisibility: .visible) {
-                        Button("Delete", role: .destructive) {
-                            do {
-                                if let entry = entryToDelete {
-                                    log.entries.remove(at: log.entries.firstIndex(of: entry)!)
-                                    context.delete(entry)
-                                    
-                                    try context.save()
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .animation(.easeInOut, value: log.entries)
+                        .background(
+                            RoundedRectangle(cornerRadius: 15).fill(ColorManager.background)
+                                .softOuterShadow(darkShadow: ColorManager.darkShadow, lightShadow: ColorManager.lightShadow, radius: 2)
+                        )
+                        .confirmationDialog("Delete \(entryToDelete?.name ?? "food entry")? This cannot be undone.", isPresented: Binding(
+                            get: { entryToDelete != nil },
+                            set: { if !$0 { entryToDelete = nil } }
+                        ), titleVisibility: .visible) {
+                            Button("Delete", role: .destructive) {
+                                do {
+                                    if let entry = entryToDelete {
+                                        log.entries.remove(at: log.entries.firstIndex(of: entry)!)
+                                        context.delete(entry)
+                                        
+                                        try context.save()
 
-                                    entryToDelete = nil
+                                        entryToDelete = nil
+                                    }
+                                } catch {
+                                    print("Error deleting exercise: \(error)")
                                 }
-                            } catch {
-                                print("Error deleting exercise: \(error)")
                             }
                         }
                     }
@@ -150,8 +164,4 @@ struct FoodEntries: View {
             }
         }
     }
-}
-
-#Preview {
-    FoodEntries(log: CaloriesLog())
 }

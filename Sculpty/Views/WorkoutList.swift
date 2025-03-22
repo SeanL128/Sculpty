@@ -2,250 +2,104 @@
 //  WorkoutList.swift
 //  Sculpty
 //
-//  Created by Sean Lindsay on 1/18/25.
+//  Created by Sean Lindsay on 2/24/25.
 //
+
 import SwiftUI
 import SwiftData
+import Neumorphic
 
 struct WorkoutList: View {
-    @Environment(\.modelContext) var context
+    @Environment(\.modelContext) private var context
+    @Environment(\.dismiss) private var dismiss
     
     @Query(filter: #Predicate<Workout> { $0.index >= 0 }, sort: \.index) private var workouts: [Workout]
-    @Query private var workoutLogs: [WorkoutLog]
     
-    @State var workoutToDelete: Workout? = nil
-    
-    @State private var exporting: Bool = false
-    @State private var importing: Bool = false
-    
-    @State private var showImportFailAlert: Bool = false
-    
-    var onWorkoutSelected: (Workout, WorkoutLog) -> Void
+    @Binding var workoutToStart: WorkoutLog?
     
     var body: some View {
         NavigationStack {
             ZStack {
                 ColorManager.background
-                    .ignoresSafeArea(edges: .all)
+                    .edgesIgnoringSafeArea(.all)
                 
-                VStack {
+                ScrollView {
                     HStack {
-                        Text("Workouts")
+                        Text("WORKOUTS")
                             .font(.largeTitle)
                             .bold()
                         
                         Spacer()
-                        
-                        Button {
-                            importing = true
-                        } label: {
-                            Image(systemName: "square.and.arrow.down")
-                        }
-                        .padding(.leading, 10)
-                        .alert(isPresented: $showImportFailAlert) {
-                            Alert(title: Text("Error"),
-                                  message: Text("There was an error when importing this workout. Please make sure that you are selecting the correct file. You may need to try again later or report an issue."))
-                        }
-                        .fileImporter(
-                            isPresented: $importing,
-                            allowedContentTypes: [.json],
-                            allowsMultipleSelection: false
-                        ) { result in
-                            switch result {
-                            case .success(let urls):
-                                guard let url = urls.first else { return }
-                                
-                                guard url.startAccessingSecurityScopedResource() else {
-                                    showImportFailAlert = true
-                                    return
-                                }
-                                
-                                guard let importedData = try? Data(contentsOf: url) else {
-                                    showImportFailAlert = true
-                                    return
-                                }
-                                
-                                url.stopAccessingSecurityScopedResource()
-                                
-                                let decoder = JSONDecoder()
-                                
-                                guard let workout = try? decoder.decode(Workout.self, from: importedData) else {
-                                    showImportFailAlert = true
-                                    return
-                                }
-                                
-                                DispatchQueue.main.async {
-                                    var exercises: [WorkoutExercise] = []
-                                    for workoutExercise in workout.exercises {
-                                        let exercise: Exercise = workoutExercise.exercise!
-                                        let existingExercise = try? context.fetch(FetchDescriptor<Exercise>()).first(where: { $0.name == exercise.name && $0.notes == exercise.notes && $0.muscleGroup == exercise.muscleGroup })
-                                        
-                                        if existingExercise != nil {
-                                            workoutExercise.exercise = existingExercise!
-                                        } else {
-                                            let newExercise = Exercise(name: exercise.name, notes: exercise.notes, muscleGroup: exercise.muscleGroup ?? .other)
-                                            workoutExercise.exercise = newExercise
-                                            context.insert(newExercise)
-                                        }
-                                        
-                                        exercises.append(workoutExercise)
-                                    }
-                                    
-                                    let newWorkout = Workout(name: workout.name, exercises: [], notes: workout.notes)
-                                    for workoutExercise in exercises {
-                                        workoutExercise.workout = newWorkout
-                                    }
-                                    
-                                    context.insert(newWorkout)
-                                    do {
-                                        try context.save()
-                                    } catch {
-                                        print("Failed to save workout: \(error.localizedDescription)")
-                                    }
-                                    
-                                    newWorkout.exercises = exercises
-                                    
-                                    context.insert(WorkoutLog(workout: newWorkout))
-
-                                    do {
-                                        try context.save()
-                                    } catch {
-                                        print("Failed to save imported data: \(error.localizedDescription)")
-                                        showImportFailAlert = true
-                                    }
-                                }
-                                
-                                importing = false
-                            case .failure(let error):
-                                print(error.localizedDescription)
-                            }
-                        }
-                        
-                        NavigationLink(destination: ExerciseList()) {
-                            Image(systemName: "dumbbell")
-                        }
-                        .padding(.horizontal, 10)
-                        
-                        NavigationLink(destination: AddWorkout()) {
-                            Image(systemName: "plus")
-                        }
-                        .padding(.trailing, 10)
                     }
                     .padding()
                     
-                    List {
-                        Section {
-                            Button {
-                                // action
-                            } label: {
-                                Text("Rest")
+                    VStack(alignment: .leading, spacing: 12) {
+                        NavigationLink(destination: AddWorkout()) {
+                            HStack {
+                                Image(systemName: "plus")
+                                
+                                Text("ADD WORKOUT")
                             }
-                            .foregroundStyle(ColorManager.text)
                         }
                         
-                        Section {
-                            ForEach(workouts) { workout in
+                        Divider()
+                            .background(ColorManager.text)
+                        
+                        ForEach(workouts, id: \.self) { workout in
+                            VStack {
                                 HStack {
-                                    if let todayLog = workoutLogs.first(where: { log in
-                                        log.workout.id == workout.id &&
-                                        Calendar.current.isDate(log.start, inSameDayAs: Date())
-                                    }) {
-                                        var backgroundColor: Color {
-                                            if todayLog.completed {
-                                                return Color.accentColor
-                                            }
-                                            
-                                            return Color(UIColor.systemBackground)
-                                        }
+                                    Text(workout.name)
+                                        .font(.title3)
+                                    
+                                    Spacer()
+                                    
+                                    Button {
+                                        copyWorkout(workout: workout)
+                                    } label: {
+                                        Image(systemName: "document.on.document")
+                                            .padding(.horizontal, 5)
+                                    }
+                                    
+                                    NavigationLink(destination: EditWorkout(workout: workout)) {
+                                        Image(systemName: "pencil")
+                                            .padding(.horizontal, 5)
+                                    }
+                                    
+                                    Button {
+                                        let log = WorkoutLog(workout: workout)
                                         
-                                        Button {
-                                            withAnimation(.easeInOut(duration: 0.25)) {
-                                                onWorkoutSelected(workout, todayLog)
-                                            }
-                                        } label: {
+                                        context.insert(log)
+                                        workoutToStart = log
+                                        dismiss()
+                                    } label: {
+                                        Image(systemName: "play.fill")
+                                            .padding(.horizontal, 5)
+                                    }
+                                }
+                                
+                                if !workout.exercises.isEmpty {
+                                    VStack(alignment: .leading) {
+                                        ForEach(workout.exercises, id: \.self) { exercise in
                                             HStack {
-                                                Text(workout.name)
+                                                Text(exercise.exercise?.name ?? "Exercise \(exercise.index)")
                                                 
                                                 Spacer()
-                                                
-                                                if let previousLog = workoutLogs.sorted(by: { $0.start > $1.start }).first(where: { log in
-                                                    log.completed &&
-                                                    log.workout.id == workout.id
-                                                }) {
-                                                    Text(formatDate(previousLog.start))
-                                                        .opacity(0.5)
-                                                }
-                                                
-                                                Image(systemName: "chevron.right")
                                             }
-                                            .foregroundStyle(ColorManager.text)
-                                            .listRowBackground(backgroundColor)
-                                        }
-                                    } else {
-                                        HStack {
-                                            Text(workout.name)
-                                            Text("(Error - please restart app or alert developer)")
-                                                .foregroundColor(.gray)
+                                            .frame(maxWidth: .infinity)
                                         }
                                     }
-                                }
-                                .swipeActions {
-                                    Button("Delete") {
-                                        workoutToDelete = workout
-                                    }
-                                    .tint(.red)
-                                }
-                                .swipeActions(edge: .leading) {
-                                    Button("Copy") {
-                                        copyWorkout(workout: workout)
-                                    }
-                                    .tint(.blue)
+                                    .padding(.top, 3)
+                                    .padding(.leading, 20)
                                 }
                             }
-                            .onMove { from, to in
-                                var reordered = workouts
-                                
-                                reordered.move(fromOffsets: from, toOffset: to)
-                                
-                                for (newIndex, workout) in reordered.enumerated() {
-                                    if workout.index != newIndex {
-                                        workout.index = newIndex
-                                    }
-                                }
-                                
-                                for workout in workouts {
-                                    context.delete(workout)
-                                }
-                                
-                                for workout in reordered {
-                                    context.insert(workout)
-                                }
-                                
-                                try? context.save()
-                            }
+                            .padding(.bottom, 12)
                         }
                     }
-                    .scrollContentBackground(.hidden)
-                    .confirmationDialog("Delete \(workoutToDelete?.name ?? "workout")? This will also delete all related logs.", isPresented: Binding(
-                        get: { workoutToDelete != nil },
-                        set: { if !$0 { workoutToDelete = nil } }
-                    ), titleVisibility: .visible) {
-                        Button("Delete", role: .destructive) {
-                            if let workout = workoutToDelete {
-                                for log in (workoutLogs.filter { $0.workout == workout }) {
-                                    context.delete(log)
-                                }
-                                
-                                context.delete(workout)
-                                try? context.save()
-                                
-                                workoutToDelete = nil
-                            }
-                        }
-                    }
+                    .padding()
                 }
+                .padding()
+                .scrollClipDisabled()
             }
-            .toolbar(.hidden, for: .navigationBar)
         }
     }
     
@@ -270,17 +124,5 @@ struct WorkoutList: View {
         } catch {
             print("Failed to save workout copy: \(error.localizedDescription)")
         }
-    }
-}
-
-#Preview {
-    @Previewable @State var showViewWorkout: Bool = false
-    @Previewable @State var selectedWorkout: Workout?
-    @Previewable @State var selectedLog: WorkoutLog?
-    
-    WorkoutList { workout, log in
-        selectedWorkout = workout
-        selectedLog = log
-        showViewWorkout = true
     }
 }

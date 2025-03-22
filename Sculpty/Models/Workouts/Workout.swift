@@ -11,11 +11,8 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 @Model
-class Workout: Identifiable, Codable, FileDocument, Transferable {
+class Workout: Identifiable, Codable, FileDocument {
     static var readableContentTypes: [UTType] = [.json]
-    static var transferRepresentation: some TransferRepresentation {
-        CodableRepresentation(contentType: .json)
-    }
     
     @Attribute(.unique) var id = UUID()
     

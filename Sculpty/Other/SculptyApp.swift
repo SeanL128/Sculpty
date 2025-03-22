@@ -31,7 +31,7 @@ struct SculptyApp: App {
                 .preferredColorScheme(colorScheme)
                 .accentColor(Color(hex: accentColorHex))
                 .dynamicTypeSize(.medium ... .xxxLarge)
-                .modelContainer(for: [Workout.self, Exercise.self, WorkoutLog.self, CaloriesLog.self, Measurement.self, WorkoutSchedule.self, WorkoutSchedule.self])
+                .modelContainer(for: [Workout.self, Exercise.self, WorkoutLog.self, CaloriesLog.self, Measurement.self])
                 .registerPopups(id: .shared) { config in config
                     .vertical { $0
                         .enableDragGesture(true)
