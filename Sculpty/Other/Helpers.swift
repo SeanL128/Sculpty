@@ -132,6 +132,18 @@ func formatDateWithTime(_ date: Date) -> String {
     return dateFormatter.string(from: date)
 }
 
+// MARK: Structs
+struct OutlinedTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .padding()
+            .overlay {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(ColorManager.text, lineWidth: 2)
+            }
+    }
+}
+
 // MARK: Classes
 final class ColorManager {
     static let background = Color("BackgroundColor")
@@ -233,7 +245,7 @@ extension Color {
 
 extension UserDefaults {
     func resetUser(){
-        UserKeys.allCases.forEach{
+        UserKeys.allCases.forEach {
             removeObject(forKey: $0.rawValue)
         }
     }

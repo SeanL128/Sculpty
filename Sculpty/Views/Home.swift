@@ -320,6 +320,7 @@ struct Home: View {
                         }
                     }
                     .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
+                    .scrollIndicators(.hidden)
                     .scrollClipDisabled()
                     .padding()
                 }
@@ -336,6 +337,7 @@ struct Home: View {
             .onChange(of: workoutToStart) {
                 if let log = workoutToStart {
                     log.startWorkout()
+                    
                     try? context.save()
                     
                     workoutToStart = nil

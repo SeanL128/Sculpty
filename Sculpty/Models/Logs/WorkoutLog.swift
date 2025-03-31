@@ -26,8 +26,8 @@ class WorkoutLog: Identifiable, Codable {
         self.start = start
         self.end = end
         
-        if exerciseLogs != nil {
-            self.exerciseLogs = exerciseLogs!
+        if let exerciseLogs = exerciseLogs {
+            self.exerciseLogs = exerciseLogs
         } else {
             for exercise in workout.exercises {
                 self.exerciseLogs.append(ExerciseLog(index: exercise.index, exercise: exercise))
@@ -84,7 +84,11 @@ class WorkoutLog: Identifiable, Codable {
     }
     
     func getLength() -> Double {
-        return end.timeIntervalSince1970.rounded() - start.timeIntervalSince1970.rounded()
+        if completed {
+            return end.timeIntervalSince(start)
+        } else {
+            return Date().timeIntervalSince(start)
+        }
     }
     
     func getMuscleGroupBreakdown() -> [MuscleGroup] {

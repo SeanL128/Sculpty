@@ -40,8 +40,10 @@ struct SculptyApp: App {
                         .popupTopPadding(10)
                     }
                     .center { $0
-                        .tapOutsideToDismissPopup(false)
+                        .tapOutsideToDismissPopup(true)
                         .backgroundColor(ColorManager.background)
+                        .cornerRadius(15)
+                        .popupHorizontalPadding(5)
                     }
                 }
         }

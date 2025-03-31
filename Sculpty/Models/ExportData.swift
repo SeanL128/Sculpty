@@ -15,9 +15,9 @@ struct ExportData: Codable, FileDocument {
     let workouts: [Workout]
     let exercises: [Exercise]
     let workoutLogs: [WorkoutLog]
-    let caloriesLogs: [CaloriesLog]
+    let caloriesLogs: [CaloriesLogDTO]
     
-    init(workouts: [Workout], exercises: [Exercise], workoutLogs: [WorkoutLog], caloriesLogs: [CaloriesLog]) {
+    init(workouts: [Workout], exercises: [Exercise], workoutLogs: [WorkoutLog], caloriesLogs: [CaloriesLogDTO]) {
         self.workouts = workouts
         self.exercises = exercises
         self.workoutLogs = workoutLogs

@@ -92,7 +92,7 @@ struct ExerciseInfo: View {
                             let index = workoutExercise.sets.firstIndex(of: set)!
                             Button {
                                 Task {
-                                    await EditSetPopup(set: $workoutExercise.sets[index]).present()
+                                    await EditExerciseSetPopup(set: $workoutExercise.sets[index]).present()
                                 }
                             } label: {
                                 SetView(set: workoutExercise.sets[index])

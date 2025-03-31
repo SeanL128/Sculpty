@@ -13,15 +13,33 @@ struct AddWorkout: View {
     @Environment(\.modelContext) var context
     @Environment(\.dismiss) var dismiss
     
-    @State private var workoutName: String = ""
-    @State private var workoutNotes: String = ""
-    @State private var exercises: [WorkoutExercise] = []
+    private var workout: Workout?
+    
+    @State private var workoutName: String
+    @State private var workoutNotes: String
+    @State private var exercises: [WorkoutExercise]
     
     @State private var showAlert: Bool = false
     @State private var alertMessage: String = ""
     
+    @State private var confirmDelete: Bool = false
+    
     @FocusState private var isNameFocused: Bool
     @FocusState private var isNotesFocused: Bool
+    
+    init() {
+        self.workoutName = ""
+        self.workoutNotes = ""
+        self.exercises = []
+    }
+    
+    init (workout: Workout) {
+        self.workout = workout
+        
+        self.workoutName = workout.name
+        self.workoutNotes = workout.notes
+        self.exercises = workout.exercises
+    }
     
     var body: some View {
         NavigationStack {
@@ -44,12 +62,12 @@ struct AddWorkout: View {
                         ForEach(exercises.sorted { $0.index < $1.index }, id: \.id) { exercise in
                             let index = exercises.firstIndex(of: exercise)!
                             HStack {
-                                Text(exercise.exercise?.name ?? "Select Exercise")
+                                Text(exercise.exercise?.name ?? "SELECT EXERCISE")
                                 NavigationLink(destination: ExerciseInfo(workout: Workout(name: workoutName, exercises: exercises, notes: workoutNotes), exercise: exercise.exercise ?? nil, workoutExercise: $exercises[index])) {
                                 }
                             }
                             .swipeActions {
-                                Button("Delete") {
+                                Button("DELETE") {
                                     exercises.remove(at: index)
                                 }
                                 .tint(.red)
@@ -77,12 +95,12 @@ struct AddWorkout: View {
                     } label: {
                         HStack {
                             Image(systemName: "plus")
-                            Text("Add Exercise")
+                            Text("ADD EXERCISE")
                         }
                     }
                     
                     
-                    TextField("Notes", text: $workoutNotes, axis: .vertical)
+                    TextField("NOTES", text: $workoutNotes, axis: .vertical)
                         .focused($isNotesFocused)
                         .padding(.horizontal)
                         .padding(.vertical, 5)
@@ -94,7 +112,7 @@ struct AddWorkout: View {
                     
                     Button {
                         guard !workoutName.isEmpty else {
-                            alertMessage = "Please name this workout."
+                            alertMessage = "PLEASE NAME THIS WORKOUT."
                             showAlert = true
                             
                             return
@@ -115,44 +133,69 @@ struct AddWorkout: View {
                                 exercises.append(WorkoutExercise(index: index))
                             }
                             
-                            alertMessage = "Please add at least one exercise."
+                            alertMessage = "PLEASE ADD AT LEAST ONE EXERCISE."
                             showAlert = true
                             
                             return
                         }
                         
-                        var index = -1
-                        
-                        do {
-                            index = (try context.fetch(FetchDescriptor<Workout>()).map { $0.index }.max() ?? -1) + 1
-                        } catch {
-                            print(error.localizedDescription)
+                        if let workout = workout {
+                            workout.name = workoutName
+                            workout.exercises = exercises
+                            workout.notes = workoutNotes
+                        } else {
+                            var index = -1
                             
-                            return
+                            do {
+                                index = (try context.fetch(FetchDescriptor<Workout>()).map { $0.index }.max() ?? -1) + 1
+                            } catch {
+                                print(error.localizedDescription)
+                                
+                                return
+                            }
+                            
+                            // Create the actual workout at save time
+                            let workout = Workout(name: workoutName, exercises: exercisesToSave, notes: workoutNotes)
+                            workout.index = index
+                            
+                            context.insert(workout)
                         }
-                        
-                        // Create the actual workout at save time
-                        let workout = Workout(name: workoutName, exercises: exercisesToSave, notes: workoutNotes)
-                        workout.index = index
-                        
-                        context.insert(workout)
-                        context.insert(WorkoutLog(workout: workout))
 
                         try? context.save()
                         
                         dismiss()
                     } label: {
                         HStack {
-                            Text("Save")
+                            Text("SAVE")
                         }
                     }
                     .padding(.top)
                     .buttonStyle(.borderedProminent)
                 }
                 .padding()
-                .navigationTitle("Add Workout")
+                .navigationTitle("\(workout != nil ? "EDIT" : "ADD") WORKOUT")
                 .alert(isPresented: $showAlert) {
-                    Alert(title: Text("Error"), message: Text(alertMessage))
+                    Alert(title: Text("ERROR"), message: Text(alertMessage))
+                }
+                .confirmationDialog("Delete \(workoutName)? This will also delete all related logs.", isPresented: $confirmDelete, titleVisibility: .visible) {
+                    Button("Delete", role: .destructive) {
+                        if let workout = workout {
+                            do {
+                                for log in ((try context.fetch(FetchDescriptor<WorkoutLog>())).filter { $0.workout == workout }) {
+                                    context.delete(log)
+                                }
+                                
+                                context.delete(workout)
+                                try? context.save()
+                                
+                                dismiss()
+                            } catch {
+                                print (error.localizedDescription)
+                                
+                                return
+                            }
+                        }
+                    }
                 }
                 .toolbar {
                     ToolbarItemGroup (placement: .keyboard) {
@@ -162,9 +205,32 @@ struct AddWorkout: View {
                             isNameFocused = false
                             isNotesFocused = false
                         } label: {
-                            Text("Done")
+                            Text("DONE")
                         }
                         .disabled(!(isNameFocused || isNotesFocused))
+                    }
+                    
+                    if workout != nil {
+                        ToolbarItemGroup(placement: .navigationBarTrailing) {
+                            Spacer()
+                            
+                            Button {
+                                copyWorkout()
+                                
+                                dismiss()
+                            } label: {
+                                Image(systemName: "document.on.document")
+                                    .font(.footnote)
+                            }
+                            
+                            Button {
+                                confirmDelete = true
+                            } label: {
+                                Image(systemName: "trash")
+                                    .padding(.horizontal, 5)
+                                    .font(.footnote)
+                            }
+                        }
                     }
                 }
             }
@@ -177,6 +243,41 @@ struct AddWorkout: View {
             .onDisappear {
                 // Clean up
                 exercises.removeAll { $0.exercise == nil }
+            }
+        }
+    }
+    
+    private func copyWorkout() {
+        if let workout = workout {
+            var index = -1
+            
+            do {
+                index = (try context.fetch(FetchDescriptor<Workout>()).map { $0.index }.max() ?? -1) + 1
+            } catch {
+                print(error.localizedDescription)
+                
+                return
+            }
+            
+            let workoutCopy = Workout(index: index, name: "Copy of \(workout.name)", exercises: [], notes: workout.notes)
+            
+            for exercise in workout.exercises {
+                let exerciseCopy = WorkoutExercise(index: exercise.index, exercise: exercise.exercise, sets: [], restTime: exercise.restTime, specNotes: exercise.specNotes, tempo: exercise.tempo)
+                
+                for exerciseSet in exercise.sets {
+                    exerciseCopy.sets.append(ExerciseSet(index: exerciseSet.index, reps: exerciseSet.reps, weight: exerciseSet.weight, measurement: exerciseSet.measurement, type: exerciseSet.type, rir: exerciseSet.rir))
+                }
+                
+                workoutCopy.exercises.append(exerciseCopy)
+            }
+            
+            context.insert(workoutCopy)
+            context.insert(WorkoutLog(workout: workoutCopy))
+            
+            do {
+                try context.save()
+            } catch {
+                print("Failed to save workout copy: \(error.localizedDescription)")
             }
         }
     }

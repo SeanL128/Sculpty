@@ -12,7 +12,7 @@ import SwiftData
 class SetLog: Identifiable, Codable {
     @Attribute(.unique) var id: UUID = UUID()
     var exerciseLog: ExerciseLog?
-    @Relationship(deleteRule: .deny) var set: ExerciseSet?
+    @Relationship(deleteRule: .nullify) var set: BaseSet?
     
     var index: Int
     var completed: Bool
@@ -20,20 +20,20 @@ class SetLog: Identifiable, Codable {
     var start: Date
     var end: Date
     
-    var reps: Int
-    var weight: Double
+    var reps: Int = 0
+    var weight: Double = 0
+    var time: Double = 0
+    var distance: Double = 0
     var unit: String
     var measurement: String
     
-    init(index: Int, set: ExerciseSet, unit: String = "lbs", measurement: String = "x") {
+    init(index: Int, set: BaseSet, unit: String = "lbs", measurement: String = "x") {
         self.index = index
         self.set = set
         completed = false
         skipped = false
         start = Date()
         end = Date(timeIntervalSince1970: 0)
-        reps = 0
-        weight = 0
         self.unit = unit
         self.measurement = measurement
     }
@@ -42,9 +42,27 @@ class SetLog: Identifiable, Codable {
         completed = true
         end = Date()
         
-        self.reps = reps
-        self.weight = weight * Double(reps)
-        self.measurement = measurement
+        if set is ExerciseSet {
+            self.reps = reps
+            self.weight = weight * Double(reps)
+            self.measurement = measurement
+            
+            self.time = 0
+            self.distance = 0
+        }
+    }
+    
+    func finish(time: Double = 0, distance: Double = 0) {
+        completed = true
+        end = Date()
+        
+        if set is DistanceSet {
+            self.time = time
+            self.distance = distance
+            
+            self.reps = 0
+            self.weight = 0
+        }
     }
     
     func unfinish() {
@@ -53,6 +71,8 @@ class SetLog: Identifiable, Codable {
         
         reps = 0
         weight = 0
+        time = 0
+        distance = 0
     }
     
     func skip() {
@@ -61,6 +81,8 @@ class SetLog: Identifiable, Codable {
         
         reps = 0
         weight = 0
+        time = 0
+        distance = 0
     }
     
     func unskip() {
@@ -69,10 +91,12 @@ class SetLog: Identifiable, Codable {
         
         reps = 0
         weight = 0
+        time = 0
+        distance = 0
     }
     
     enum CodingKeys: String, CodingKey {
-        case id, index, completed, skipped, start, end, reps, weight, unit, measurement
+        case id, index, completed, skipped, start, end, reps, weight, time, distance, unit, measurement
     }
     
     required init(from decoder: Decoder) throws {
@@ -85,6 +109,8 @@ class SetLog: Identifiable, Codable {
         end = try container.decode(Date.self, forKey: .end)
         reps = try container.decode(Int.self, forKey: .reps)
         weight = try container.decode(Double.self, forKey: .weight)
+        time = try container.decode(Double.self, forKey: .time)
+        distance = try container.decode(Double.self, forKey: .distance)
         unit = try container.decode(String.self, forKey: .unit)
         measurement = try container.decode(String.self, forKey: .measurement)
     }
@@ -99,6 +125,8 @@ class SetLog: Identifiable, Codable {
         try container.encode(end, forKey: .end)
         try container.encode(reps, forKey: .reps)
         try container.encode(weight, forKey: .weight)
+        try container.encode(time, forKey: .time)
+        try container.encode(distance, forKey: .distance)
         try container.encode(unit, forKey: .unit)
         try container.encode(measurement, forKey: .measurement)
     }

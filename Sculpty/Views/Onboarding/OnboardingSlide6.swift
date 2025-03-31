@@ -145,6 +145,8 @@ struct OnboardingSlide6: View {
                         }
                         
                         for log in data.caloriesLogs {
+                            let log = CaloriesLog(from: log)
+                            
                             guard !log.entries.isEmpty && log.date.timeIntervalSince1970 != 0 else { continue }
                             
                             var entries: [FoodEntry] = []

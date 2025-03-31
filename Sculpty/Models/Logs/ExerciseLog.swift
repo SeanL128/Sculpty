@@ -53,22 +53,49 @@ class ExerciseLog: Identifiable, Codable {
     
     
     func getTotalReps(_ includeWarmUp: Bool, _ includeDropSet: Bool, _ includeCoolDown: Bool) -> Int {
-        return setLogs.filter({ setLog in
-            setLog.set?.type == .main ||
-            (includeWarmUp && setLog.set?.type == .warmUp) ||
-            (includeDropSet && setLog.set?.type == .dropSet) ||
-            (includeCoolDown && setLog.set?.type == .coolDown)
+        return setLogs.filter({
+            guard let set = $0.set as? ExerciseSet else { return false }
+            
+            return set.type == .main ||
+                   (includeWarmUp && set.type == .warmUp) ||
+                   (includeDropSet && set.type == .dropSet) ||
+                   (includeCoolDown && set.type == .coolDown)
         }).reduce(0) { $0 + $1.reps}
     }
     
     func getTotalWeight(_ includeWarmUp: Bool, _ includeDropSet: Bool, _ includeCoolDown: Bool) -> Double {
         let targetUnit = WeightUnit(rawValue: UnitsManager.weight) ?? .lbs
-        return setLogs.filter({ setLog in
-            setLog.set?.type == .main ||
-            (includeWarmUp && setLog.set?.type == .warmUp) ||
-            (includeDropSet && setLog.set?.type == .dropSet) ||
-            (includeCoolDown && setLog.set?.type == .coolDown)
+        return setLogs.filter({
+            guard let set = $0.set as? ExerciseSet else { return false }
+            
+            return set.type == .main ||
+                   (includeWarmUp && set.type == .warmUp) ||
+                   (includeDropSet && set.type == .dropSet) ||
+                   (includeCoolDown && set.type == .coolDown)
         }).reduce(0) { $0 + WeightUnit(rawValue: $1.unit)!.convert($1.weight, to: targetUnit) }
+    }
+    
+    func getTotalTime(_ includeWarmUp: Bool, _ includeDropSet: Bool, _ includeCoolDown: Bool) -> Double {
+        return setLogs.filter({
+            guard let set = $0.set as? DistanceSet else { return false }
+            
+            return set.type == .main ||
+                   (includeWarmUp && set.type == .warmUp) ||
+                   (includeDropSet && set.type == .dropSet) ||
+                   (includeCoolDown && set.type == .coolDown)
+        }).reduce(0) { $0 + $1.time}
+    }
+    
+    func getTotalDistance(_ includeWarmUp: Bool, _ includeDropSet: Bool, _ includeCoolDown: Bool) -> Double {
+        let targetUnit = LongLengthUnit(rawValue: UnitsManager.longLength) ?? .mi
+        return setLogs.filter({
+            guard let set = $0.set as? DistanceSet else { return false }
+            
+            return set.type == .main ||
+                   (includeWarmUp && set.type == .warmUp) ||
+                   (includeDropSet && set.type == .dropSet) ||
+                   (includeCoolDown && set.type == .coolDown)
+        }).reduce(0) { $0 + LongLengthUnit(rawValue: $1.unit)!.convert($1.distance, to: targetUnit) }
     }
     
     enum CodingKeys: String, CodingKey {

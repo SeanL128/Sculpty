@@ -1,20 +1,24 @@
 //
-//  EditSetPopup.swift
+//  EditExerciseSetPopup.swift
 //  Sculpty
 //
 //  Created by Sean Lindsay on 3/5/25.
 //
 
 import SwiftUI
-import Neumorphic
 import MijickPopups
+import MijickTimer
 
-struct EditSetPopup: BottomPopup {
+struct EditExerciseSetPopup: CenterPopup {
     @Binding var set: ExerciseSet
     @Binding var log: SetLog
-    @Binding var timeRemaining: Double
     
-    private var restTime: Double
+    private let restTime: Double
+    private let restTimer: MTimer?
+    
+    private let setTimer: MTimer
+    @State private var setTime: MTime = .init()
+    @State private var setTimerStatus: MTimerStatus = .notStarted
     
     @State private var weightString: String
     @State private var repsString: String
@@ -23,13 +27,16 @@ struct EditSetPopup: BottomPopup {
     @FocusState private var isWeightFocused: Bool
     
     @AppStorage(UserKeys.showRir.rawValue) private var showRir: Bool = false
+    @AppStorage(UserKeys.showSetTimer.rawValue) private var showSetTimer: Bool = false
     
-    init (set: Binding<ExerciseSet>, log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet())), timeRemaining: Binding<Double> = .constant(0), restTime: Double = 0) {
+    init (set: Binding<ExerciseSet>, log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet())), restTime: Double = 0, timer: MTimer? = nil) {
         self._set = set
         self._log = log
-        self._timeRemaining = timeRemaining
         
         self.restTime = restTime
+        self.restTimer = timer
+        
+        self.setTimer = MTimer(MTimerID(rawValue: "Set Timer \(log.id)"))
         
         let initialWeight = set.wrappedValue.weight.formatted()
         let initialReps = "\(set.wrappedValue.reps)"
@@ -63,6 +70,22 @@ struct EditSetPopup: BottomPopup {
                         log.unskip()
                         log.finish(reps: set.reps, weight: weight, measurement: set.measurement)
                         
+                        if let restTimer = restTimer {
+                            var time: Double = 0;
+                            
+                            switch (set.type) {
+                            case (.warmUp):
+                                time = 30
+                            case (.coolDown):
+                                time = 60
+                            default:
+                                time = restTime
+                            }
+                            
+                            try? restTimer.skip()
+                            try? restTimer.start(from: time, to: .zero)
+                        }
+                        
                         Task {
                             await dismissLastPopup()
                         }
@@ -72,7 +95,7 @@ struct EditSetPopup: BottomPopup {
                     .padding(3)
                 }
                 .padding(.top, 30)
-                .padding(.bottom, -50)
+                .padding(.bottom, -20)
             }
             
             HStack {
@@ -90,16 +113,11 @@ struct EditSetPopup: BottomPopup {
                             
                             set.reps = (repsString as NSString).integerValue
                         }
-                        .padding(.horizontal)
-                        .padding(.vertical, 5)
-                        .background(
-                            RoundedRectangle(cornerRadius: 15).fill(ColorManager.background)
-                                .softInnerShadow(RoundedRectangle(cornerRadius: 15), darkShadow: ColorManager.darkShadow, lightShadow: ColorManager.lightShadow, spread: 0.05, radius: 2)
-                        )
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: 125)
                     
                     Spacer()
                 }
-                .frame(maxWidth: 175)
                 
                 Spacer()
                 
@@ -132,12 +150,8 @@ struct EditSetPopup: BottomPopup {
                                 set.weight = (weightString as NSString).doubleValue
                             }
                         }
-                        .padding(.horizontal)
-                        .padding(.vertical, 5)
-                        .background(
-                            RoundedRectangle(cornerRadius: 15).fill(ColorManager.background)
-                                .softInnerShadow(RoundedRectangle(cornerRadius: 15), darkShadow: ColorManager.darkShadow, lightShadow: ColorManager.lightShadow, spread: 0.05, radius: 2)
-                        )
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: 125)
                     
                     Picker("Unit", selection: $set.unit) {
                         Text("lbs").tag("lbs")
@@ -145,12 +159,13 @@ struct EditSetPopup: BottomPopup {
                         Text("kg").tag("kg")
                     }
                     .pickerStyle(.wheel)
-                    .frame(maxHeight: 100)
+                    .frame(maxWidth: 65, maxHeight: 100)
                     .clipped()
                     .padding(.leading, 5)
                 }
-                .frame(maxWidth: 175)
+                .frame(maxWidth: 190)
             }
+            .padding(.bottom, 10)
             
             Picker("Type", selection: $set.type) {
                 ForEach(ExerciseSetType.displayOrder, id: \.self) { type in
@@ -176,6 +191,41 @@ struct EditSetPopup: BottomPopup {
                     .pickerStyle(.segmented)
                     .clipped()
                 }
+                .padding(.top, 10)
+            }
+            
+            if log.index != -1 && showSetTimer && ["min", "sec"].contains(set.measurement) {
+                HStack {
+                    Text("\(setTime.toString())")
+                    
+                    Spacer()
+                    
+                    Button {
+                        if setTimerStatus == .notStarted {
+                            try? startTimer()
+                        } else if setTimerStatus == .paused {
+                            try? setTimer.resume()
+                        } else {
+                            setTimer.pause()
+                        }
+                    } label: {
+                        Image(systemName: (setTimerStatus == .notStarted || setTimerStatus == .paused) ? "play.fill" : "pause.fill")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .padding(.trailing, 5)
+                    
+                    Button {
+                        setTimer.cancel()
+                    } label: {
+                        Image(systemName: "stop.fill")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .padding(.leading, 5)
+                    .disabled(setTimer.timerStatus != .running && setTimer.timerStatus != .paused)
+                }
+                .font(.title2)
+                .padding(.top, 10)
+                .padding(.horizontal, 30)
             }
         }
         .padding(.horizontal)
@@ -196,15 +246,15 @@ struct EditSetPopup: BottomPopup {
         }
     }
     
-    private func updateTimeRemaining() async {
-        
+    func startTimer() throws {
+        try setTimer
+            .publish(every: 1, currentTime: $setTime)
+            .bindTimerStatus(timerStatus: $setTimerStatus)
+            .start()
     }
     
-    func configurePopup(config: BottomPopupConfig) -> BottomPopupConfig {
+    func configurePopup(config: CenterPopupConfig) -> CenterPopupConfig {
         config
-            .heightMode(.auto)
-            .dragDetents([.fraction(1.2)])
-            .enableDragGesture(false)
             .backgroundColor(ColorManager.background)
     }
 }

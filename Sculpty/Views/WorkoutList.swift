@@ -53,14 +53,7 @@ struct WorkoutList: View {
                                     
                                     Spacer()
                                     
-                                    Button {
-                                        copyWorkout(workout: workout)
-                                    } label: {
-                                        Image(systemName: "document.on.document")
-                                            .padding(.horizontal, 5)
-                                    }
-                                    
-                                    NavigationLink(destination: EditWorkout(workout: workout)) {
+                                    NavigationLink(destination: AddWorkout(workout: workout)) {
                                         Image(systemName: "pencil")
                                             .padding(.horizontal, 5)
                                     }
@@ -77,20 +70,20 @@ struct WorkoutList: View {
                                     }
                                 }
                                 
-                                if !workout.exercises.isEmpty {
-                                    VStack(alignment: .leading) {
-                                        ForEach(workout.exercises, id: \.self) { exercise in
-                                            HStack {
-                                                Text(exercise.exercise?.name ?? "Exercise \(exercise.index)")
-                                                
-                                                Spacer()
-                                            }
-                                            .frame(maxWidth: .infinity)
-                                        }
-                                    }
-                                    .padding(.top, 3)
-                                    .padding(.leading, 20)
-                                }
+//                                if !workout.exercises.isEmpty {
+//                                    VStack(alignment: .leading) {
+//                                        ForEach(workout.exercises, id: \.self) { exercise in
+//                                            HStack {
+//                                                Text(exercise.exercise?.name ?? "Exercise \(exercise.index)")
+//                                                
+//                                                Spacer()
+//                                            }
+//                                            .frame(maxWidth: .infinity)
+//                                        }
+//                                    }
+//                                    .padding(.top, 3)
+//                                    .padding(.leading, 20)
+//                                }
                             }
                             .padding(.bottom, 12)
                         }
@@ -100,29 +93,6 @@ struct WorkoutList: View {
                 .padding()
                 .scrollClipDisabled()
             }
-        }
-    }
-    
-    private func copyWorkout(workout: Workout) {
-        let workoutCopy = Workout(index: (workouts.map { $0.index }.max() ?? -1) + 1, name: "Copy of \(workout.name)", exercises: [], notes: workout.notes)
-        
-        for exercise in workout.exercises {
-            let exerciseCopy = WorkoutExercise(index: exercise.index, exercise: exercise.exercise, sets: [], restTime: exercise.restTime, specNotes: exercise.specNotes, tempo: exercise.tempo)
-            
-            for exerciseSet in exercise.sets {
-                exerciseCopy.sets.append(ExerciseSet(index: exerciseSet.index, reps: exerciseSet.reps, weight: exerciseSet.weight, measurement: exerciseSet.measurement, type: exerciseSet.type, rir: exerciseSet.rir))
-            }
-            
-            workoutCopy.exercises.append(exerciseCopy)
-        }
-        
-        context.insert(workoutCopy)
-        context.insert(WorkoutLog(workout: workoutCopy))
-        
-        do {
-            try context.save()
-        } catch {
-            print("Failed to save workout copy: \(error.localizedDescription)")
         }
     }
 }

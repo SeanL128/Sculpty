@@ -17,16 +17,20 @@ enum UserKeys: String, CaseIterable {
     case includeCoolDown = "INCLUDE_COOL_DOWN"
     case lastCheckedDate = "LAST_CHECKED_DATE"
     case onboarded = "ONBOARDED"
-    case restEndTime = "REST_END_TIME"
+    case show1RM = "SHOW_1RM"
     case showRir = "SHOW_RIR"
+    case showSetTimer = "SHOW_SET_TIMER"
     case showTempo = "SHOW_TEMPO"
     case units = "UNITS"
     
     // Default Set
+    case defaultDistance = "DEFAULT_DISTANCE"
     case defaultMeasurement = "DEFAULT_MEASUREMENT"
     case defaultReps = "DEFAULT_REPS"
     case defaultRir = "DEFAULT_RIR"
+    case defaultTime = "DEFAULT_TIME"
     case defaultType = "DEFAULT_TYPE"
-    case defaultUnits = "DEFAULT_UNITS"
+    case defaultDistanceUnits = "DEFAULT_DISTANCE_UNITS"
+    case defaultWeightUnits = "DEFAULT_WEIGHT_UNITS"
     case defaultWeight = "DEFAULT_WEIGHT"
 }

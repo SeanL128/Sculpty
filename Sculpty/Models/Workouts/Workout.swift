@@ -11,9 +11,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 @Model
-class Workout: Identifiable, Codable, FileDocument {
-    static var readableContentTypes: [UTType] = [.json]
-    
+class Workout: Identifiable, Codable {
     @Attribute(.unique) var id = UUID()
     
     var index: Int
@@ -48,25 +46,5 @@ class Workout: Identifiable, Codable, FileDocument {
         try container.encode(name, forKey: .name)
         try container.encode(exercises, forKey: .exercises)
         try container.encode(notes, forKey: .notes)
-    }
-    
-    required init(configuration: ReadConfiguration) throws {
-        guard let data = configuration.file.regularFileContents else {
-            throw CocoaError(.fileReadCorruptFile)
-        }
-        let decoder = JSONDecoder()
-        let decodedWorkout = try decoder.decode(Workout.self, from: data)
-        
-        self.id = decodedWorkout.id
-        self.index = decodedWorkout.index
-        self.name = decodedWorkout.name
-        self.exercises = decodedWorkout.exercises
-        self.notes = decodedWorkout.notes
-    }
-    
-    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-        let encoder = JSONEncoder()
-        let data = try encoder.encode(self)
-        return FileWrapper(regularFileWithContents: data)
     }
 }

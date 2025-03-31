@@ -15,7 +15,6 @@ struct Options: View {
     @Environment(\.dismiss) var dismiss
     
     @Query private var workouts: [Workout]
-    @Query(filter: #Predicate<Exercise> { !defaultExercises.contains($0) }) private var exercises: [Exercise]
     @Query private var workoutLogs: [WorkoutLog]
     @Query private var caloriesLogs: [CaloriesLog]
     
@@ -31,12 +30,14 @@ struct Options: View {
     @AppStorage(UserKeys.accent.rawValue) private var accentColorHex: String = "#C50A2B"
     
     @AppStorage(UserKeys.disableAutoLock.rawValue) private var disableAutoLock: Bool = false
+    @AppStorage(UserKeys.show1RM.rawValue) private var show1RM: Bool = false
     @AppStorage(UserKeys.showRir.rawValue) private var showRir: Bool = false
+    @AppStorage(UserKeys.showSetTimer.rawValue) private var showSetTimer: Bool = false
     @AppStorage(UserKeys.showTempo.rawValue) private var showTempo: Bool = false
     
     @AppStorage(UserKeys.defaultReps.rawValue) private var defaultReps: Int = 12
     @AppStorage(UserKeys.defaultWeight.rawValue) private var defaultWeight: Double = 40
-    @AppStorage(UserKeys.defaultUnits.rawValue) private var defaultUnits: String = UnitsManager.weight
+    @AppStorage(UserKeys.defaultWeightUnits.rawValue) private var defaultWeightUnits: String = UnitsManager.weight
     @AppStorage(UserKeys.defaultMeasurement.rawValue) private var defaultMeasurement: String = "x"
     @AppStorage(UserKeys.defaultType.rawValue) private var defaultType: String = "Main"
     @AppStorage(UserKeys.defaultRir.rawValue) private var defaultRir: String = "0"
@@ -153,13 +154,21 @@ struct Options: View {
                                 Text("Enable RIR")
                             }
                             
+                            Toggle(isOn: $show1RM) {
+                                Text("Enable 1RM")
+                            }
+                            
                             Toggle(isOn: $showTempo) {
                                 Text("Enable Tempo")
                             }
                             
+                            Toggle(isOn: $showSetTimer) {
+                                Text("Enable Set Timers")
+                            }
+                            
                             Button {
                                 Task {
-                                    await EditSetPopup(set: $defaultSet).present()
+                                    await EditExerciseSetPopup(set: $defaultSet).present()
                                 }
                             } label: {
                                 HStack {
@@ -171,7 +180,7 @@ struct Options: View {
                             .onChange(of: defaultSet) {
                                 defaultReps = defaultSet.reps
                                 defaultWeight = defaultSet.weight
-                                defaultUnits = defaultSet.unit
+                                defaultWeightUnits = defaultSet.unit
                                 defaultMeasurement = defaultSet.measurement
                                 defaultType = defaultSet.type.rawValue
                                 defaultRir = defaultSet.rir
@@ -367,10 +376,22 @@ struct Options: View {
         encoder.outputFormatting = .prettyPrinted
         
         do {
-            let data = try encoder.encode(ExportData(workouts: workouts, exercises: exercises, workoutLogs: workoutLogs, caloriesLogs: caloriesLogs))
+            let fetchedExercises = try context.fetch(FetchDescriptor<Exercise>())
+
+            let defaultExerciseIDs = Set(defaultExercises.map(\.id))
+            let filteredExercises = fetchedExercises.filter { !defaultExerciseIDs.contains($0.id) }
+            
+            
+            let caloriesLogsDtos = caloriesLogs.map { CaloriesLogDTO(from: $0) }
+
+            let data = try encoder.encode(ExportData(
+                workouts: workouts,
+                exercises: filteredExercises,
+                workoutLogs: workoutLogs,
+                caloriesLogs: caloriesLogsDtos
+            ))
             
             let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("SculptyBackup.json")
-            
             try data.write(to: tempURL)
             
             let activityVC = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
@@ -379,7 +400,6 @@ struct Options: View {
                let rootVC = windowScene.windows.first?.rootViewController {
                 rootVC.present(activityVC, animated: true)
             }
-            
         } catch {
             print("Error creating backup file: \(error.localizedDescription)")
         }

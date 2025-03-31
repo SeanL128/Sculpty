@@ -10,7 +10,7 @@ import SwiftData
 
 @Model
 class FoodEntry: Identifiable, Codable {
-    @Attribute(.unique) public var id: UUID = UUID()
+    @Attribute(.unique) public var id: UUID
     var caloriesLog: CaloriesLog?
     
     var name: String
@@ -20,6 +20,16 @@ class FoodEntry: Identifiable, Codable {
     var fat: Double
     
     init(name: String, calories: Double, carbs: Double = 0, protein: Double = 0, fat: Double = 0) {
+        self.id = UUID()
+        self.name = name
+        self.calories = calories
+        self.carbs = carbs
+        self.protein = protein
+        self.fat = fat
+    }
+    
+    init(id: UUID, name: String, calories: Double, carbs: Double = 0, protein: Double = 0, fat: Double = 0) {
+        self.id = id
         self.name = name
         self.calories = calories
         self.carbs = carbs

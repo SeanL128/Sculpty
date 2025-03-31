@@ -10,13 +10,26 @@ import SwiftData
 
 @Model
 class CaloriesLog: Identifiable, Codable {
-    @Attribute(.unique) var id: UUID = UUID()
+    @Attribute(.unique) var id: UUID
     
     var date: Date
     @Relationship(deleteRule: .cascade, inverse: \FoodEntry.caloriesLog) var entries: [FoodEntry] = []
     
     init(date: Date = Date(), entries: [FoodEntry] = []) {
+        self.id = UUID()
         self.date = date
+        self.entries = entries
+    }
+    
+    init(from dto: CaloriesLogDTO) {
+        self.id = dto.id
+        self.date = dto.date
+        
+        var entries: [FoodEntry] = []
+        for entry in dto.entries {
+            entries.append(FoodEntry(id: entry.id, name: entry.name, calories: entry.calories, carbs: entry.carbs, protein: entry.protein, fat: entry.fat))
+        }
+        
         self.entries = entries
     }
     
