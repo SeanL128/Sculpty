@@ -63,7 +63,15 @@ struct AddWorkout: View {
                             let index = exercises.firstIndex(of: exercise)!
                             HStack {
                                 Text(exercise.exercise?.name ?? "SELECT EXERCISE")
-                                NavigationLink(destination: ExerciseInfo(workout: Workout(name: workoutName, exercises: exercises, notes: workoutNotes), exercise: exercise.exercise ?? nil, workoutExercise: $exercises[index])) {
+                                NavigationLink(destination: {
+                                    let exerciseIndex = exercises.firstIndex(of: exercise)!
+                                    ExerciseInfo(
+                                        workout: workout ?? Workout(name: workoutName, exercises: exercises, notes: workoutNotes),
+                                        exercise: exercise.exercise,
+                                        workoutExercise: $exercises[exerciseIndex]
+                                    )
+                                }) {
+                                    // Empty view for the navigation arrow
                                 }
                             }
                             .swipeActions {
@@ -262,13 +270,7 @@ struct AddWorkout: View {
             let workoutCopy = Workout(index: index, name: "Copy of \(workout.name)", exercises: [], notes: workout.notes)
             
             for exercise in workout.exercises {
-                let exerciseCopy = WorkoutExercise(index: exercise.index, exercise: exercise.exercise, sets: [], restTime: exercise.restTime, specNotes: exercise.specNotes, tempo: exercise.tempo)
-                
-                for exerciseSet in exercise.sets {
-                    exerciseCopy.sets.append(ExerciseSet(index: exerciseSet.index, reps: exerciseSet.reps, weight: exerciseSet.weight, measurement: exerciseSet.measurement, type: exerciseSet.type, rir: exerciseSet.rir))
-                }
-                
-                workoutCopy.exercises.append(exerciseCopy)
+                workoutCopy.exercises.append(exercise.copy())
             }
             
             context.insert(workoutCopy)

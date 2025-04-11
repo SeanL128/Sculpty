@@ -56,13 +56,21 @@ struct AddExercise: View {
                     Spacer()
                     
                     
-                    // Display Selected Muscle Groups
+                    // Display Selected Muscle Group
                     Text("Selected: \(viewModel.muscleGroup.rawValue.capitalized)")
                         .font(.subheadline)
                         .padding()
                     
-                    // Select Muscle Groups
+                    // Select Muscle Group
                     MuscleGroupMenu()
+                    
+                    // Display Selected Type
+                    Text("Selected: \(viewModel.type.rawValue)")
+                        .font(.subheadline)
+                        .padding()
+                    
+                    // Select Type
+                    ExerciseTypeMenu()
                     
                     Button("Save Exercise") {
                         viewModel.save(context: context, insert: true)
@@ -93,8 +101,4 @@ struct AddExercise: View {
         }
         .environmentObject(viewModel)
     }
-}
-
-#Preview {
-    AddExercise()
 }

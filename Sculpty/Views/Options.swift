@@ -39,9 +39,13 @@ struct Options: View {
     @AppStorage(UserKeys.defaultWeight.rawValue) private var defaultWeight: Double = 40
     @AppStorage(UserKeys.defaultWeightUnits.rawValue) private var defaultWeightUnits: String = UnitsManager.weight
     @AppStorage(UserKeys.defaultMeasurement.rawValue) private var defaultMeasurement: String = "x"
-    @AppStorage(UserKeys.defaultType.rawValue) private var defaultType: String = "Main"
     @AppStorage(UserKeys.defaultRir.rawValue) private var defaultRir: String = "0"
-    @State private var defaultSet: ExerciseSet = ExerciseSet()
+    @State private var defaultWeightSet: ExerciseSet = ExerciseSet(type: .weight)
+    
+    @AppStorage(UserKeys.defaultDistance.rawValue) private var defaultDistance: Double = 1
+    @AppStorage(UserKeys.defaultDistanceUnits.rawValue) private var defaultDistanceUnits: String = UnitsManager.longLength
+    @AppStorage(UserKeys.defaultTime.rawValue) private var defaultTime: Double = 300
+    @State private var defaultDistanceSet: ExerciseSet = ExerciseSet(type: .distance)
     
     @AppStorage(UserKeys.dailyCalories.rawValue) private var dailyCalories: String = "0"
     @FocusState private var isDailyCaloriesFocused: Bool
@@ -168,22 +172,38 @@ struct Options: View {
                             
                             Button {
                                 Task {
-                                    await EditExerciseSetPopup(set: $defaultSet).present()
+                                    await EditWeightSetPopup(set: $defaultWeightSet).present()
                                 }
                             } label: {
                                 HStack {
-                                    Text("Edit Default Set")
+                                    Text("Edit Default Weight Set")
                                     
                                     Spacer()
                                 }
                             }
-                            .onChange(of: defaultSet) {
-                                defaultReps = defaultSet.reps
-                                defaultWeight = defaultSet.weight
-                                defaultWeightUnits = defaultSet.unit
-                                defaultMeasurement = defaultSet.measurement
-                                defaultType = defaultSet.type.rawValue
-                                defaultRir = defaultSet.rir
+                            .onChange(of: defaultWeightSet) {
+                                defaultReps = defaultWeightSet.reps ?? defaultReps
+                                defaultWeight = defaultWeightSet.weight ?? defaultWeight
+                                defaultWeightUnits = defaultWeightSet.unit
+                                defaultMeasurement = defaultWeightSet.measurement ?? defaultMeasurement
+                                defaultRir = defaultWeightSet.rir ?? defaultRir
+                            }
+                            
+                            Button {
+                                Task {
+                                    await EditDistanceSetPopup(set: $defaultDistanceSet).present()
+                                }
+                            } label: {
+                                HStack {
+                                    Text("Edit Default Distance Set")
+                                    
+                                    Spacer()
+                                }
+                            }
+                            .onChange(of: defaultDistanceSet) {
+                                defaultDistance = defaultDistanceSet.distance ?? defaultDistance
+                                defaultDistanceUnits = defaultDistanceSet.unit
+                                defaultTime = defaultDistanceSet.time ?? defaultTime
                             }
                         }
                         .padding()
@@ -412,7 +432,7 @@ struct Options: View {
         for workoutLog in workoutLogs {
             for exerciseLog in workoutLog.exerciseLogs {
                 for setLog in exerciseLog.setLogs {
-                    csv += "\"\(formatDate(workoutLog.end))\",\"\(formatTime(workoutLog.end))\",\"\(workoutLog.workout.name)\",\"\(exerciseLog.exercise.exercise?.name ?? "N/A")\",\"\(setLog.reps)\(setLog.measurement == "x" ? " reps" : setLog.measurement)\",\"\(setLog.weight)\",\"\(setLog.skipped ? "Skipped" : "")\",\"\n"
+                    csv += "\"\(formatDate(workoutLog.end))\",\"\(formatTime(workoutLog.end))\",\"\(workoutLog.workout.name)\",\"\(exerciseLog.exercise.exercise?.name ?? "N/A")\",\"\(setLog.reps ?? 0)\(setLog.measurement == "x" ? " reps" : (setLog.measurement ?? "x"))\",\"\(setLog.weight ?? 0)\",\"\(setLog.skipped ? "Skipped" : "")\",\"\n"
                 }
             }
         }
@@ -490,8 +510,4 @@ struct Options: View {
             print("Failed to clear context: \(error)")
         }
     }
-}
-
-#Preview {
-    Options()
 }

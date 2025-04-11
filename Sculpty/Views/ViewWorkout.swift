@@ -68,7 +68,13 @@ struct ViewWorkout: View {
                                             Task {
                                                 if let setIndex = exercises[exerciseIndex].sets.firstIndex(where: { $0.id == eSet.id }),
                                                    let setLogIndex = exerciseLog.setLogs.firstIndex(where: { $0.id == setLog.id }) {
-                                                    await EditExerciseSetPopup(set: $exercises[exerciseLogIndex].sets[setIndex], log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer).present()
+                                                    let type = exercises[exerciseLogIndex].sets[setIndex].exerciseType
+                                                    
+                                                    if type == .weight {
+                                                        await EditWeightSetPopup(set: $exercises[exerciseLogIndex].sets[setIndex], log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer).present()
+                                                    } else if type == .distance {
+                                                        await EditDistanceSetPopup(set: $exercises[exerciseLogIndex].sets[setIndex], log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer).present()
+                                                    }
                                                 }
                                                 
                                                 checkAllDone(log: exerciseLog)

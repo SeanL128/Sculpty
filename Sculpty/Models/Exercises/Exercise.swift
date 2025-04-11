@@ -15,15 +15,17 @@ class Exercise: Identifiable, Codable {
     var name: String
     var notes: String
     var muscleGroup: MuscleGroup?
+    var type: ExerciseType
     
-    init(name: String = "", notes: String = "", muscleGroup: MuscleGroup = MuscleGroup.other) {
+    init(name: String = "", notes: String = "", muscleGroup: MuscleGroup = MuscleGroup.other, type: ExerciseType = .weight) {
         self.name = name
         self.notes = notes
         self.muscleGroup = muscleGroup
+        self.type = type
     }
     
     enum CodingKeys: String, CodingKey {
-        case id, name, notes, muscleGroup
+        case id, name, notes, muscleGroup, type
     }
     
     required init(from decoder: Decoder) throws {
@@ -32,6 +34,7 @@ class Exercise: Identifiable, Codable {
         name = try container.decode(String.self, forKey: .name)
         notes = try container.decode(String.self, forKey: .notes)
         muscleGroup = try container.decodeIfPresent(MuscleGroup.self, forKey: .muscleGroup)
+        type = try container.decode(ExerciseType.self, forKey: .type)
     }
     
     func encode(to encoder: Encoder) throws {
@@ -40,5 +43,6 @@ class Exercise: Identifiable, Codable {
         try container.encode(name, forKey: .name)
         try container.encode(notes, forKey: .notes)
         try container.encode(muscleGroup, forKey: .muscleGroup)
+        try container.encode(type, forKey: .type)
     }
 }

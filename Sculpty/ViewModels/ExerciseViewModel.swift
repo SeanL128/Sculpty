@@ -12,6 +12,7 @@ class ExerciseViewModel: ObservableObject {
     @Published var name: String
     @Published var notes: String
     @Published var muscleGroup: MuscleGroup
+    @Published var type: ExerciseType
     
     private var exercise: Exercise
     
@@ -20,12 +21,14 @@ class ExerciseViewModel: ObservableObject {
         self.name = exercise.name
         self.notes = exercise.notes
         self.muscleGroup = exercise.muscleGroup ?? .other
+        self.type = exercise.type
     }
     
     func save(context: ModelContext, insert: Bool) {
         exercise.name = name
         exercise.notes = notes
         exercise.muscleGroup = muscleGroup
+        exercise.type = type
         
         
         if insert {

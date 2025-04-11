@@ -10,15 +10,17 @@ import MijickPopups
 import MijickTimer
 
 struct EditDistanceSetPopup: CenterPopup {
-    @Binding var set: DistanceSet
+    @Binding var set: ExerciseSet
     @Binding var log: SetLog
     
     private let restTime: Double
     private let restTimer: MTimer?
-    
+
     private let setTimer: MTimer
     @State private var setTime: MTime = .init()
     @State private var setTimerStatus: MTimerStatus = .notStarted
+    
+    @State private var disableType: Bool = false
     
     @State private var hours: Int = 0
     @State private var minutes: Int = 0
@@ -30,7 +32,7 @@ struct EditDistanceSetPopup: CenterPopup {
     
     @AppStorage(UserKeys.showSetTimer.rawValue) private var showSetTimer: Bool = false
     
-    init (set: Binding<DistanceSet>, log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet())), restTime: Double = 0, timer: MTimer? = nil) {
+    init (set: Binding<ExerciseSet>, log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet())), restTime: Double = 0, timer: MTimer? = nil, disableType: Bool = false) {
         self._set = set
         self._log = log
         
@@ -39,12 +41,14 @@ struct EditDistanceSetPopup: CenterPopup {
         
         self.setTimer = MTimer(MTimerID(rawValue: "Set Timer \(log.id)"))
         
-        let total = Int(set.wrappedValue.time)
+        self.disableType = disableType
+        
+        let total = Int(set.wrappedValue.time ?? 0)
         self.hours = total / 3600
         self.minutes = (total % 3600) / 60
         self.seconds = total % 60
         
-        self.distanceString = set.wrappedValue.distance.formatted()
+        self.distanceString = (set.wrappedValue.distance ?? 0).formatted()
     }
     
     var body: some View {
@@ -68,7 +72,7 @@ struct EditDistanceSetPopup: CenterPopup {
                     
                     Button {
                         log.unskip()
-                        log.finish(time: set.time, distance: set.distance)
+                        log.finish(time: (set.time ?? 0), distance: (set.distance ?? 0))
                         
                         if let restTimer = restTimer {
                             var time: Double = 0;
@@ -163,14 +167,16 @@ struct EditDistanceSetPopup: CenterPopup {
             }
             .padding(.bottom, 10)
             
-            Picker("Type", selection: $set.type) {
-                ForEach(ExerciseSetType.displayOrder, id: \.self) { type in
-                    Text("\(type.rawValue)")
-                        .tag(type)
+            if !disableType {
+                Picker("Type", selection: $set.type) {
+                    ForEach(ExerciseSetType.displayOrder, id: \.self) { type in
+                        Text("\(type.rawValue)")
+                            .tag(type)
+                    }
                 }
+                .pickerStyle(.segmented)
+                .clipped()
             }
-            .pickerStyle(.segmented)
-            .clipped()
             
             if log.index != -1 && showSetTimer {
                 HStack {

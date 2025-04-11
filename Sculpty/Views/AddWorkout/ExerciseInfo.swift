@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 import Neumorphic
 import MijickPopups
 
@@ -39,7 +40,14 @@ struct ExerciseInfo: View {
         let initialRestMinutes = Int(restTotalSeconds / 60)
         let initialRestSeconds = Int(restTotalSeconds - Double(initialRestMinutes * 60))
         let initialSpecNotes = workoutExercise.specNotes.wrappedValue
-        let initialTempoArr = workoutExercise.tempo.wrappedValue.map { String($0) }
+        var initialTempoArr = workoutExercise.tempo.wrappedValue.map { String($0) }
+        
+        while initialTempoArr.count < 4 {
+            initialTempoArr.append("X")
+        }
+        if initialTempoArr.count > 4 {
+            initialTempoArr = Array(initialTempoArr.prefix(4))
+        }
         
         _restMinutes = State(initialValue: initialRestMinutes)
         _restSeconds = State(initialValue: initialRestSeconds)
@@ -88,24 +96,30 @@ struct ExerciseInfo: View {
                     
                     // Sets
                     List {
-                        ForEach(workoutExercise.sets.sorted { $0.index < $1.index }, id: \.self) { set in
-                            let index = workoutExercise.sets.firstIndex(of: set)!
-                            Button {
-                                Task {
-                                    await EditExerciseSetPopup(set: $workoutExercise.sets[index]).present()
+                        ForEach(workoutExercise.sets.sorted { $0.index < $1.index }, id: \.id) { set in
+                            if let index = workoutExercise.sets.firstIndex(of: set) {
+                                Button {
+                                    let type = set.exerciseType
+                                    
+                                    Task {
+                                        if type == .weight {
+                                            await EditWeightSetPopup(set: $workoutExercise.sets[index]).present()
+                                        } else if type == .distance {
+                                            await EditDistanceSetPopup(set: $workoutExercise.sets[index]).present()
+                                        }
+                                    }
+                                } label: {
+                                    SetView(set: set)
                                 }
-                            } label: {
-                                SetView(set: workoutExercise.sets[index])
-                            }
-                            .textColor()
-                            .swipeActions {
-                                Button("Delete") {
-                                    workoutExercise.sets.remove(at: index)
+                                .textColor()
+                                .swipeActions {
+                                    Button("Delete") {
+                                        workoutExercise.deleteSet(at: index)
+                                    }
+                                    .tint(.red)
                                 }
-                                .tint(.red)
                             }
                         }
-                        .onDelete(perform: deleteSet)
                         .onMove { from, to in
                             var reordered = workoutExercise.sets
                             
@@ -125,8 +139,14 @@ struct ExerciseInfo: View {
                     .scrollContentBackground(.hidden)
 
                     Button {
-                        let nextIndex = (workoutExercise.sets.map { $0.index }.max() ?? -1) + 1
-                        workoutExercise.sets.append(ExerciseSet(index: nextIndex))
+                        let nextIndex: Int
+                        if workoutExercise.sets.isEmpty {
+                            nextIndex = 0
+                        } else {
+                            let indices = workoutExercise.sets.map { $0.index }
+                            nextIndex = (indices.max() ?? -1) + 1
+                        }
+                        workoutExercise.sets.append(ExerciseSet(index: nextIndex, type: (workoutExercise.exercise?.type ?? .weight)))
                     } label: {
                         HStack {
                             Image(systemName: "plus")
@@ -262,7 +282,10 @@ struct ExerciseInfo: View {
         
         // Sets
         for set in workoutExercise.sets {
-            set.reps = max(0, set.reps)
+            if set.exerciseType == .weight,
+               let reps = set.reps {
+                set.reps = max(0, reps)
+            }
         }
         
         // Rest
@@ -283,20 +306,10 @@ struct ExerciseInfo: View {
         dismiss()
     }
     
-    private func deleteSet(at offsets: IndexSet) {
-        workoutExercise.sets.remove(atOffsets: offsets)
-    }
-    
     private func tempoPicker() -> some View {
         ForEach(["X", "1", "2", "3", "4", "5", "6", "7", "8", "9"], id: \.self) { num in
             Text(num)
                 .tag(num)
         }
     }
-}
-
-#Preview {
-    ExerciseInfo(workout: Workout(),
-                 exercise: Exercise(),
-                 workoutExercise: .constant(WorkoutExercise()))
 }

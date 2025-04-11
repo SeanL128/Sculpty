@@ -1,5 +1,5 @@
 //
-//  EditExerciseSetPopup.swift
+//  EditWeightSetPopup.swift
 //  Sculpty
 //
 //  Created by Sean Lindsay on 3/5/25.
@@ -9,7 +9,7 @@ import SwiftUI
 import MijickPopups
 import MijickTimer
 
-struct EditExerciseSetPopup: CenterPopup {
+struct EditWeightSetPopup: CenterPopup {
     @Binding var set: ExerciseSet
     @Binding var log: SetLog
     
@@ -20,6 +20,8 @@ struct EditExerciseSetPopup: CenterPopup {
     @State private var setTime: MTime = .init()
     @State private var setTimerStatus: MTimerStatus = .notStarted
     
+    @State private var disableType: Bool = false
+    
     @State private var weightString: String
     @State private var repsString: String
     
@@ -29,7 +31,7 @@ struct EditExerciseSetPopup: CenterPopup {
     @AppStorage(UserKeys.showRir.rawValue) private var showRir: Bool = false
     @AppStorage(UserKeys.showSetTimer.rawValue) private var showSetTimer: Bool = false
     
-    init (set: Binding<ExerciseSet>, log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet())), restTime: Double = 0, timer: MTimer? = nil) {
+    init (set: Binding<ExerciseSet>, log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet())), restTime: Double = 0, timer: MTimer? = nil, disableType: Bool = false) {
         self._set = set
         self._log = log
         
@@ -38,8 +40,10 @@ struct EditExerciseSetPopup: CenterPopup {
         
         self.setTimer = MTimer(MTimerID(rawValue: "Set Timer \(log.id)"))
         
-        let initialWeight = set.wrappedValue.weight.formatted()
-        let initialReps = "\(set.wrappedValue.reps)"
+        self.disableType = disableType
+        
+        let initialWeight = (set.wrappedValue.weight ?? 0).formatted()
+        let initialReps = "\(set.wrappedValue.reps ?? 0)"
         
         _weightString = State(initialValue: initialWeight)
         _repsString = State(initialValue: initialReps)
@@ -65,10 +69,10 @@ struct EditExerciseSetPopup: CenterPopup {
                     .padding(3)
                     
                     Button {
-                        let weight = set.measurement == "x" ? Double(set.reps) * set.weight : 0
+                        let weight = set.measurement == "x" ? Double(set.reps ?? 0) * (set.weight ?? 0) : 0
                         
                         log.unskip()
-                        log.finish(reps: set.reps, weight: weight, measurement: set.measurement)
+                        log.finish(reps: set.reps ?? 0, weight: weight, measurement: set.measurement ?? "x")
                         
                         if let restTimer = restTimer {
                             var time: Double = 0;
@@ -167,14 +171,16 @@ struct EditExerciseSetPopup: CenterPopup {
             }
             .padding(.bottom, 10)
             
-            Picker("Type", selection: $set.type) {
-                ForEach(ExerciseSetType.displayOrder, id: \.self) { type in
-                    Text("\(type.rawValue)")
-                        .tag(type)
+            if !disableType {
+                Picker("Type", selection: $set.type) {
+                    ForEach(ExerciseSetType.displayOrder, id: \.self) { type in
+                        Text("\(type.rawValue)")
+                            .tag(type)
+                    }
                 }
+                .pickerStyle(.segmented)
+                .clipped()
             }
-            .pickerStyle(.segmented)
-            .clipped()
             
             // RIR
             if showRir && [.main, .dropSet].contains(set.type) {
