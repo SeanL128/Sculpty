@@ -8,50 +8,45 @@
 import SwiftUI
 import MijickPopups
 
-struct TempoPopup: BottomPopup {
+struct TempoPopup: CenterPopup {
     private var arr: [String]
     private var xPresent: Bool
     
     init (tempo: String = "XXXX") {
         arr = tempo.map { String($0) }
-        xPresent = arr[0] == "X" || arr[1] == "X" || arr[2] == "X" || arr[3] == "X"
+        xPresent = tempo.contains(where: { $0 == "X" })
     }
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                ColorManager.background
-                    .ignoresSafeArea(edges: .all)
-                
-                VStack {
-                    Text("\(arr[0]): Eccentric (Lowering/Lenthening)")
-                        .padding(1)
-                    Text("\(arr[1]): Lengthened Pause (Fully Stretched)")
-                        .padding(1)
-                    Text("\(arr[2]): Concentric (Lifting/Shortening)")
-                        .padding(1)
-                    Text("\(arr[3]): Shortened Pause (Fully Shortened)")
-                        .padding(1)
-                    
-                    if xPresent {
-                        Text("X = Instant")
-                            .padding(1)
-                            .italic(true)
-                            .font(.subheadline)
-                    }
-                    
-                    Spacer()
-                }
-                .padding(.top, 25)
+        VStack {
+            Text("\(arr[0]): Eccentric (Lowering/Lenthening)")
+                .bodyText()
+                .padding(1)
+            Text("\(arr[1]): Lengthened Pause (Fully Stretched)")
+                .bodyText()
+                .padding(1)
+            Text("\(arr[2]): Concentric (Lifting/Shortening)")
+                .bodyText()
+                .padding(1)
+            Text("\(arr[3]): Shortened Pause (Fully Shortened)")
+                .bodyText()
+                .padding(1)
+            
+            if xPresent {
+                Text("X = Instant")
+                    .subbodyText()
+                    .secondaryColor()
+                    .padding(.top, 6)
             }
         }
+        .textColor()
+        .padding(.top, 20)
+        .padding(.bottom, 18)
     }
     
-    func configurePopup(config: BottomPopupConfig) -> BottomPopupConfig {
+    func configurePopup(config: CenterPopupConfig) -> CenterPopupConfig {
         config
-            .heightMode(.auto)
-            .dragDetents([.fraction(1.2)])
-            .enableDragGesture(false)
             .backgroundColor(ColorManager.background)
+            .popupHorizontalPadding(24)
     }
 }

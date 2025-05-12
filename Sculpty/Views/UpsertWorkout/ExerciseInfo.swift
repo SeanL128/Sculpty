@@ -11,36 +11,39 @@ import Neumorphic
 import MijickPopups
 
 struct ExerciseInfo: View {
-    @Environment(\.modelContext) var context
+    @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     
-    private var workout: Workout = Workout()
+    private var workout: Workout
     
-    @Binding var workoutExercise: WorkoutExercise
-    @State private var exercise: Exercise? = nil
+    @Query private var exercises: [Exercise]
+    
+    @State private var workoutExercise: WorkoutExercise
+    @State private var exercise: Exercise?
+    @State private var type: ExerciseType?
     
     @State private var restMinutes: Int
     @State private var restSeconds: Int
     @State private var specNotes: String
     @State private var tempoArr: [String]
     
-    @State private var selectingExercise: Bool = false
     @State private var showAlert: Bool = false
     
     @FocusState private var isNotesFocused: Bool
     
     @AppStorage(UserKeys.showTempo.rawValue) private var showTempo: Bool = false
     
-    init(workout: Workout, exercise: Exercise?, workoutExercise: Binding<WorkoutExercise>) {
+    init(workout: Workout, exercise: Exercise?, workoutExercise: WorkoutExercise) {
         self.workout = workout
         self.exercise = exercise
-        self._workoutExercise = workoutExercise
+        self._workoutExercise = State(initialValue: workoutExercise)
+        type = exercise?.type
         
-        let restTotalSeconds = Double(workoutExercise.restTime.wrappedValue)
+        let restTotalSeconds = Double(workoutExercise.restTime)
         let initialRestMinutes = Int(restTotalSeconds / 60)
         let initialRestSeconds = Int(restTotalSeconds - Double(initialRestMinutes * 60))
-        let initialSpecNotes = workoutExercise.specNotes.wrappedValue
-        var initialTempoArr = workoutExercise.tempo.wrappedValue.map { String($0) }
+        let initialSpecNotes = workoutExercise.specNotes
+        var initialTempoArr = workoutExercise.tempo.map { String($0) }
         
         while initialTempoArr.count < 4 {
             initialTempoArr.append("X")
@@ -65,9 +68,7 @@ struct ExerciseInfo: View {
                     // Exercise Display
                     List {
                         HStack {
-                            Button {
-                                selectingExercise = true
-                            } label: {
+                            NavigationLink(destination: SelectExercise(selectedExercise: $exercise)) {
                                 Text(exercise?.name ?? "Select Exercise")
                             }
                             .textColor()
@@ -77,8 +78,11 @@ struct ExerciseInfo: View {
                     }
                     .frame(height: 100)
                     .scrollContentBackground(.hidden)
-                    .sheet(isPresented: $selectingExercise) {
-                        SelectExercise(selectedExercise: $exercise, selectingExercise: $selectingExercise)
+                    .onChange(of: exercise) {
+                        if exercise?.type != type {
+                            type = exercise?.type ?? .weight
+                            workoutExercise.sets.removeAll()
+                        }
                     }
                     
                     // Exercise Notes
@@ -99,13 +103,13 @@ struct ExerciseInfo: View {
                         ForEach(workoutExercise.sets.sorted { $0.index < $1.index }, id: \.id) { set in
                             if let index = workoutExercise.sets.firstIndex(of: set) {
                                 Button {
-                                    let type = set.exerciseType
+                                    let type = type ?? .weight
                                     
                                     Task {
                                         if type == .weight {
-                                            await EditWeightSetPopup(set: $workoutExercise.sets[index]).present()
+                                            await EditWeightSetPopup(set: set).present()
                                         } else if type == .distance {
-                                            await EditDistanceSetPopup(set: $workoutExercise.sets[index]).present()
+                                            await EditDistanceSetPopup(set: set).present()
                                         }
                                     }
                                 } label: {
@@ -114,7 +118,9 @@ struct ExerciseInfo: View {
                                 .textColor()
                                 .swipeActions {
                                     Button("Delete") {
-                                        workoutExercise.deleteSet(at: index)
+                                        var updatedSets = workoutExercise.sets
+                                        updatedSets.remove(at: index)
+                                        workoutExercise.sets = updatedSets
                                     }
                                     .tint(.red)
                                 }
@@ -139,14 +145,14 @@ struct ExerciseInfo: View {
                     .scrollContentBackground(.hidden)
 
                     Button {
-                        let nextIndex: Int
-                        if workoutExercise.sets.isEmpty {
-                            nextIndex = 0
-                        } else {
-                            let indices = workoutExercise.sets.map { $0.index }
-                            nextIndex = (indices.max() ?? -1) + 1
-                        }
-                        workoutExercise.sets.append(ExerciseSet(index: nextIndex, type: (workoutExercise.exercise?.type ?? .weight)))
+                        var updatedSets = workoutExercise.sets
+                        
+                        let nextIndex = updatedSets.isEmpty ? 0 : (updatedSets.map { $0.index } .max() ?? -1) + 1
+                        
+                        let newSet = ExerciseSet(index: nextIndex, type: type ?? .weight)
+                        updatedSets.append(newSet)
+                        
+                        workoutExercise.sets = updatedSets
                     } label: {
                         HStack {
                             Image(systemName: "plus")
@@ -269,39 +275,20 @@ struct ExerciseInfo: View {
         }
     }
     
-    
-    
     private func save() {
         guard !workoutExercise.sets.isEmpty && exercise != nil else {
             showAlert = true
             return
         }
         
-        // Exercise
         workoutExercise.exercise = exercise
         
-        // Sets
-        for set in workoutExercise.sets {
-            if set.exerciseType == .weight,
-               let reps = set.reps {
-                set.reps = max(0, reps)
-            }
-        }
-        
-        // Rest
         let restTotalSeconds = (Double(restMinutes) * 60) + Double(restSeconds)
-        workoutExercise.restTime = TimeInterval(restTotalSeconds)
+        workoutExercise.restTime = restTotalSeconds
         
-        // Workout-specific notes
         workoutExercise.specNotes = specNotes
         
-        // Tempo
         workoutExercise.tempo = tempoArr.joined()
-        
-        // Save
-        if !workout.exercises.contains(workoutExercise) {
-            workout.exercises.append(workoutExercise)
-        }
         
         dismiss()
     }

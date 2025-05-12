@@ -30,20 +30,20 @@ let defaultExercises = [
     Exercise(name: "Deadlift", muscleGroup: .back, type: .weight),
     Exercise(name: "Dumbbell Deadlift", muscleGroup: .back, type: .weight),
     Exercise(name: "Smith Machine Deadlift", muscleGroup: .back, type: .weight),
-    Exercise(name: "Dumbbell Bicep Curl", muscleGroup: .biceps, type: .weight),
+    Exercise(name: "Dumbbell Biceps Curl", muscleGroup: .biceps, type: .weight),
     Exercise(name: "Dumbbell Hammer Curl", muscleGroup: .biceps, type: .weight),
-    Exercise(name: "Cable Bicep Curl", muscleGroup: .biceps, type: .weight),
+    Exercise(name: "Cable Biceps Curl", muscleGroup: .biceps, type: .weight),
     Exercise(name: "Cable Hammer Curl", muscleGroup: .biceps, type: .weight),
-    Exercise(name: "Alternating Dumbbell Bicep Curl", muscleGroup: .biceps, type: .weight),
+    Exercise(name: "Alternating Dumbbell Biceps Curl", muscleGroup: .biceps, type: .weight),
     Exercise(name: "Alternating Dumbbell Hammer Curl", muscleGroup: .biceps, type: .weight),
-    Exercise(name: "EZ-Bar Bicep Curl", muscleGroup: .biceps, type: .weight),
-    Exercise(name: "Barbell Bicep Curl", muscleGroup: .biceps, type: .weight),
+    Exercise(name: "EZ-Bar Biceps Curl", muscleGroup: .biceps, type: .weight),
+    Exercise(name: "Barbell Biceps Curl", muscleGroup: .biceps, type: .weight),
     Exercise(name: "Machine Preacher Curl", muscleGroup: .biceps, type: .weight),
     Exercise(name: "EZ-Bar Preacher Curl", muscleGroup: .biceps, type: .weight),
     Exercise(name: "Dumbbell Preacher Curl", muscleGroup: .biceps, type: .weight),
     Exercise(name: "Barbell Preacher Curl", muscleGroup: .biceps, type: .weight),
-    Exercise(name: "Tricep Dip", muscleGroup: .triceps, type: .weight),
-    Exercise(name: "Machine Tricep Dip", muscleGroup: .triceps, type: .weight),
+    Exercise(name: "Triceps Dip", muscleGroup: .triceps, type: .weight),
+    Exercise(name: "Machine Triceps Dip", muscleGroup: .triceps, type: .weight),
     Exercise(name: "Dumbbell Shoulder Press", muscleGroup: .shoulders, type: .weight),
     Exercise(name: "Barbell Shoulder Press", muscleGroup: .shoulders, type: .weight),
     Exercise(name: "Smith Machine Shoulder Press", muscleGroup: .shoulders, type: .weight),
@@ -85,11 +85,11 @@ let defaultExercises = [
     Exercise(name: "One-Arm Cable Lateral Raise", muscleGroup: .shoulders, type: .weight),
     Exercise(name: "Rope Triceps Pushdown", muscleGroup: .triceps, type: .weight),
     Exercise(name: "One-Arm Rope Triceps Pushdown", muscleGroup: .triceps, type: .weight),
-    Exercise(name: "Straigth Bar Triceps Pushdown", muscleGroup: .triceps, type: .weight),
+    Exercise(name: "Straight Bar Triceps Pushdown", muscleGroup: .triceps, type: .weight),
     Exercise(name: "One-Arm Straight Bar Triceps Pushdown", muscleGroup: .triceps, type: .weight),
     Exercise(name: "Rope Overhead Triceps Extension", muscleGroup: .triceps, type: .weight),
     Exercise(name: "One-Arm Rope Overhead Triceps Extension", muscleGroup: .triceps, type: .weight),
-    Exercise(name: "Straigth Bar Overhead Triceps Extension", muscleGroup: .triceps, type: .weight),
+    Exercise(name: "Straight Bar Overhead Triceps Extension", muscleGroup: .triceps, type: .weight),
     Exercise(name: "One-Arm Straight Bar Overhead Triceps Extension", muscleGroup: .triceps, type: .weight),
     Exercise(name: "Dumbbell Calf Raise", muscleGroup: .calves, type: .weight),
     Exercise(name: "Barbell Calf Raise", muscleGroup: .calves, type: .weight),
@@ -137,14 +137,88 @@ func formatDateWithTime(_ date: Date) -> String {
 }
 
 // MARK: Structs
-struct OutlinedTextFieldStyle: TextFieldStyle {
+struct UnderlinedTextFieldStyle: TextFieldStyle {
+    var isFocused: Binding<Bool>?
+    
+    var normalLineColor: Color = ColorManager.secondary
+    var focusedLineColor: Color = ColorManager.text
+    var normalLineHeight: CGFloat = 1
+    var focusedLineHeight: CGFloat = 1.5
+    var animationDuration: Double = 0.175
+    
+    init() {
+        self.isFocused = nil
+    }
+    
+    init(isFocused: Binding<Bool>) {
+        self.isFocused = isFocused
+    }
+    
+    init(
+        isFocused: Binding<Bool>,
+        normalLineColor: Color = ColorManager.secondary,
+        focusedLineColor: Color = ColorManager.text,
+        normalLineHeight: CGFloat = 1,
+        focusedLineHeight: CGFloat = 1.5,
+        animationDuration: Double = 0.175
+    ) {
+        self.isFocused = isFocused
+        self.normalLineColor = normalLineColor
+        self.focusedLineColor = focusedLineColor
+        self.normalLineHeight = normalLineHeight
+        self.focusedLineHeight = focusedLineHeight
+        self.animationDuration = animationDuration
+    }
+    
     func _body(configuration: TextField<Self._Label>) -> some View {
-        configuration
-            .padding()
-            .overlay {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(ColorManager.text, lineWidth: 2)
+        VStack(alignment: .leading, spacing: 0) {
+            configuration
+                .padding(.horizontal, 1)
+            
+            Group {
+                if let focusBinding = isFocused {
+                    Rectangle()
+                        .fill(focusBinding.wrappedValue ? focusedLineColor : normalLineColor)
+                        .frame(height: focusBinding.wrappedValue ? focusedLineHeight : normalLineHeight)
+                        .padding(.top, focusBinding.wrappedValue ? 2.5 : 2)
+                        .scaleEffect(x: focusBinding.wrappedValue ? 1.005 : 1, anchor: .center)
+                        .animation(.easeOut(duration: animationDuration), value: focusBinding.wrappedValue)
+                } else {
+                    Rectangle()
+                        .fill(normalLineColor)
+                        .frame(height: normalLineHeight)
+                        .padding(.top, 2)
+                }
             }
+        }
+    }
+}
+
+struct RoundedBorderButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(15)
+            .foregroundColor(ColorManager.text)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(ColorManager.secondary, lineWidth: 2)
+            )
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
+    }
+}
+
+struct RoundedFilledButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(15)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(ColorManager.text)
+            )
+            .foregroundColor(ColorManager.background)
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
     }
 }
 
@@ -209,6 +283,59 @@ extension View {
     func textColor() -> some View {
         self.foregroundStyle(ColorManager.text)
     }
+    
+    func secondaryColor() -> some View {
+        self.foregroundStyle(ColorManager.secondary)
+    }
+    
+    func accentColor() -> some View {
+        self.foregroundStyle(Color.accentColor)
+    }
+    
+    // Fonts
+    func headingText(size: CGFloat = 32) -> some View {
+        self.font(.custom("Oswald-Bold", size: size))
+    }
+    
+    func subheadingText() -> some View {
+        self.font(.custom("Oswald-Bold", size: 24))
+    }
+    
+    func subheading2Text() -> some View {
+        self.font(.custom("Oswald-Bold", size: 18))
+    }
+    
+    func largeBodyText() -> some View {
+        self.font(.custom("PublicSans-Regular", size: 18))
+    }
+    
+    func boldLargeBodyText() -> some View {
+        self.font(.custom("PublicSans-Bold", size: 18))
+    }
+    
+    func bodyText(size: CGFloat = 16, weight: FontWeight = .regular) -> some View {
+        self.font(.custom("PublicSans-\(weight.rawValue)", size: size))
+    }
+    
+    func boldBodyText(size: CGFloat = 16) -> some View {
+        self.font(.custom("PublicSans-Bold", size: size))
+    }
+    
+    func subbodyText() -> some View {
+        self.font(.custom("PublicSans-Regular", size: 14))
+    }
+    
+    func boldSubbodyText() -> some View {
+        self.font(.custom("PublicSans-Bold", size: 14))
+    }
+    
+    func statsText(size: CGFloat = 16) -> some View {
+        self.font(.custom("IBMPlexMono-Regular", size: size))
+    }
+    
+    func substatsText() -> some View {
+        self.font(.custom("IBMPlexMono-Regular", size: 14))
+    }
 }
 
 extension String {
@@ -253,4 +380,10 @@ extension UserDefaults {
             removeObject(forKey: $0.rawValue)
         }
     }
+}
+
+// MARK: Enums
+enum FontWeight: String {
+    case regular = "Regular"
+    case bold = "Bold"
 }

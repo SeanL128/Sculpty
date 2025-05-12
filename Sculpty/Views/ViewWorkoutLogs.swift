@@ -1,5 +1,5 @@
 //
-//  ViewLogs.swift
+//  ViewWorkoutLogs.swift
 //  Sculpty
 //
 //  Created by Sean Lindsay on 1/26/25.
@@ -8,8 +8,8 @@
 import SwiftUI
 import SwiftData
 
-struct ViewLogs: View {
-    @Environment(\.modelContext) var context
+struct ViewWorkoutLogs: View {
+    @Environment(\.modelContext) private var context
     
     @Query(sort: \Workout.index) private var workouts: [Workout]
     @Query(filter: #Predicate<WorkoutLog> { $0.started }, sort: \WorkoutLog.start) private var workoutLogs: [WorkoutLog]
@@ -89,5 +89,5 @@ struct ViewLogs: View {
 }
 
 #Preview {
-    ViewLogs()
+    ViewWorkoutLogs()
 }

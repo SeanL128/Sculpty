@@ -26,11 +26,11 @@ class Measurement: Identifiable, Codable {
     
     func getMeasurementString() -> String {
         // Weight
-        if self.type == .weight {
+        if type == .weight {
             return "\(WeightUnit.kg.convert(measurement, to: WeightUnit(rawValue: UnitsManager.weight)!).formatted())\(UnitsManager.weight)"
         }
         // Height
-        else if self.type == .height {
+        else if type == .height {
             let unit = MediumLengthUnit(rawValue: UnitsManager.mediumLength)!
             let height = MediumLengthUnit.m.convert(measurement, to: unit)
             
@@ -41,11 +41,11 @@ class Measurement: Identifiable, Codable {
             }
         }
         // Length
-        else if [.neck, .shoulders, .chest, .upperArmLeft, .upperArmRight, .forearmLeft, .forearmRight, .waist, .hips, .thighLeft, .thighRight, .calfLeft, .calfRight].contains(self.type) {
+        else if [.neck, .shoulders, .chest, .upperArmLeft, .upperArmRight, .forearmLeft, .forearmRight, .waist, .hips, .thighLeft, .thighRight, .calfLeft, .calfRight].contains(type) {
             return "\(ShortLengthUnit.cm.convert(measurement, to: ShortLengthUnit(rawValue: UnitsManager.shortLength)!).formatted())\(UnitsManager.shortLength)"
         }
         // Percent
-        else if self.type == .bodyFat {
+        else if type == .bodyFat {
             return "\(measurement.formatted())%"
         }
         // Other

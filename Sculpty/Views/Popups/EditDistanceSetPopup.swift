@@ -10,7 +10,7 @@ import MijickPopups
 import MijickTimer
 
 struct EditDistanceSetPopup: CenterPopup {
-    @Binding var set: ExerciseSet
+    var set: ExerciseSet
     @Binding var log: SetLog
     
     private let restTime: Double
@@ -22,6 +22,8 @@ struct EditDistanceSetPopup: CenterPopup {
     
     @State private var disableType: Bool = false
     
+    @State private var updatedSet: ExerciseSet
+    
     @State private var hours: Int = 0
     @State private var minutes: Int = 0
     @State private var seconds: Int = 0
@@ -32,8 +34,12 @@ struct EditDistanceSetPopup: CenterPopup {
     
     @AppStorage(UserKeys.showSetTimer.rawValue) private var showSetTimer: Bool = false
     
-    init (set: Binding<ExerciseSet>, log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet())), restTime: Double = 0, timer: MTimer? = nil, disableType: Bool = false) {
-        self._set = set
+    init (set: ExerciseSet,
+          log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet())),
+          restTime: Double = 0,
+          timer: MTimer? = nil,
+          disableType: Bool = false) {
+        self.set = set
         self._log = log
         
         self.restTime = restTime
@@ -43,21 +49,23 @@ struct EditDistanceSetPopup: CenterPopup {
         
         self.disableType = disableType
         
-        let total = Int(set.wrappedValue.time ?? 0)
+        _updatedSet = State(initialValue: set)
+        
+        let total = Int(set.time ?? 0)
         self.hours = total / 3600
         self.minutes = (total % 3600) / 60
         self.seconds = total % 60
         
-        self.distanceString = (set.wrappedValue.distance ?? 0).formatted()
+        self.distanceString = (set.distance ?? 0).formatted()
     }
     
     var body: some View {
         VStack {
             // Header
-            if log.index != -1 {
-                HStack {
-                    Spacer()
-                    
+            HStack {
+                Spacer()
+                
+                if log.index > -1 {
                     Button {
                         log.unfinish()
                         log.skip()
@@ -69,15 +77,17 @@ struct EditDistanceSetPopup: CenterPopup {
                         Image(systemName: "arrowshape.turn.up.right.fill")
                     }
                     .padding(3)
-                    
-                    Button {
+                }
+                
+                Button {
+                    if log.index > -1 {
                         log.unskip()
-                        log.finish(time: (set.time ?? 0), distance: (set.distance ?? 0))
+                        log.finish(time: (updatedSet.time ?? 0), distance: (updatedSet.distance ?? 0))
                         
                         if let restTimer = restTimer {
-                            var time: Double = 0;
+                            var time: Double = 0
                             
-                            switch (set.type) {
+                            switch (updatedSet.type) {
                             case (.warmUp):
                                 time = 30
                             case (.coolDown):
@@ -89,18 +99,18 @@ struct EditDistanceSetPopup: CenterPopup {
                             try? restTimer.skip()
                             try? restTimer.start(from: time, to: .zero)
                         }
-                        
-                        Task {
-                            await dismissLastPopup()
-                        }
-                    } label: {
-                        Image(systemName: "checkmark")
                     }
-                    .padding(3)
+                    
+                    Task {
+                        await dismissLastPopup()
+                    }
+                } label: {
+                    Image(systemName: "checkmark")
                 }
-                .padding(.top, 30)
-                .padding(.bottom, -20)
+                .padding(3)
             }
+            .padding(.top, 30)
+            .padding(.bottom, -20)
             
             HStack {
                 HStack {
@@ -136,27 +146,33 @@ struct EditDistanceSetPopup: CenterPopup {
                 .onChange(of: seconds) { updateTime() }
                 
                 HStack {
-                    TextField("Weight", text: $distanceString)
+                    TextField("Distance", text: $distanceString)
                         .keyboardType(.decimalPad)
                         .focused($isDistanceFocused)
                         .onChange(of: distanceString) {
                             distanceString = distanceString.filteredNumeric()
-                            
+                             
                             if distanceString.isEmpty {
-                                set.distance = 0
+                                updatedSet.distance = 0
                             } else if distanceString.hasSuffix(".") {
-                                set.distance = ("\(distanceString)0" as NSString).doubleValue
+                                updatedSet.distance = ("\(distanceString)0" as NSString).doubleValue
                             } else {
-                                set.distance = (distanceString as NSString).doubleValue
+                                updatedSet.distance = (distanceString as NSString).doubleValue
                             }
                         }
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isDistanceFocused }, set: { isDistanceFocused = $0 })))
                         .frame(maxWidth: 125)
                     
-                    Picker("Unit", selection: $set.unit) {
-                        Text("mi").tag("mi")
+                    Picker("Unit", selection: $updatedSet.unit) {
+                        Text("mi")
+                            .bodyText()
+                            .textColor()
+                            .tag("mi")
                         
-                        Text("km").tag("km")
+                        Text("km")
+                            .bodyText()
+                            .textColor()
+                            .tag("km")
                     }
                     .pickerStyle(.wheel)
                     .frame(maxWidth: 65, maxHeight: 100)
@@ -168,9 +184,11 @@ struct EditDistanceSetPopup: CenterPopup {
             .padding(.bottom, 10)
             
             if !disableType {
-                Picker("Type", selection: $set.type) {
+                Picker("Type", selection: $updatedSet.type) {
                     ForEach(ExerciseSetType.displayOrder, id: \.self) { type in
                         Text("\(type.rawValue)")
+                            .bodyText()
+                            .textColor()
                             .tag(type)
                     }
                 }
@@ -230,7 +248,7 @@ struct EditDistanceSetPopup: CenterPopup {
     }
     
     func updateTime() {
-        set.time = Double((hours * 3600) + (minutes * 60) + seconds)
+        updatedSet.time = Double((hours * 3600) + (minutes * 60) + seconds)
     }
     
     func startTimer() throws {

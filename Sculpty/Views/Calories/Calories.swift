@@ -11,7 +11,7 @@ import SwiftUICharts
 import Neumorphic
 
 struct Calories: View {
-    @Environment(\.modelContext) var context
+    @Environment(\.modelContext) private var context
     
     @Query(sort: \CaloriesLog.date) private var caloriesLogs: [CaloriesLog]
     
@@ -79,8 +79,8 @@ struct Calories: View {
                     .padding(.bottom)
                     
                     ScrollView {
-                        MacroBreakdownChart(log: $viewModel.log)
-                            .padding(.top)
+//                        MacroBreakdownChart(log: $viewModel.log)
+//                            .padding(.top)
                         
                         List {
                             ForEach(viewModel.log.entries.sorted { $0.calories > $1.calories }, id: \.id) { entry in

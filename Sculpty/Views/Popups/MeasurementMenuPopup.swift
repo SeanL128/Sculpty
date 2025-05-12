@@ -1,0 +1,53 @@
+//
+//  MeasurementMenuPopup.swift
+//  Sculpty
+//
+//  Created by Sean Lindsay on 5/4/25.
+//
+
+import SwiftUI
+import MijickPopups
+
+struct MeasurementMenuPopup: CenterPopup {
+    @Binding private var selection: MeasurementType
+    
+    private var options: [String : MeasurementType]
+    
+    init(options: [String : MeasurementType], selection: Binding<MeasurementType>) {
+        self.options = options
+        
+        self._selection = selection
+    }
+    
+    var body: some View {
+        VStack(alignment: .center, spacing: 12) {
+            ForEach(options.sorted { MeasurementType.displayOrder.firstIndex(of: $0.value)! < MeasurementType.displayOrder.firstIndex(of: $1.value)! }, id: \.key) { str, type in
+                Button {
+                    selection = type
+                    
+                    Task {
+                        await dismissLastPopup()
+                    }
+                } label: {
+                    HStack(alignment: .center) {
+                        Text(str)
+                            .bodyText(size: 16, weight: (selection == type) ? .bold : .regular)
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .padding(.leading, -2)
+                    }
+                    .textColor()
+                }
+            }
+        }
+        .padding(.vertical, 20)
+        .padding(.horizontal, 8)
+    }
+    
+    func configurePopup(config: CenterPopupConfig) -> CenterPopupConfig {
+        config
+            .backgroundColor(ColorManager.background)
+            .popupHorizontalPadding(24)
+    }
+}

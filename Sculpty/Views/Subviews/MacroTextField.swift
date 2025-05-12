@@ -14,28 +14,23 @@ struct MacroTextField: View {
     @FocusState var isFocused: Bool
     
     var body: some View {
-        VStack {
-            HStack {
-                Text(title)
-                    .font(.footnote)
-                
-                Spacer()
-            }
+        VStack(alignment: .leading) {
+            Text(title)
+                .bodyText(size: 12)
+                .textColor()
             
-            HStack {
+            HStack(alignment: .bottom) {
                 TextField("", text: $value)
                     .keyboardType(.numberPad)
-                    .padding(.horizontal)
-                    .padding(.vertical, 5)
                     .focused($isFocused)
+                    .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isFocused }, set: { isFocused = $0 })))
                     .onChange(of: value) {
                         value = value.filteredNumericWithoutDecimalPoint()
                     }
-                    .background(
-                        RoundedRectangle(cornerRadius: 15).fill(ColorManager.background)
-                            .softInnerShadow(RoundedRectangle(cornerRadius: 15), darkShadow: ColorManager.darkShadow, lightShadow: ColorManager.lightShadow, spread: 0.05, radius: 2)
-                    )
+                
                 Text("g")
+                    .bodyText(size: 16)
+                    .textColor()
             }
         }
         .padding(.horizontal)

@@ -1,18 +1,20 @@
 //
-//  ExerciseList.swift
+//  SelectExercise.swift
 //  Sculpty
 //
-//  Created by Sean Lindsay on 5/11/25.
+//  Created by Sean Lindsay on 1/14/25.
 //
 
 import SwiftUI
 import SwiftData
 
-struct ExerciseList: View {
+struct SelectExercise: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
         
     @Query private var exercises: [Exercise]
+    
+    @Binding var selectedExercise: Exercise?
     
     @State private var searchText: String = ""
     @FocusState private var isSearchFocused: Bool
@@ -37,8 +39,8 @@ struct ExerciseList: View {
     }
     
     var body: some View {
-        ContainerView(title: "Exercises", spacing: 16, trailingItems: {
-            NavigationLink(destination: UpsertExercise()) {
+        ContainerView(title: "Select Exercise", spacing: 16, trailingItems: {
+            NavigationLink(destination: UpsertExercise(selectedExercise: $selectedExercise)) {
                 Image(systemName: "plus")
                     .font(.title2)
                     .padding(.horizontal, 3)
@@ -59,21 +61,24 @@ struct ExerciseList: View {
                             .padding(.bottom, -2)
                         
                         ForEach(exercisesForGroup) { exercise in
-                            HStack(alignment: .center) {
-                                Text(exercise.name)
-                                    .bodyText(size: 16)
-                                    .multilineTextAlignment(.leading)
-                                
-                                Spacer()
-                                
-                                NavigationLink(destination: UpsertExercise(exercise: exercise)) {
-                                    Image(systemName: "pencil")
-                                        .font(.caption)
-                                        .padding(.horizontal, 8)
+                            Button {
+                                selectedExercise = exercise
+                            } label: {
+                                HStack(alignment: .center) {
+                                    Text(exercise.name)
+                                        .bodyText(size: 16)
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    if selectedExercise == exercise {
+                                        Spacer()
+                                        
+                                        Image(systemName: "checkmark")
+                                            .font(.caption)
+                                    }
                                 }
+                                .textColor()
+                                .padding(.trailing, 1)
                             }
-                            .textColor()
-                            .padding(.trailing, 1)
                         }
                     }
                 }
@@ -89,6 +94,11 @@ struct ExerciseList: View {
                     Text("Done")
                 }
                 .disabled(!isSearchFocused)
+            }
+        }
+        .onChange(of: selectedExercise) {
+            if selectedExercise != nil {
+                dismiss()
             }
         }
     }

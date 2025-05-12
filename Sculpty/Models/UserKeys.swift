@@ -22,17 +22,4 @@ enum UserKeys: String, CaseIterable {
     case showSetTimer = "SHOW_SET_TIMER"
     case showTempo = "SHOW_TEMPO"
     case units = "UNITS"
-    
-    // Default Set
-    case defaultMeasurement = "DEFAULT_MEASUREMENT"
-    case defaultReps = "DEFAULT_REPS"
-    case defaultRir = "DEFAULT_RIR"
-    case defaultWeight = "DEFAULT_WEIGHT"
-    case defaultWeightType = "DEFAULT_WEIGHT_TYPE"
-    case defaultWeightUnits = "DEFAULT_WEIGHT_UNITS"
-    
-    case defaultDistance = "DEFAULT_DISTANCE"
-    case defaultDistanceType = "DEFAULT_DISTANCE_TYPE"
-    case defaultDistanceUnits = "DEFAULT_DISTANCE_UNITS"
-    case defaultTime = "DEFAULT_TIME"
 }

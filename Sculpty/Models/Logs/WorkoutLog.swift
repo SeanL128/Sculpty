@@ -33,6 +33,8 @@ class WorkoutLog: Identifiable, Codable {
                 self.exerciseLogs.append(ExerciseLog(index: exercise.index, exercise: exercise))
             }
         }
+        
+        workout.started(date: start)
     }
     
     var allLogsDone: Bool {

@@ -11,14 +11,12 @@ import UIKit
 import Neumorphic
 
 struct Options: View {
-    @Environment(\.modelContext) var context
-    @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) private var context
+    @Environment(\.dismiss) private var dismiss
     
     @Query private var workouts: [Workout]
     @Query private var workoutLogs: [WorkoutLog]
     @Query private var caloriesLogs: [CaloriesLog]
-    
-    @State private var showRestoreInfo: Bool = false
     
     @State private var showResetConfirmation1: Bool = false
     @State private var showResetConfirmation2: Bool = false
@@ -35,18 +33,6 @@ struct Options: View {
     @AppStorage(UserKeys.showSetTimer.rawValue) private var showSetTimer: Bool = false
     @AppStorage(UserKeys.showTempo.rawValue) private var showTempo: Bool = false
     
-    @AppStorage(UserKeys.defaultReps.rawValue) private var defaultReps: Int = 12
-    @AppStorage(UserKeys.defaultWeight.rawValue) private var defaultWeight: Double = 40
-    @AppStorage(UserKeys.defaultWeightUnits.rawValue) private var defaultWeightUnits: String = UnitsManager.weight
-    @AppStorage(UserKeys.defaultMeasurement.rawValue) private var defaultMeasurement: String = "x"
-    @AppStorage(UserKeys.defaultRir.rawValue) private var defaultRir: String = "0"
-    @State private var defaultWeightSet: ExerciseSet = ExerciseSet(type: .weight)
-    
-    @AppStorage(UserKeys.defaultDistance.rawValue) private var defaultDistance: Double = 1
-    @AppStorage(UserKeys.defaultDistanceUnits.rawValue) private var defaultDistanceUnits: String = UnitsManager.longLength
-    @AppStorage(UserKeys.defaultTime.rawValue) private var defaultTime: Double = 300
-    @State private var defaultDistanceSet: ExerciseSet = ExerciseSet(type: .distance)
-    
     @AppStorage(UserKeys.dailyCalories.rawValue) private var dailyCalories: String = "0"
     @FocusState private var isDailyCaloriesFocused: Bool
     
@@ -55,338 +41,408 @@ struct Options: View {
     @AppStorage(UserKeys.includeCoolDown.rawValue) private var includeCoolDown: Bool = true
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                ColorManager.background
-                    .ignoresSafeArea(edges: .all)
-                
-                ScrollView {
+        ContainerView(title: "Options", spacing: 24) {
+            // MARK: Defaults
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
                     HStack(alignment: .center) {
-                        Text("Options")
-                            .font(.largeTitle)
-                            .bold()
+                        Spacer()
+                        
+                        Image(systemName: "doc.plaintext")
+                    }
+                    .frame(width: 25)
+                    
+                    Text("DEFAULTS")
+                        .subheadingText()
+                    
+                    Spacer()
+                }
+                .textColor()
+                
+                HStack {
+                    Text("Units")
+                        .boldLargeBodyText()
+                    
+                    Spacer()
+                    
+                    Menu {
+                        Picker(selection: $units) {
+                            Text("Imperial (mi, ft, in, lbs)")
+                                .tag("Imperial")
+                            
+                            Text("Metric (km, m, cm, kg)")
+                                .tag("Metric")
+                        } label: {}
+                    } label: {
+                        HStack {
+                            if units == "Imperial" {
+                                Text("Imperial (mi, ft, in, lbs)")
+                                    .largeBodyText()
+                            } else {
+                                Text("Metric (km, m, cm, kg)")
+                                    .largeBodyText()
+                            }
+                            
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.footnote)
+                        }
+                    }
+                    .id(units)
+                    .textColor()
+                }
+            }
+            .frame(maxWidth: .infinity)
+            
+            Spacer()
+                .frame(height: 5)
+            
+            // MARK: Customization
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    HStack(alignment: .center) {
+                        Spacer()
+                        
+                        Image(systemName: "paintbrush.pointed")
                         
                         Spacer()
                     }
-                    .padding()
+                    .frame(width: 25)
                     
-                    VStack(spacing: 25) {
-                        // MARK: Defaults
-                        VStack(spacing: 5) {
-                            Text("Defaults")
-                                .font(.callout)
-                            
-                            HStack {
-                                Text("Units")
-                                    .font(.callout)
-                                
-                                Spacer()
-                                
-                                Picker("Default Units", selection: $units) {
-                                    Text("Imperial (mi, ft, in, lbs)").tag("Imperial")
-                                    
-                                    Text("Metric (km, m, cm, kg").tag("Metric")
-                                }
-                                .pickerStyle(.menu)
-                                .tint(ColorManager.text)
-                            }
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            RoundedRectangle(cornerRadius: 15).fill(ColorManager.background)
-                                .softOuterShadow(darkShadow: ColorManager.darkShadow, lightShadow: ColorManager.lightShadow, radius: 2)
-                        )
-                        
-                        // MARK: Customization
-                        VStack(spacing: 5) {
-                            Text("Customization")
-                                .font(.callout)
-                            
-                            HStack {
-                                Text("Dark Mode")
-                                
-                                Spacer()
-                                
-                                Picker("Dark Mode", selection: $selectedAppearance) {
-                                    ForEach(Appearance.displayOrder, id: \.id) { appearance in
-                                        Text("\(appearance.rawValue)")
-                                            .tag(appearance)
-                                    }
-                                }
-                                .pickerStyle(.menu)
-                                .tint(ColorManager.text)
-                            }
-                            
-                            HStack {
-                                Text("Accent Color")
-                                
-                                Spacer()
-                                
-                                Picker("Accent Color", selection: $accentColorHex) {
-                                    ForEach(AccentColor.displayOrder, id: \.id) { color in
-                                        HStack {
-                                            Circle()
-                                                .fill(Color(hex: AccentColor.colorMap[color]!))
-                                                .frame(width: 10, height: 10)
-                                            Text("\(color.rawValue)")
-                                        }
-                                        .tag(AccentColor.colorMap[color]!)
-                                    }
-                                }
-                                .pickerStyle(.menu)
-                                .tint(ColorManager.text)
-                            }
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            RoundedRectangle(cornerRadius: 15).fill(ColorManager.background)
-                                .softOuterShadow(darkShadow: ColorManager.darkShadow, lightShadow: ColorManager.lightShadow, radius: 2)
-                        )
-                        
-                        // MARK: Workouts
-                        VStack(spacing: 5) {
-                            Text("Workouts")
-                                .font(.callout)
-                            
-                            Toggle(isOn: $disableAutoLock) {
-                                Text("Disable Auto Lock")
-                            }
-                            
-                            Toggle(isOn: $showRir) {
-                                Text("Enable RIR")
-                            }
-                            
-                            Toggle(isOn: $show1RM) {
-                                Text("Enable 1RM")
-                            }
-                            
-                            Toggle(isOn: $showTempo) {
-                                Text("Enable Tempo")
-                            }
-                            
-                            Toggle(isOn: $showSetTimer) {
-                                Text("Enable Set Timers")
-                            }
-                            
-                            Button {
-                                Task {
-                                    await EditWeightSetPopup(set: $defaultWeightSet).present()
-                                }
-                            } label: {
-                                HStack {
-                                    Text("Edit Default Weight Set")
-                                    
-                                    Spacer()
-                                }
-                            }
-                            .onChange(of: defaultWeightSet) {
-                                defaultReps = defaultWeightSet.reps ?? defaultReps
-                                defaultWeight = defaultWeightSet.weight ?? defaultWeight
-                                defaultWeightUnits = defaultWeightSet.unit
-                                defaultMeasurement = defaultWeightSet.measurement ?? defaultMeasurement
-                                defaultRir = defaultWeightSet.rir ?? defaultRir
-                            }
-                            
-                            Button {
-                                Task {
-                                    await EditDistanceSetPopup(set: $defaultDistanceSet).present()
-                                }
-                            } label: {
-                                HStack {
-                                    Text("Edit Default Distance Set")
-                                    
-                                    Spacer()
-                                }
-                            }
-                            .onChange(of: defaultDistanceSet) {
-                                defaultDistance = defaultDistanceSet.distance ?? defaultDistance
-                                defaultDistanceUnits = defaultDistanceSet.unit
-                                defaultTime = defaultDistanceSet.time ?? defaultTime
-                            }
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            RoundedRectangle(cornerRadius: 15).fill(ColorManager.background)
-                                .softOuterShadow(darkShadow: ColorManager.darkShadow, lightShadow: ColorManager.lightShadow, radius: 2)
-                        )
-                        
-                        // MARK: Calorie Tracking
-                        VStack(spacing: 5) {
-                            Text("Calorie Tracking")
-                                .font(.callout)
-                            
-                            HStack {
-                                HStack {
-                                    Text("Daily Calories Goal:")
-                                    
-                                    Spacer()
-                                }
-                                .frame(width: 200)
-                                
-                                TextField("", text: $dailyCalories, prompt: Text("Daily Calories").foregroundColor(.secondary))
-                                    .keyboardType(.numberPad)
-                                    .focused($isDailyCaloriesFocused)
-                                    .padding(8)
-                                    .padding(.horizontal, 6)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 15).fill(ColorManager.background)
-                                            .softInnerShadow(RoundedRectangle(cornerRadius: 15), darkShadow: ColorManager.darkShadow, lightShadow: ColorManager.lightShadow, spread: 0.25, radius: 2)
-                                    )
-                                    .onChange(of: dailyCalories) {
-                                        dailyCalories = dailyCalories.filteredNumericWithoutDecimalPoint()
-                                        
-                                        if dailyCalories.isEmpty {
-                                            dailyCalories = "0"
-                                        }
-                                    }
-                                
-                                Text("cal")
-                            }
-                            
-                            NavigationLink(destination: CalorieCalculator()) {
-                                Text("Not sure? Calculate it here")
-                                
-                                Image(systemName: "chevron.right")
-                            }
-                            .padding(.top, 5)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            RoundedRectangle(cornerRadius: 15).fill(ColorManager.background)
-                                .softOuterShadow(darkShadow: ColorManager.darkShadow, lightShadow: ColorManager.lightShadow, radius: 2)
-                        )
-                        
-                        // MARK: Stats
-                        VStack(spacing: 5) {
-                            Text("Stats")
-                                .font(.callout)
-                            
-                            Toggle(isOn: $includeWarmUp) {
-                                Text("Include Warm Up Sets")
-                            }
-                            
-                            Toggle(isOn: $includeDropSet) {
-                                Text("Include Drop Sets")
-                            }
-                            
-                            Toggle(isOn: $includeCoolDown) {
-                                Text("Include Cool Down Sets")
-                            }
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            RoundedRectangle(cornerRadius: 15).fill(ColorManager.background)
-                                .softOuterShadow(darkShadow: ColorManager.darkShadow, lightShadow: ColorManager.lightShadow, radius: 2)
-                        )
-                        
-                        // MARK: Data Management
-                        VStack(spacing: 15) {
-                            Text("Data Management")
-                                .font(.callout)
-                                .padding(.bottom, -5)
-                            
-                            HStack {
-                                Button {
-                                    shareBackup()
-                                } label: {
-                                    Text("Back Up All Data")
-                                }
-                                .softButtonStyle(.capsule, mainColor: ColorManager.background, textColor: ColorManager.text, darkShadowColor: ColorManager.darkShadow, lightShadowColor: ColorManager.lightShadow)
-                                
-                                Button {
-                                    showRestoreInfo = true
-                                } label: {
-                                    Image(systemName: "info.circle")
-                                }
-                                .softButtonStyle(.circle, mainColor: ColorManager.background, textColor: ColorManager.text, darkShadowColor: ColorManager.darkShadow, lightShadowColor: ColorManager.lightShadow)
-                                .alert(isPresented: $showRestoreInfo) {
-                                    Alert(title: Text("Restoring from Backup"),
-                                          message: Text("To restore data from a backup, reset your data and select \"Returning? Import Backup\" from the start screen."))
-                                }
-                            }
-                            
-                            Button {
-                                shareCSV(csvString: getWorkoutLogsCSV(), name: "SculptyWorkoutLogs")
-                            } label: {
-                                Text("Export Workout Logs to CSV")
-                            }
-                            .softButtonStyle(.capsule, mainColor: ColorManager.background, textColor: ColorManager.text, darkShadowColor: ColorManager.darkShadow, lightShadowColor: ColorManager.lightShadow)
-                            
-                            Button {
-                                shareCSV(csvString: getCaloriesCSV(), name: "SculptyCaloriesLogs")
-                            } label: {
-                                Text("Export Calories Data to CSV")
-                            }
-                            .softButtonStyle(.capsule, mainColor: ColorManager.background, textColor: ColorManager.text, darkShadowColor: ColorManager.darkShadow, lightShadowColor: ColorManager.lightShadow)
-                            
-                            Button {
-                                showResetConfirmation1 = true
-                            } label: {
-                                Text("Reset Data")
-                            }
-                            .softButtonStyle(.capsule, mainColor: ColorManager.background, textColor: ColorManager.text, darkShadowColor: ColorManager.darkShadow, lightShadowColor: ColorManager.lightShadow)
-                            .confirmationDialog("Are you sure? This will reset all data.", isPresented: $showResetConfirmation1, titleVisibility: .visible) {
-                                Button("Reset", role: .destructive) {
-                                    showResetConfirmation2 = true
-                                }
-                            }
-                            .confirmationDialog("Are you 100% sure? This action cannot be undone.", isPresented: $showResetConfirmation2, titleVisibility: .visible) {
-                                Button("Reset", role: .destructive) {
-                                    showResetConfirmation3 = true
-                                }
-                            }
-                            .confirmationDialog("You should consider backing up your data before resetting.", isPresented: $showResetConfirmation3, titleVisibility: .visible) {
-                                Button("Proceed", role: .destructive) {
-                                    clearContext()
-                                }
-                            }
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            RoundedRectangle(cornerRadius: 15).fill(ColorManager.background)
-                                .softOuterShadow(darkShadow: ColorManager.darkShadow, lightShadow: ColorManager.lightShadow, radius: 2)
-                        )
-                        
-                        // MARK: Misc
-                        VStack(spacing: 5) {
-                            Link("Website",
-                                 destination: URL(string: "https://sculpty.app")!)
-                            
-                            if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String, let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
-                                Text("Sculpty Version \(version) Build \(build)")
-                                    .font(.caption)
-                            }
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            RoundedRectangle(cornerRadius: 15).fill(ColorManager.background)
-                                .softOuterShadow(darkShadow: ColorManager.darkShadow, lightShadow: ColorManager.lightShadow, radius: 2)
-                        )
-                    }
+                    Text("CUSTOMIZATION")
+                        .subheadingText()
                 }
-                .scrollClipDisabled()
-                .padding()
-            }
-            .toolbarBackground(ColorManager.background)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
+                .textColor()
+                
+                HStack {
+                    Text("Dark Mode")
+                        .boldLargeBodyText()
+                    
                     Spacer()
                     
-                    Button {
-                        isDailyCaloriesFocused = false
+                    Menu {
+                        Picker(selection: $selectedAppearance) {
+                            ForEach(Appearance.displayOrder, id: \.id) { appearance in
+                                Text("\(appearance.rawValue)")
+                                    .tag(appearance)
+                            }
+                        } label: {}
                     } label: {
-                        Text("Done")
+                        HStack {
+                            Text(selectedAppearance.rawValue)
+                                .largeBodyText()
+                            
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.footnote)
+                        }
                     }
-                    .disabled(!isDailyCaloriesFocused)
+                    .id(selectedAppearance)
+                    .textColor()
                 }
+                
+                HStack {
+                    Text("Accent Color")
+                        .boldLargeBodyText()
+                    
+                    Spacer()
+                    
+                    Menu {
+                        Picker(selection: $accentColorHex) {
+                            ForEach(AccentColor.displayOrder, id: \.id) { color in
+                                Text("\(color.rawValue)")
+                                    .tag(AccentColor.colorMap[color]!)
+                            }
+                        } label: {}
+                    } label: {
+                        HStack {
+                            Circle()
+                                .fill(Color(hex: accentColorHex))
+                                .frame(width: 10, height: 10)
+                            
+                            if let accent = AccentColor.fromHex(accentColorHex) {
+                                Text(accent.rawValue)
+                                    .largeBodyText()
+                            }
+                            
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.footnote)
+                        }
+                    }
+                    .id(accentColorHex)
+                    .textColor()
+                }
+            }
+            .frame(maxWidth: .infinity)
+            
+            Spacer()
+                .frame(height: 5)
+            
+            // MARK: Workouts
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    HStack(alignment: .center) {
+                        Spacer()
+                        
+                        Image(systemName: "dumbbell")
+                        
+                        Spacer()
+                    }
+                    .frame(width: 25)
+                    
+                    Text("WORKOUTS")
+                        .subheadingText()
+                }
+                .textColor()
+                
+                Toggle(isOn: $disableAutoLock) {
+                    Text("Disable Auto Lock")
+                        .boldLargeBodyText()
+                        .textColor()
+                }
+                
+                Toggle(isOn: $showRir) {
+                    Text("Enable RIR")
+                        .boldLargeBodyText()
+                        .textColor()
+                }
+                
+                Toggle(isOn: $show1RM) {
+                    Text("Enable 1RM")
+                        .boldLargeBodyText()
+                        .textColor()
+                }
+                
+                Toggle(isOn: $showTempo) {
+                    Text("Enable Tempo")
+                        .boldLargeBodyText()
+                        .textColor()
+                }
+                
+                Toggle(isOn: $showSetTimer) {
+                    Text("Enable Set Timers")
+                        .boldLargeBodyText()
+                        .textColor()
+                }
+            }
+            .frame(maxWidth: .infinity)
+            
+            Spacer()
+                .frame(height: 5)
+            
+            // MARK: Calorie Tracking
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    HStack(alignment: .center) {
+                        Spacer()
+                        
+                        Image(systemName: "fork.knife")
+                        
+                        Spacer()
+                    }
+                    .frame(width: 25)
+                    
+                    Text("CALORIE TRACKING")
+                        .subheadingText()
+                }
+                .textColor()
+                
+                VStack(alignment: .leading) {
+                    HStack {
+                        Text("Daily Calories Goal")
+                            .boldLargeBodyText()
+                            .textColor()
+                        
+                        Spacer()
+                        
+                        TextField("", text: $dailyCalories)
+                            .keyboardType(.numberPad)
+                            .focused($isDailyCaloriesFocused)
+                            .frame(maxWidth: 75)
+                            .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isDailyCaloriesFocused }, set: { isDailyCaloriesFocused = $0 })))
+                            .onChange(of: dailyCalories) {
+                                dailyCalories = dailyCalories.filteredNumericWithoutDecimalPoint()
+                                
+                                if dailyCalories.isEmpty {
+                                    dailyCalories = "0"
+                                }
+                            }
+                        
+                        Text("cal")
+                            .statsText()
+                    }
+                    
+                    NavigationLink(destination: CalorieCalculator()) {
+                        HStack(alignment: .center) {
+                            Text("Not sure? Calculate it here")
+                            
+                            Image(systemName: "chevron.right")
+                        }
+                    }
+                    .bodyText()
+                    .textColor()
+                }
+            }
+            .frame(maxWidth: .infinity)
+            
+            Spacer()
+                .frame(height: 5)
+            
+            // MARK: Stats
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    HStack(alignment: .center) {
+                        Spacer()
+                        
+                        Image(systemName: "chart.xyaxis.line")
+                        
+                        Spacer()
+                    }
+                    .frame(width: 25)
+                    
+                    Text("STATS")
+                        .subheadingText()
+                }
+                .textColor()
+                
+                Toggle(isOn: $includeWarmUp) {
+                    Text("Include Warm Up Sets")
+                        .boldLargeBodyText()
+                        .textColor()
+                }
+                
+                Toggle(isOn: $includeDropSet) {
+                    Text("Include Drop Sets")
+                        .boldLargeBodyText()
+                        .textColor()
+                }
+                
+                Toggle(isOn: $includeCoolDown) {
+                    Text("Include Cool Down Sets")
+                        .boldLargeBodyText()
+                        .textColor()
+                }
+            }
+            .frame(maxWidth: .infinity)
+            
+            Spacer()
+                .frame(height: 5)
+            
+            // MARK: Data Management
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    HStack(alignment: .center) {
+                        Spacer()
+                        
+                        Image(systemName: "folder")
+                        
+                        Spacer()
+                    }
+                    .frame(width: 25)
+                    
+                    Text("DATA MANAGEMENT")
+                        .subheadingText()
+                }
+                .textColor()
+                
+                HStack {
+                    Button {
+                        shareBackup()
+                    } label: {
+                        HStack(alignment: .center) {
+                            Text("Back Up All Data")
+                                .boldLargeBodyText()
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                        }
+                    }
+                    .textColor()
+                }
+                
+                Button {
+                    shareCSV(csvString: getWorkoutLogsCSV(), name: "SculptyWorkoutLogs")
+                } label: {
+                    HStack(alignment: .center) {
+                        Text("Export Workout Logs to CSV")
+                            .boldLargeBodyText()
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                    }
+                }
+                .textColor()
+                
+                Button {
+                    shareCSV(csvString: getCaloriesCSV(), name: "SculptyCaloriesLogs")
+                } label: {
+                    HStack(alignment: .center) {
+                        Text("Export Calories Data to CSV")
+                            .boldLargeBodyText()
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                    }
+                }
+                .textColor()
+                
+                Button {
+                    showResetConfirmation1 = true
+                } label: {
+                    HStack(alignment: .center) {
+                        Text("Reset Data")
+                            .boldLargeBodyText()
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                    }
+                }
+                .textColor()
+                .confirmationDialog("Are you sure? This will reset all data.", isPresented: $showResetConfirmation1, titleVisibility: .visible) {
+                    Button("Reset", role: .destructive) {
+                        showResetConfirmation2 = true
+                    }
+                }
+                .confirmationDialog("Are you 100% sure? This action cannot be undone.", isPresented: $showResetConfirmation2, titleVisibility: .visible) {
+                    Button("Reset", role: .destructive) {
+                        showResetConfirmation3 = true
+                    }
+                }
+                .confirmationDialog("You should consider backing up your data before resetting.", isPresented: $showResetConfirmation3, titleVisibility: .visible) {
+                    Button("Proceed", role: .destructive) {
+                        clearContext()
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            
+            Spacer()
+                .frame(height: 5)
+            
+            // MARK: Misc
+            VStack(alignment: .center, spacing: 8) {
+                Link("Website", destination: URL(string: "https://sculpty.app")!)
+                    .boldLargeBodyText()
+                
+                if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String, let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
+                    Text("Sculpty Version \(version) Build \(build)")
+                        .substatsText()
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                
+                Button {
+                    isDailyCaloriesFocused = false
+                } label: {
+                    Text("Done")
+                }
+                .disabled(!isDailyCaloriesFocused)
             }
         }
     }
@@ -420,6 +476,10 @@ struct Options: View {
                let rootVC = windowScene.windows.first?.rootViewController {
                 rootVC.present(activityVC, animated: true)
             }
+            
+            Task {
+                await InfoPopup(title: "Restoring from Backup", text: "To restore data from a backup, reset your data and select \"Returning? Import Backup\" from the start screen.").present()
+            }
         } catch {
             print("Error creating backup file: \(error.localizedDescription)")
         }
@@ -427,12 +487,46 @@ struct Options: View {
     
     
     private func getWorkoutLogsCSV() -> String {
-        var csv = "Date,Time,Workout,Exercise,Muscle Group,Set Type,Reps/Time,Weight/Distance,Skipped\n"
+        var csv = "Date,Time,Workout,Exercise,Muscle Group,Set Type,Reps/Time,Weight/Distance,Unit,Skipped\n"
 
         for workoutLog in workoutLogs {
             for exerciseLog in workoutLog.exerciseLogs {
                 for setLog in exerciseLog.setLogs {
-                    csv += "\"\(formatDate(workoutLog.end))\",\"\(formatTime(workoutLog.end))\",\"\(workoutLog.workout.name)\",\"\(exerciseLog.exercise.exercise?.name ?? "N/A")\",\"\(setLog.reps ?? 0)\(setLog.measurement == "x" ? " reps" : (setLog.measurement ?? "x"))\",\"\(setLog.weight ?? 0)\",\"\(setLog.skipped ? "Skipped" : "")\",\"\n"
+                    let date = formatDate(workoutLog.end)
+                    let time = formatTime(workoutLog.end)
+                    let workoutName = workoutLog.workout.name
+                    let exerciseName = exerciseLog.exercise.exercise?.name ?? "N/A"
+                    let muscleGroup = exerciseLog.exercise.exercise?.muscleGroup?.rawValue ?? "N/A"
+                    let setType = setLog.set?.type.rawValue ?? "N/A"
+                    let skipped = setLog.skipped ? "Yes" : "No"
+                    
+                    let repsOrTime: String
+                    let weightOrDistance: String
+                    let unit = setLog.unit
+                    
+                    if let set = setLog.set, set.exerciseType == .weight {
+                        repsOrTime = "\(setLog.reps ?? 0)"
+                        weightOrDistance = "\(setLog.weight ?? 0)"
+                    } else {
+                        if let timeValue = setLog.time {
+                            let totalSeconds = Int(timeValue)
+                            let hours = totalSeconds / 3600
+                            let minutes = (totalSeconds % 3600) / 60
+                            let seconds = totalSeconds % 60
+                            
+                            if hours > 0 {
+                                repsOrTime = String(format: "%d:%02d:%02d", hours, minutes, seconds)
+                            } else {
+                                repsOrTime = String(format: "%02d:%02d", minutes, seconds)
+                            }
+                        } else {
+                            repsOrTime = "00:00"
+                        }
+                        
+                        weightOrDistance = "\(setLog.distance ?? 0)"
+                    }
+                    
+                    csv += "\"\(date)\",\"\(time)\",\"\(workoutName)\",\"\(exerciseName)\",\"\(muscleGroup)\",\"\(setType)\",\"\(repsOrTime)\",\"\(weightOrDistance)\",\"\(unit)\",\"\(skipped)\"\n"
                 }
             }
         }
@@ -507,7 +601,7 @@ struct Options: View {
                 UserDefaults.standard.resetUser()
             }
         } catch {
-            print("Failed to clear context: \(error)")
+            print("Failed to clear context: \(error.localizedDescription)")
         }
     }
 }

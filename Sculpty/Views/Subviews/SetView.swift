@@ -36,17 +36,19 @@ struct SetView: View {
                let measurement = set.measurement,
                let rir = set.rir {
                 Text("\(reps) \(measurement) \(String(format: "%0.2f", weight)) \(set.unit) \((showRir && [.main, .dropSet].contains(set.type)) ? "(\(rir)\((rir) == "Failure" ? "" : " RIR"))" : "")")
+                    .bodyText()
                     .strikethrough(setLog?.completed ?? false || setLog?.skipped ?? false)
                 
                 Spacer()
                 
                 if show1RM && set.type == .main && (setLog?.completed ?? false) {
                     Text("1RM: \(String(format: "%0.2f", weight * (1.0 + (Double(reps) / 30.0)))) \(set.unit)")
-                        .foregroundStyle(ColorManager.secondary)
+                        .secondaryColor()
                 }
             } else if set.exerciseType == .distance,
                       let distance = set.distance {
                 Text("\(set.timeString) \(String(format: "%0.2f", distance)) \(set.unit)")
+                    .bodyText()
                     .strikethrough(setLog?.completed ?? false || setLog?.skipped ?? false)
                 
                 Spacer()

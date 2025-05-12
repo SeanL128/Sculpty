@@ -14,8 +14,8 @@ class CaloriesLogDTO: Identifiable, Codable {
     var entries: [FoodEntryDTO]
     
     init(from model: CaloriesLog) {
-        self.id = model.id
-        self.date = model.date
-        self.entries = model.entries.map { FoodEntryDTO(from: $0) }
+        id = model.id
+        date = model.date
+        entries = model.entries.map { FoodEntryDTO(from: $0) }
     }
 }

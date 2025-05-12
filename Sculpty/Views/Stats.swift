@@ -38,7 +38,7 @@ struct Stats: View {
                         
                         Spacer()
                         
-//                        NavigationLink(destination: ViewLogs()) {
+//                        NavigationLink(destination: ViewWorkoutLogs()) {
 //                            Image(systemName: "list.bullet.clipboard")
 //                        }
 //                        .padding(.trailing, 10)
@@ -92,14 +92,14 @@ struct Stats: View {
                                     Text("Total Time: \(lengthToString(length: viewModel.selectedTotalTime))")
                                     
                                     VStack {
-                                        PieChartView (
-                                            data: viewModel.selectedMuscleGroupRepBreakdownChartData.map(\.0),
-                                            title: "Muscle Group Reps Breakdown",
-                                            form: ChartForm.large,
-                                            dropShadow: false,
-                                            segmentColors: viewModel.selectedMuscleGroupRepBreakdownChartData.map(\.2),
-                                            unit: " reps"
-                                        )
+//                                        PieChartView (
+//                                            data: viewModel.selectedMuscleGroupRepBreakdownChartData.map(\.0),
+//                                            title: "Muscle Group Reps Breakdown",
+//                                            form: ChartForm.large,
+//                                            dropShadow: false,
+//                                            segmentColors: viewModel.selectedMuscleGroupRepBreakdownChartData.map(\.2),
+//                                            unit: " reps"
+//                                        )
                                         
                                         MuscleGroupColorKey(muscleGroups: Array(viewModel.selectedMuscleGroupRepBreakdown.keys))
                                         
@@ -112,14 +112,14 @@ struct Stats: View {
                                         }
                                         .padding(.top)
                                         
-                                        PieChartView (
-                                            data: viewModel.selectedMuscleGroupWeightBreakdownChartData.map(\.0),
-                                            title: "Muscle Group Weight Breakdown",
-                                            form: ChartForm.large,
-                                            dropShadow: false,
-                                            segmentColors: viewModel.selectedMuscleGroupWeightBreakdownChartData.map(\.2),
-                                            unit: UnitsManager.weight
-                                        )
+//                                        PieChartView (
+//                                            data: viewModel.selectedMuscleGroupWeightBreakdownChartData.map(\.0),
+//                                            title: "Muscle Group Weight Breakdown",
+//                                            form: ChartForm.large,
+//                                            dropShadow: false,
+//                                            segmentColors: viewModel.selectedMuscleGroupWeightBreakdownChartData.map(\.2),
+//                                            unit: UnitsManager.weight
+//                                        )
                                         
                                         MuscleGroupColorKey(muscleGroups: Array(viewModel.selectedMuscleGroupWeightBreakdown.keys))
                                         

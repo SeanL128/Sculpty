@@ -1,0 +1,77 @@
+//
+//  ConfirmationPopup.swift
+//  Sculpty
+//
+//  Created by Sean Lindsay on 4/27/25.
+//
+
+import SwiftUI
+import MijickPopups
+
+struct ConfirmationPopup: CenterPopup {
+    @Binding private var selection: Bool
+    private var promptText: String
+    private var resultText: String?
+    private var cancelText: String
+    private var confirmText: String
+    
+    init(selection: Binding<Bool>, promptText: String = "Are you sure?", resultText: String? = nil, cancelText: String = "Cancel", confirmText: String = "Confirm") {
+        self._selection = selection
+        self.promptText = promptText
+        self.resultText = resultText
+        self.cancelText = cancelText
+        self.confirmText = confirmText
+    }
+    
+    var body: some View {
+        VStack(alignment: .center, spacing: 36) {
+            VStack (alignment: .center, spacing: 6) {
+                Text(promptText)
+                    .bodyText()
+                    .multilineTextAlignment(.center)
+                
+                if let resultText {
+                    Text(resultText)
+                        .subbodyText()
+                        .multilineTextAlignment(.center)
+                }
+            }
+            
+            HStack(spacing: 24) {
+                Button {
+                    selection = false
+                    
+                    Task {
+                        await dismissLastPopup()
+                    }
+                } label: {
+                    Text(cancelText)
+                        .largeBodyText()
+                }
+                .textColor()
+                
+                Divider().frame(width: 1)
+                
+                Button {
+                    selection = true
+                    
+                    Task {
+                        await dismissLastPopup()
+                    }
+                } label: {
+                    Text(confirmText)
+                        .boldLargeBodyText()
+                }
+                .textColor()
+            }
+        }
+        .padding(.vertical, 20)
+        .padding(.horizontal, 8)
+    }
+    
+    func configurePopup(config: CenterPopupConfig) -> CenterPopupConfig {
+        config
+            .backgroundColor(ColorManager.background)
+            .popupHorizontalPadding(24)
+    }
+}

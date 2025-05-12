@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ViewWorkoutLog: View {
-    @Environment(\.modelContext) var context
+    @Environment(\.modelContext) private var context
     @StateObject private var viewModel: WorkoutLogViewModel
     
     @State private var logToDelete: ExerciseLog? = nil

@@ -20,7 +20,7 @@ class FoodEntry: Identifiable, Codable {
     var fat: Double
     
     init(name: String, calories: Double, carbs: Double = 0, protein: Double = 0, fat: Double = 0) {
-        self.id = UUID()
+        id = UUID()
         self.name = name
         self.calories = calories
         self.carbs = carbs

@@ -16,14 +16,14 @@ class CaloriesLog: Identifiable, Codable {
     @Relationship(deleteRule: .cascade, inverse: \FoodEntry.caloriesLog) var entries: [FoodEntry] = []
     
     init(date: Date = Date(), entries: [FoodEntry] = []) {
-        self.id = UUID()
+        id = UUID()
         self.date = date
         self.entries = entries
     }
     
     init(from dto: CaloriesLogDTO) {
-        self.id = dto.id
-        self.date = dto.date
+        id = dto.id
+        date = dto.date
         
         var entries: [FoodEntry] = []
         for entry in dto.entries {

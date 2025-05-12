@@ -45,12 +45,12 @@ class ExerciseSet: Identifiable, Codable {
     }
     
     init(index: Int = 0,
-         reps: Int = UserDefaults.standard.object(forKey: UserKeys.defaultReps.rawValue) as? Int ?? 12,
-         weight: Double = UserDefaults.standard.object(forKey: UserKeys.defaultWeight.rawValue) as? Double ?? 40,
-         unit: String = UserDefaults.standard.object(forKey: UserKeys.defaultWeightUnits.rawValue) as? String ?? UnitsManager.weight,
-         measurement: String = UserDefaults.standard.object(forKey: UserKeys.defaultMeasurement.rawValue) as? String ?? "x",
+         reps: Int = 12,
+         weight: Double = 40,
+         unit: String = UnitsManager.weight,
+         measurement: String = "x",
          type: ExerciseSetType = .main,
-         rir: String = UserDefaults.standard.object(forKey: UserKeys.defaultRir.rawValue) as? String ?? "0") {
+         rir: String = "0") {
         self.index = index
         self.unit = unit
         self.type = type
@@ -63,9 +63,9 @@ class ExerciseSet: Identifiable, Codable {
     }
     
     init(index: Int = 0,
-         time: Double = UserDefaults.standard.object(forKey: UserKeys.defaultTime.rawValue) as? Double ?? 300,
-         distance: Double = UserDefaults.standard.object(forKey: UserKeys.defaultDistance.rawValue) as? Double ?? 1,
-         unit: String = UserDefaults.standard.object(forKey: UserKeys.defaultDistanceUnits.rawValue) as? String ?? UnitsManager.longLength,
+         time: Double = 300,
+         distance: Double = 1,
+         unit: String = UnitsManager.longLength,
          type: ExerciseSetType = .main) {
         self.index = index
         self.unit = unit
@@ -83,17 +83,17 @@ class ExerciseSet: Identifiable, Codable {
         exerciseType = type
         
         if type == .weight {
-            unit = UserDefaults.standard.object(forKey: UserKeys.defaultWeightUnits.rawValue) as? String ?? UnitsManager.weight
+            unit = UnitsManager.weight
             
-            reps = UserDefaults.standard.object(forKey: UserKeys.defaultReps.rawValue) as? Int ?? 12
-            weight = UserDefaults.standard.object(forKey: UserKeys.defaultWeight.rawValue) as? Double ?? 40
-            measurement = UserDefaults.standard.object(forKey: UserKeys.defaultMeasurement.rawValue) as? String ?? "x"
-            rir = UserDefaults.standard.object(forKey: UserKeys.defaultRir.rawValue) as? String ?? "0"
+            reps = 12
+            weight = 40
+            measurement = "x"
+            rir = "0"
         } else if type == .distance {
-            unit = UserDefaults.standard.object(forKey: UserKeys.defaultDistanceUnits.rawValue) as? String ?? UnitsManager.longLength
+            unit = UnitsManager.longLength
             
-            time = UserDefaults.standard.object(forKey: UserKeys.defaultTime.rawValue) as? Double ?? 300
-            distance = UserDefaults.standard.object(forKey: UserKeys.defaultDistance.rawValue) as? Double ?? 1
+            time = 300
+            distance = 1
         }
     }
     

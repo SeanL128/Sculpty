@@ -10,7 +10,7 @@ import MijickPopups
 import MijickTimer
 
 struct EditWeightSetPopup: CenterPopup {
-    @Binding var set: ExerciseSet
+    var set: ExerciseSet
     @Binding var log: SetLog
     
     private let restTime: Double
@@ -22,6 +22,8 @@ struct EditWeightSetPopup: CenterPopup {
     
     @State private var disableType: Bool = false
     
+    @State private var updatedSet: ExerciseSet
+    
     @State private var weightString: String
     @State private var repsString: String
     
@@ -31,8 +33,12 @@ struct EditWeightSetPopup: CenterPopup {
     @AppStorage(UserKeys.showRir.rawValue) private var showRir: Bool = false
     @AppStorage(UserKeys.showSetTimer.rawValue) private var showSetTimer: Bool = false
     
-    init (set: Binding<ExerciseSet>, log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet())), restTime: Double = 0, timer: MTimer? = nil, disableType: Bool = false) {
-        self._set = set
+    init (set: ExerciseSet,
+          log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet())),
+          restTime: Double = 0,
+          timer: MTimer? = nil,
+          disableType: Bool = false) {
+        self.set = set
         self._log = log
         
         self.restTime = restTime
@@ -42,8 +48,10 @@ struct EditWeightSetPopup: CenterPopup {
         
         self.disableType = disableType
         
-        let initialWeight = (set.wrappedValue.weight ?? 0).formatted()
-        let initialReps = "\(set.wrappedValue.reps ?? 0)"
+        _updatedSet = State(initialValue: set)
+        
+        let initialWeight = (set.weight ?? 0).formatted()
+        let initialReps = "\(set.reps ?? 0)"
         
         _weightString = State(initialValue: initialWeight)
         _repsString = State(initialValue: initialReps)
@@ -52,10 +60,10 @@ struct EditWeightSetPopup: CenterPopup {
     var body: some View {
         VStack {
             // Header
-            if log.index != -1 {
-                HStack {
-                    Spacer()
-                    
+            HStack {
+                Spacer()
+                
+                if log.index > -1 {
                     Button {
                         log.unfinish()
                         log.skip()
@@ -67,17 +75,19 @@ struct EditWeightSetPopup: CenterPopup {
                         Image(systemName: "arrowshape.turn.up.right.fill")
                     }
                     .padding(3)
-                    
-                    Button {
-                        let weight = set.measurement == "x" ? Double(set.reps ?? 0) * (set.weight ?? 0) : 0
+                }
+                
+                Button {
+                    if log.index > -1 {
+                        let weight = updatedSet.measurement == "x" ? Double(updatedSet.reps ?? 0) * (updatedSet.weight ?? 0) : 0
                         
                         log.unskip()
-                        log.finish(reps: set.reps ?? 0, weight: weight, measurement: set.measurement ?? "x")
+                        log.finish(reps: updatedSet.reps ?? 0, weight: weight, measurement: updatedSet.measurement ?? "x")
                         
                         if let restTimer = restTimer {
-                            var time: Double = 0;
+                            var time: Double = 0
                             
-                            switch (set.type) {
+                            switch (updatedSet.type) {
                             case (.warmUp):
                                 time = 30
                             case (.coolDown):
@@ -89,18 +99,18 @@ struct EditWeightSetPopup: CenterPopup {
                             try? restTimer.skip()
                             try? restTimer.start(from: time, to: .zero)
                         }
-                        
-                        Task {
-                            await dismissLastPopup()
-                        }
-                    } label: {
-                        Image(systemName: "checkmark")
                     }
-                    .padding(3)
+                    
+                    Task {
+                        await dismissLastPopup()
+                    }
+                } label: {
+                    Image(systemName: "checkmark")
                 }
-                .padding(.top, 30)
-                .padding(.bottom, -20)
+                .padding(3)
             }
+            .padding(.top, 30)
+            .padding(.bottom, -20)
             
             HStack {
                 // Reps
@@ -112,12 +122,12 @@ struct EditWeightSetPopup: CenterPopup {
                             repsString = repsString.filter { "0123456789".contains($0) }
                             
                             if repsString.isEmpty {
-                                set.reps = 0
+                                updatedSet.reps = 0
                             }
                             
-                            set.reps = (repsString as NSString).integerValue
+                            updatedSet.reps = (repsString as NSString).integerValue
                         }
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isRepsFocused }, set: { isRepsFocused = $0 })))
                         .frame(maxWidth: 125)
                     
                     Spacer()
@@ -126,7 +136,7 @@ struct EditWeightSetPopup: CenterPopup {
                 Spacer()
                 
                 // Measurement
-                Picker("Measurement", selection: $set.measurement) {
+                Picker("Measurement", selection: $updatedSet.measurement) {
                     ForEach(["x", "min", "sec"], id: \.self) { measurement in
                         Text("\(measurement)")
                             .tag(measurement)
@@ -147,20 +157,26 @@ struct EditWeightSetPopup: CenterPopup {
                             weightString = weightString.filteredNumeric()
                             
                             if weightString.isEmpty {
-                                set.weight = 0
+                                updatedSet.weight = 0
                             } else if weightString.hasSuffix(".") {
-                                set.weight = ("\(weightString)0" as NSString).doubleValue
+                                updatedSet.weight = ("\(weightString)0" as NSString).doubleValue
                             } else {
-                                set.weight = (weightString as NSString).doubleValue
+                                updatedSet.weight = (weightString as NSString).doubleValue
                             }
                         }
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isWeightFocused }, set: { isWeightFocused = $0 })))
                         .frame(maxWidth: 125)
                     
-                    Picker("Unit", selection: $set.unit) {
-                        Text("lbs").tag("lbs")
+                    Picker("Unit", selection: $updatedSet.unit) {
+                        Text("lbs")
+                            .bodyText()
+                            .textColor()
+                            .tag("lbs")
                         
-                        Text("kg").tag("kg")
+                        Text("kg")
+                            .bodyText()
+                            .textColor()
+                            .tag("kg")
                     }
                     .pickerStyle(.wheel)
                     .frame(maxWidth: 65, maxHeight: 100)
@@ -172,9 +188,11 @@ struct EditWeightSetPopup: CenterPopup {
             .padding(.bottom, 10)
             
             if !disableType {
-                Picker("Type", selection: $set.type) {
+                Picker("Type", selection: $updatedSet.type) {
                     ForEach(ExerciseSetType.displayOrder, id: \.self) { type in
                         Text("\(type.rawValue)")
+                            .bodyText()
+                            .textColor()
                             .tag(type)
                     }
                 }
@@ -183,14 +201,16 @@ struct EditWeightSetPopup: CenterPopup {
             }
             
             // RIR
-            if showRir && [.main, .dropSet].contains(set.type) {
+            if showRir && [.main, .dropSet].contains(updatedSet.type) {
                 HStack {
                     Text("RIR")
                         .padding(.horizontal, 5)
                     
-                    Picker("RIR", selection: $set.rir) {
+                    Picker("RIR", selection: $updatedSet.rir) {
                         ForEach(["Failure", "0", "1", "2", "3+"], id: \.self) { rir in
                             Text("\(rir)")
+                                .bodyText()
+                                .textColor()
                                 .tag(rir)
                         }
                     }

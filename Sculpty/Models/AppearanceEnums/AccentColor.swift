@@ -26,4 +26,8 @@ enum AccentColor: String, CaseIterable, Identifiable {
         .purple: "#8E44AD",
         .pink: "#D63384"
     ]
+    
+    static func fromHex(_ hex: String) -> AccentColor? {
+        return colorMap.first { $0.value.lowercased() == hex.lowercased() }?.key
+    }
 }

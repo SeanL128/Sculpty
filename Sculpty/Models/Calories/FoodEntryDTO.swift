@@ -17,11 +17,11 @@ class FoodEntryDTO: Identifiable, Codable {
     var fat: Double
     
     init(from model: FoodEntry) {
-        self.id = model.id
-        self.name = model.name
-        self.calories = model.calories
-        self.carbs = model.carbs
-        self.protein = model.protein
-        self.fat = model.fat
+        id = model.id
+        name = model.name
+        calories = model.calories
+        carbs = model.carbs
+        protein = model.protein
+        fat = model.fat
     }
 }

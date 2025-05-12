@@ -49,8 +49,8 @@ struct FoodEntries: View {
                     VStack(spacing: 20) {
                         if (caloriesBreakdown.1 + caloriesBreakdown.2 + caloriesBreakdown.3) > 0 {
                             HStack {
-                                PieChartView(data: [caloriesBreakdown.1, caloriesBreakdown.2, caloriesBreakdown.3], labels: ["\(caloriesBreakdown.1.formatted())g Carbs", "\(caloriesBreakdown.2.formatted())g Protein", "\(caloriesBreakdown.3.formatted())g Fat"], title: "Calories Breakdown", form: ChartForm.small, segmentColors: [Color.blue, Color.red, Color.orange], unit: "g", showTitle: false)
-                                    .frame(maxWidth: .infinity)
+//                                PieChartView(data: [caloriesBreakdown.1, caloriesBreakdown.2, caloriesBreakdown.3], labels: ["\(caloriesBreakdown.1.formatted())g Carbs", "\(caloriesBreakdown.2.formatted())g Protein", "\(caloriesBreakdown.3.formatted())g Fat"], title: "Calories Breakdown", form: ChartForm.small, segmentColors: [Color.blue, Color.red, Color.orange], unit: "g", showTitle: false)
+//                                    .frame(maxWidth: .infinity)
                             }
                             .padding()
                             .frame(maxWidth: .infinity)
@@ -73,10 +73,14 @@ struct FoodEntries: View {
                                                 Spacer()
                                                 
                                                 HStack {
-                                                    NavigationLink(destination: AddFoodEntry(entry: entry, log: log)) {
+                                                    Button {
+                                                        Task {
+                                                            await AddFoodEntryPoup(entry: entry, log: log).present()
+                                                        }
+                                                    } label: {
                                                         Image(systemName: "pencil")
                                                     }
-                                                    .foregroundStyle(Color.accentColor)
+                                                    .accentColor()
                                                     .padding(.horizontal, 5)
                                                     
                                                     Button {
@@ -84,7 +88,7 @@ struct FoodEntries: View {
                                                     } label: {
                                                         Image(systemName: "xmark")
                                                     }
-                                                    .foregroundStyle(Color.accentColor)
+                                                    .accentColor()
                                                     .padding(.horizontal, 5)
                                                 }
                                             }

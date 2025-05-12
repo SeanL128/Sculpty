@@ -16,4 +16,6 @@ enum ExerciseType: String, CaseIterable, Codable, Identifiable {
     static let displayOrder: [ExerciseType] = [
         .weight, .distance
     ]
+    
+    static let stringDisplayOrder: [String] = displayOrder.map(\.self.rawValue)
 }

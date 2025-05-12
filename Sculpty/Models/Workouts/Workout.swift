@@ -18,16 +18,28 @@ class Workout: Identifiable, Codable {
     var name: String
     @Relationship(deleteRule: .deny, inverse: \WorkoutExercise.workout) var exercises: [WorkoutExercise]
     var notes: String
+    var lastStarted: Date?
+    var hidden: Bool = false
     
-    init(index: Int = -1, name: String = "Workout", exercises: [WorkoutExercise] = [], notes: String = "Notes") {
+    init(index: Int = -1, name: String = "", exercises: [WorkoutExercise] = [], notes: String = "", lastStarted: Date? = nil, hidden: Bool = false) {
         self.index = index
         self.name = name
         self.exercises = exercises
         self.notes = notes
+        self.lastStarted = lastStarted
+        self.hidden = hidden
+    }
+    
+    func started(date: Date = Date()) {
+        self.lastStarted = date
+    }
+    
+    func hide() {
+        hidden = true
     }
     
     enum CodingKeys: String, CodingKey {
-        case id, index, name, exercises, notes
+        case id, index, name, exercises, notes, lastStarted, hidden
     }
     
     required init(from decoder: Decoder) throws {
@@ -37,6 +49,8 @@ class Workout: Identifiable, Codable {
         name = try container.decode(String.self, forKey: .name)
         exercises = try container.decode([WorkoutExercise].self, forKey: .exercises)
         notes = try container.decode(String.self, forKey: .notes)
+        lastStarted = try container.decodeIfPresent(Date.self, forKey: .lastStarted)
+        hidden = try container.decode(Bool.self, forKey: .hidden)
     }
     
     func encode(to encoder: Encoder) throws {
@@ -46,5 +60,7 @@ class Workout: Identifiable, Codable {
         try container.encode(name, forKey: .name)
         try container.encode(exercises, forKey: .exercises)
         try container.encode(notes, forKey: .notes)
+        try container.encodeIfPresent(lastStarted, forKey: .lastStarted)
+        try container.encode(hidden, forKey: .hidden)
     }
 }

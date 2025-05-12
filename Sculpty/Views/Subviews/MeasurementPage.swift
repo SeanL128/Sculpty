@@ -11,7 +11,7 @@ import SwiftUICharts
 import Neumorphic
 
 struct MeasurementPage: View {
-    @Environment(\.modelContext) var context
+    @Environment(\.modelContext) private var context
     
     var title: String
     var type: MeasurementType

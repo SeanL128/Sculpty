@@ -33,7 +33,7 @@ class SetLog: Identifiable, Codable {
     
     init(index: Int,
          set: ExerciseSet,
-         unit: String = UserDefaults.standard.object(forKey: UserKeys.defaultWeightUnits.rawValue) as? String ?? UnitsManager.weight,
+         unit: String = UnitsManager.weight,
          measurement: String) {
         self.index = index
         self.set = set
@@ -50,7 +50,7 @@ class SetLog: Identifiable, Codable {
     
     init(index: Int,
          set: ExerciseSet,
-         unit: String = UserDefaults.standard.object(forKey: UserKeys.defaultDistanceUnits.rawValue) as? String ?? UnitsManager.longLength) {
+         unit: String = UnitsManager.longLength) {
         self.index = index
         self.set = set
         completed = false

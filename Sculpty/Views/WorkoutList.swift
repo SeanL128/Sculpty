@@ -7,91 +7,72 @@
 
 import SwiftUI
 import SwiftData
-import Neumorphic
 
 struct WorkoutList: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     
-    @Query(filter: #Predicate<Workout> { $0.index >= 0 }, sort: \.index) private var workouts: [Workout]
+    @Query(filter: #Predicate<Workout> { $0.index >= 0 && !$0.hidden }, sort: \.index) private var workouts: [Workout]
     
     @Binding var workoutToStart: WorkoutLog?
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                ColorManager.background
-                    .edgesIgnoringSafeArea(.all)
-                
-                ScrollView {
-                    HStack {
-                        Text("WORKOUTS")
-                            .font(.largeTitle)
-                            .bold()
+        ContainerView(title: "Workouts", spacing: 16, trailingItems: {
+            NavigationLink(destination: PageRenderer(page: .exerciseList)) {
+                Image(systemName: "figure.run")
+                    .font(.title2)
+                    .padding(.horizontal, 3)
+            }
+            .textColor()
+            
+            NavigationLink(destination: PageRenderer(page: .upsertWorkout)) {
+                Image(systemName: "plus")
+                    .font(.title2)
+                    .padding(.horizontal, 3)
+            }
+            .textColor()
+        }) {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(workouts, id: \.self) { workout in
+                    VStack {
+                        HStack {
+                            Text(workout.name)
+                                .bodyText(size: 18)
+                            
+                            Spacer()
+                            
+                            NavigationLink(destination: UpsertWorkout(workout: workout)) {
+                                Image(systemName: "pencil")
+                                    .padding(.horizontal, 8)
+                            }
+                            .textColor()
+                            
+                            Button {
+                                let log = WorkoutLog(workout: workout)
+                                
+                                context.insert(log)
+                                
+                                workoutToStart = log
+                                
+                                dismiss()
+                            } label: {
+                                Image(systemName: "play.fill")
+                                    .padding(.horizontal, 8)
+                            }
+                            .textColor()
+                        }
                         
-                        Spacer()
-                    }
-                    .padding()
-                    
-                    VStack(alignment: .leading, spacing: 12) {
-                        NavigationLink(destination: AddWorkout()) {
+                        if let date = workout.lastStarted {
                             HStack {
-                                Image(systemName: "plus")
+                                Text("Last started: \(formatDateWithTime(date))")
+                                    .bodyText(size: 12)
+                                    .secondaryColor()
                                 
-                                Text("ADD WORKOUT")
+                                Spacer()
                             }
-                        }
-                        
-                        Divider()
-                            .background(ColorManager.text)
-                        
-                        ForEach(workouts, id: \.self) { workout in
-                            VStack {
-                                HStack {
-                                    Text(workout.name)
-                                        .font(.title3)
-                                    
-                                    Spacer()
-                                    
-                                    NavigationLink(destination: AddWorkout(workout: workout)) {
-                                        Image(systemName: "pencil")
-                                            .padding(.horizontal, 5)
-                                    }
-                                    
-                                    Button {
-                                        let log = WorkoutLog(workout: workout)
-                                        
-                                        context.insert(log)
-                                        workoutToStart = log
-                                        dismiss()
-                                    } label: {
-                                        Image(systemName: "play.fill")
-                                            .padding(.horizontal, 5)
-                                    }
-                                }
-                                
-//                                if !workout.exercises.isEmpty {
-//                                    VStack(alignment: .leading) {
-//                                        ForEach(workout.exercises, id: \.self) { exercise in
-//                                            HStack {
-//                                                Text(exercise.exercise?.name ?? "Exercise \(exercise.index)")
-//                                                
-//                                                Spacer()
-//                                            }
-//                                            .frame(maxWidth: .infinity)
-//                                        }
-//                                    }
-//                                    .padding(.top, 3)
-//                                    .padding(.leading, 20)
-//                                }
-                            }
-                            .padding(.bottom, 12)
                         }
                     }
-                    .padding()
                 }
-                .padding()
-                .scrollClipDisabled()
             }
         }
     }

@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct CaloriesHistory: View {
-    @Environment(\.modelContext) var context
+    @Environment(\.modelContext) private var context
     
     @Query(filter: #Predicate<CaloriesLog> { !$0.entries.isEmpty }) private var caloriesLogs: [CaloriesLog]
     

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct WorkoutSummary: View {
-    @Environment(\.dismiss) var dismiss
+    @Environment(\.dismiss) private var dismiss
     
     @AppStorage(UserKeys.includeWarmUp.rawValue) private var includeWarmUp: Bool = true
     @AppStorage(UserKeys.includeDropSet.rawValue) private var includeDropSet: Bool = true
