@@ -47,7 +47,7 @@ struct UpsertExercise: View {
                 TextField("", text: $exercise.name)
                     .textInputAutocapitalization(.words)
                     .focused($isNameFocused)
-                    .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isNameFocused }, set: { isNameFocused = $0 })))
+                    .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isNameFocused }, set: { isNameFocused = $0 }), text: $exercise.name))
             }
             
             VStack(alignment: .leading) {
@@ -57,7 +57,7 @@ struct UpsertExercise: View {
                 
                 TextField("", text: $exercise.notes, axis: .vertical)
                     .focused($isNotesFocused)
-                    .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isNotesFocused }, set: { isNotesFocused = $0 })))
+                    .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isNotesFocused }, set: { isNotesFocused = $0 }), text: $exercise.notes))
             }
             
             

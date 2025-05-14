@@ -49,7 +49,7 @@ struct SelectExercise: View {
         }) {
             TextField("Search Exercises", text: $searchText)
                 .focused($isSearchFocused)
-                .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isSearchFocused }, set: { isSearchFocused = $0 })))
+                .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isSearchFocused }, set: { isSearchFocused = $0 }), text: $searchText))
                 .padding(.bottom, 5)
             
             ForEach(MuscleGroup.allCases, id: \.self) { muscleGroup in

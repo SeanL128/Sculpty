@@ -26,7 +26,7 @@ struct MenuPopup: CenterPopup {
                 Spacer()
                 
                 Text(title)
-                    .boldBodyText(size: 18)
+                    .bodyText(size: 18, weight: .bold)
                     .multilineTextAlignment(.center)
                 
                 Spacer()

@@ -21,7 +21,7 @@ struct InfoPopup: CenterPopup {
         VStack(alignment: .center, spacing: 24) {
             VStack (alignment: .center, spacing: 8){
                 Text(title)
-                    .boldLargeBodyText()
+                    .bodyText(size: 18, weight: .bold)
                     .multilineTextAlignment(.center)
                 
                 Text(text)
@@ -36,7 +36,7 @@ struct InfoPopup: CenterPopup {
                 }
             } label: {
                 Text("OK")
-                    .boldLargeBodyText()
+                    .bodyText(size: 18, weight: .bold)
             }
             .textColor()
         }

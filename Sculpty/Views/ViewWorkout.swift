@@ -62,6 +62,23 @@ struct ViewWorkout: View {
                             .textColor()
                         
                         Spacer()
+                        
+                        Button {
+                            if log.completed {
+                                Task {
+                                    await WorkoutSummaryPopup(log: log).present()
+                                }
+                            } else {
+                                Task {
+                                    await ConfirmationPopup(selection: $finishWorkoutSelection, promptText: "Finish \(log.workout.name)?", resultText: "This will skip all remaining sets.", cancelText: "Cancel", confirmText: "Finish").present()
+                                }
+                            }
+                        } label: {
+                            Image(systemName: log.completed ? "checkmark.circle.fill" : "checkmark.circle")
+                                .font(.title2)
+                                .padding(.horizontal, 3)
+                        }
+                        .textColor()
                     }
                     .padding(.bottom)
                     
@@ -73,7 +90,7 @@ struct ViewWorkout: View {
                                 VStack(alignment: .leading, spacing: 12) {
                                     VStack(alignment: .leading) {
                                         Text(exercise.exercise?.name ?? "Exercise \(exercise.index + 1)")
-                                            .boldLargeBodyText()
+                                            .bodyText(size: 18, weight: .bold)
                                             .textColor()
                                         
                                         if showTempo {
@@ -86,7 +103,7 @@ struct ViewWorkout: View {
                                             } label: {
                                                 HStack(alignment: .center) {
                                                     Text("Tempo: \(tempoArr[0])\(tempoArr[1])\(tempoArr[2])\(tempoArr[3])")
-                                                        .subbodyText()
+                                                        .bodyText(size: 14)
                                                     
                                                     Image(systemName: "chevron.right")
                                                         .font(.caption2)
@@ -180,19 +197,6 @@ struct ViewWorkout: View {
                     .secondaryColor()
                 }
                 .padding()
-                .toolbar {
-                    ToolbarItemGroup(placement: .navigationBarTrailing) {
-                        Button {
-                            if !log.completed {
-                                Task {
-                                    await ConfirmationPopup(selection: $finishWorkoutSelection, promptText: "Finish \(log.workout.name)?", resultText: "This will skip all remaining sets.", cancelText: "Cancel", confirmText: "Finish").present()
-                                }
-                            }
-                        } label: {
-                            Image(systemName: log.completed ? "checkmark.circle.fill" : "checkmark.circle")
-                        }
-                    }
-                }
             }
             .toolbar(.hidden, for: .navigationBar)
             .onAppear() {

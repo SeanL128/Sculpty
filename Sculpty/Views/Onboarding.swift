@@ -63,7 +63,7 @@ struct Onboarding: View {
                     VStack(alignment: .leading, spacing: 17) {
                         VStack(alignment: .leading, spacing: 5) {
                             Text("YOUR FITNESS JOURNAL")
-                                .subheadingText()
+                                .headingText(size: 24)
                                 .textColor()
                             
                             Text("Simple. Powerful. Yours.")
@@ -73,11 +73,11 @@ struct Onboarding: View {
                         
                         VStack(alignment: .leading, spacing: 5) {
                             Text("WORKOUTS")
-                                .subheading2Text()
+                                .headingText(size: 18)
                                 .textColor()
                             
                             Text("Log your workouts. See your progress.")
-                                .subbodyText()
+                                .bodyText(size: 14)
                                 .secondaryColor()
                                 .padding(.leading, 10)
                                 .multilineTextAlignment(.leading)
@@ -85,11 +85,11 @@ struct Onboarding: View {
                         
                         VStack(alignment: .leading, spacing: 5) {
                             Text("CALORIES")
-                                .subheading2Text()
+                                .headingText(size: 18)
                                 .textColor()
                             
                             Text("Monitor your daily intake and macros.")
-                                .subbodyText()
+                                .bodyText(size: 14)
                                 .secondaryColor()
                                 .padding(.leading, 10)
                                 .multilineTextAlignment(.leading)
@@ -97,11 +97,11 @@ struct Onboarding: View {
                         
                         VStack(alignment: .leading, spacing: 5) {
                             Text("MEASUREMENTS")
-                                .subheading2Text()
+                                .headingText(size: 18)
                                 .textColor()
                             
                             Text("Record body measurements. Visualize your progress.")
-                                .subbodyText()
+                                .bodyText(size: 14)
                                 .secondaryColor()
                                 .padding(.leading, 10)
                                 .multilineTextAlignment(.leading)
@@ -109,11 +109,11 @@ struct Onboarding: View {
                         
                         VStack(alignment: .leading, spacing: 5) {
                             Text("STATS")
-                                .subheading2Text()
+                                .headingText(size: 18)
                                 .textColor()
                             
                             Text("View trends and insights based on your recorded data.")
-                                .subbodyText()
+                                .bodyText(size: 14)
                                 .secondaryColor()
                                 .padding(.leading, 10)
                                 .multilineTextAlignment(.leading)
@@ -123,7 +123,7 @@ struct Onboarding: View {
                         
                         VStack (alignment: .leading, spacing: 10){
                             Text("Your data stays private. No recommendations. No ads. Just tools.")
-                                .subbodyText()
+                                .bodyText(size: 14)
                                 .secondaryColor()
                                 .fixedSize(horizontal: false, vertical: true)
                             
@@ -138,7 +138,7 @@ struct Onboarding: View {
                                     .bodyText()
                                     .frame(maxWidth: .infinity)
                             }
-                            .buttonStyle(RoundedFilledButtonStyle())
+                            .buttonStyle(FilledToBorderedButtonStyle())
                             
                             Button {
                                 restoring = true
@@ -147,7 +147,7 @@ struct Onboarding: View {
                                     .bodyText()
                                     .frame(maxWidth: .infinity)
                             }
-                            .buttonStyle(RoundedBorderButtonStyle())
+                            .buttonStyle(BorderedToFilledButtonStyle())
                         }
                     }
                     

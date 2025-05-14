@@ -20,7 +20,7 @@ class WorkoutExercise: Identifiable, Codable {
     var specNotes: String
     var tempo: String
     
-    init(index: Int = 0, exercise: Exercise? = nil, sets: [ExerciseSet] = [], restTime: TimeInterval = 180, specNotes: String = "", tempo: String = "XXXX") {
+    init(index: Int = 0, exercise: Exercise? = nil, sets: [ExerciseSet] = [], restTime: TimeInterval = 180, specNotes: String = "", tempo: String = "0000") {
         self.index = index
         self.exercise = exercise
         self.sets = sets

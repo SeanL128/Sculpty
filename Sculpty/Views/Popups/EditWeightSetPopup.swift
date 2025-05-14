@@ -127,7 +127,7 @@ struct EditWeightSetPopup: CenterPopup {
                             
                             updatedSet.reps = (repsString as NSString).integerValue
                         }
-                        .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isRepsFocused }, set: { isRepsFocused = $0 })))
+                        .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isRepsFocused }, set: { isRepsFocused = $0 }), text: $repsString))
                         .frame(maxWidth: 125)
                     
                     Spacer()
@@ -164,7 +164,7 @@ struct EditWeightSetPopup: CenterPopup {
                                 updatedSet.weight = (weightString as NSString).doubleValue
                             }
                         }
-                        .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isWeightFocused }, set: { isWeightFocused = $0 })))
+                        .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isWeightFocused }, set: { isWeightFocused = $0 }), text: $weightString))
                         .frame(maxWidth: 125)
                     
                     Picker("Unit", selection: $updatedSet.unit) {

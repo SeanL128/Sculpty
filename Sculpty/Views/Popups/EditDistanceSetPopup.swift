@@ -160,7 +160,7 @@ struct EditDistanceSetPopup: CenterPopup {
                                 updatedSet.distance = (distanceString as NSString).doubleValue
                             }
                         }
-                        .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isDistanceFocused }, set: { isDistanceFocused = $0 })))
+                        .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isDistanceFocused }, set: { isDistanceFocused = $0 }), text: $distanceString))
                         .frame(maxWidth: 125)
                     
                     Picker("Unit", selection: $updatedSet.unit) {

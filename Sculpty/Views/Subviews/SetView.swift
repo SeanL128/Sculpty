@@ -54,6 +54,6 @@ struct SetView: View {
                 Spacer()
             }
         }
-        .frame(height: 37)
+//        .frame(height: 37)
     }
 }

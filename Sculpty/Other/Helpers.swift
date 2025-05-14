@@ -139,19 +139,23 @@ func formatDateWithTime(_ date: Date) -> String {
 // MARK: Structs
 struct UnderlinedTextFieldStyle: TextFieldStyle {
     var isFocused: Binding<Bool>?
+    var text: Binding<String>?
     
     var normalLineColor: Color = ColorManager.secondary
     var focusedLineColor: Color = ColorManager.text
     var normalLineHeight: CGFloat = 1
     var focusedLineHeight: CGFloat = 1.5
     var animationDuration: Double = 0.175
+    var emptyBackgroundColor: Color = .clear
     
     init() {
         self.isFocused = nil
+        self.text = nil
     }
     
     init(isFocused: Binding<Bool>) {
         self.isFocused = isFocused
+        self.text = nil
     }
     
     init(
@@ -163,6 +167,7 @@ struct UnderlinedTextFieldStyle: TextFieldStyle {
         animationDuration: Double = 0.175
     ) {
         self.isFocused = isFocused
+        self.text = nil
         self.normalLineColor = normalLineColor
         self.focusedLineColor = focusedLineColor
         self.normalLineHeight = normalLineHeight
@@ -170,17 +175,47 @@ struct UnderlinedTextFieldStyle: TextFieldStyle {
         self.animationDuration = animationDuration
     }
     
+    init(
+        isFocused: Binding<Bool>,
+        text: Binding<String>,
+        normalLineColor: Color = ColorManager.secondary,
+        focusedLineColor: Color = ColorManager.text,
+        normalLineHeight: CGFloat = 1,
+        focusedLineHeight: CGFloat = 1.5,
+        animationDuration: Double = 0.175,
+        emptyBackgroundColor: Color = ColorManager.secondary
+    ) {
+        self.isFocused = isFocused
+        self.text = text
+        self.normalLineColor = normalLineColor
+        self.focusedLineColor = focusedLineColor
+        self.normalLineHeight = normalLineHeight
+        self.focusedLineHeight = focusedLineHeight
+        self.animationDuration = animationDuration
+        self.emptyBackgroundColor = emptyBackgroundColor
+    }
+    
     func _body(configuration: TextField<Self._Label>) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            configuration
-                .padding(.horizontal, 1)
+            ZStack(alignment: .leading) {
+                let showBackground: Bool = text != nil && text!.wrappedValue.isEmpty && !(isFocused?.wrappedValue ?? false)
+                
+                emptyBackgroundColor
+                    .ignoresSafeArea(.container, edges: .horizontal)
+                    .frame(height: nil)
+                    .padding(.bottom, -2.5)
+                    .opacity(showBackground ? 0.05 : 0)
+                    .animation(.easeOut(duration: animationDuration), value: showBackground)
+                
+                configuration
+            }
             
             Group {
                 if let focusBinding = isFocused {
                     Rectangle()
                         .fill(focusBinding.wrappedValue ? focusedLineColor : normalLineColor)
                         .frame(height: focusBinding.wrappedValue ? focusedLineHeight : normalLineHeight)
-                        .padding(.top, focusBinding.wrappedValue ? 2.5 : 2)
+                        .padding(.top, 2.25)
                         .scaleEffect(x: focusBinding.wrappedValue ? 1.005 : 1, anchor: .center)
                         .animation(.easeOut(duration: animationDuration), value: focusBinding.wrappedValue)
                 } else {
@@ -191,6 +226,44 @@ struct UnderlinedTextFieldStyle: TextFieldStyle {
                 }
             }
         }
+    }
+}
+
+struct BorderedToFilledButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(10)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(configuration.isPressed ? ColorManager.text : Color.clear)
+                    .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(ColorManager.secondary, lineWidth: 2)
+            )
+            .foregroundColor(configuration.isPressed ? ColorManager.background : ColorManager.text)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
+    }
+}
+
+struct FilledToBorderedButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(10)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(configuration.isPressed ? Color.clear : ColorManager.text)
+                    .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(ColorManager.secondary, lineWidth: 2)
+            )
+            .foregroundColor(configuration.isPressed ? ColorManager.text : ColorManager.background)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
     }
 }
 
@@ -293,48 +366,25 @@ extension View {
     }
     
     // Fonts
+    
+    // Heading: 32
+    // Subheading: 24
+    // Subheading 2: 18
     func headingText(size: CGFloat = 32) -> some View {
         self.font(.custom("Oswald-Bold", size: size))
     }
     
-    func subheadingText() -> some View {
-        self.font(.custom("Oswald-Bold", size: 24))
-    }
-    
-    func subheading2Text() -> some View {
-        self.font(.custom("Oswald-Bold", size: 18))
-    }
-    
-    func largeBodyText() -> some View {
-        self.font(.custom("PublicSans-Regular", size: 18))
-    }
-    
-    func boldLargeBodyText() -> some View {
-        self.font(.custom("PublicSans-Bold", size: 18))
-    }
-    
+    // Large: 18
+    // Body: 16
+    // Subbody: 14
     func bodyText(size: CGFloat = 16, weight: FontWeight = .regular) -> some View {
         self.font(.custom("PublicSans-\(weight.rawValue)", size: size))
     }
     
-    func boldBodyText(size: CGFloat = 16) -> some View {
-        self.font(.custom("PublicSans-Bold", size: size))
-    }
-    
-    func subbodyText() -> some View {
-        self.font(.custom("PublicSans-Regular", size: 14))
-    }
-    
-    func boldSubbodyText() -> some View {
-        self.font(.custom("PublicSans-Bold", size: 14))
-    }
-    
+    // Stats: 16
+    // Substats: 14
     func statsText(size: CGFloat = 16) -> some View {
         self.font(.custom("IBMPlexMono-Regular", size: size))
-    }
-    
-    func substatsText() -> some View {
-        self.font(.custom("IBMPlexMono-Regular", size: 14))
     }
 }
 

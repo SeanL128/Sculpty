@@ -7,8 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import Neumorphic
-import SwiftUICharts
 import Charts
 import MijickPopups
 
@@ -23,9 +21,10 @@ struct Home: View {
     private var startedWorkoutLogs: [WorkoutLog] {
         do {
             let now = Date()
+            let oneHourAgo = now.addingTimeInterval(-3600)
             let twentyFourHoursAgo = now.addingTimeInterval(-86400)
             let logs = try context.fetch(FetchDescriptor<WorkoutLog>())
-                .filter { $0.started && $0.start >= twentyFourHoursAgo && !$0.completed }
+                .filter { ($0.started && $0.start >= twentyFourHoursAgo && !$0.completed) || ($0.completed && $0.end >= oneHourAgo) }
                 .sorted { $0.start < $1.start }
             
             return logs
@@ -108,7 +107,7 @@ struct Home: View {
                         .frame(width: 25)
                         
                         Text("WORKOUTS")
-                            .subheadingText()
+                            .headingText(size: 24)
                         
                         Spacer()
                         
@@ -135,7 +134,7 @@ struct Home: View {
                                 .bodyText()
                             
                             Text("Click the + to get started")
-                                .subbodyText()
+                                .bodyText(size: 14)
                         }
                         .textColor()
                     }
@@ -158,7 +157,7 @@ struct Home: View {
                         .frame(width: 25)
                         
                         Text("CALORIES")
-                            .subheadingText()
+                            .headingText(size: 24)
                         
                         Spacer()
                         
@@ -193,38 +192,38 @@ struct Home: View {
                     
                     HStack(spacing: 4) {
                         Text("Remaining:")
-                            .subbodyText()
+                            .bodyText(size: 14)
                         
                         Text("\(((Double(dailyCalories) ?? 0) - caloriesBreakdown.0).formatted())cal")
-                            .substatsText()
+                            .statsText(size: 14)
                     }
                     .secondaryColor()
                     
                     HStack(spacing: 16) {
                         HStack(spacing: 4) {
                             Text("\(caloriesBreakdown.1.formatted())g")
-                                .substatsText()
+                                .statsText(size: 14)
                             
                             Text("Carbs")
-                                .subbodyText()
+                                .bodyText(size: 14)
                         }
                         .foregroundStyle(.blue)
                         
                         HStack(spacing: 4) {
                             Text("\(caloriesBreakdown.2.formatted())g")
-                                .substatsText()
+                                .statsText(size: 14)
                             
                             Text("Protein")
-                                .subbodyText()
+                                .bodyText(size: 14)
                         }
                         .foregroundStyle(.red)
                         
                         HStack(spacing: 4) {
                             Text("\(caloriesBreakdown.3.formatted())g")
-                                .substatsText()
+                                .statsText(size: 14)
                             
                             Text("Fat")
-                                .subbodyText()
+                                .bodyText(size: 14)
                         }
                         .foregroundStyle(.orange)
                     }
@@ -247,7 +246,7 @@ struct Home: View {
                         .frame(width: 25)
                         
                         Text("MEASUREMENTS")
-                            .subheadingText()
+                            .headingText(size: 24)
                         
                         Spacer()
                         
@@ -341,7 +340,7 @@ struct Home: View {
                         .frame(width: 25)
                         
                         Text("STATS")
-                            .subheadingText()
+                            .headingText(size: 24)
                         
                         Image(systemName: "chevron.right")
                             .font(.subheadline)
@@ -420,7 +419,7 @@ struct WorkoutDisplay: View {
         NavigationLink(destination: ViewWorkout(log: log)) {
             HStack(alignment: .center) {
                 Text(workout.name)
-                    .boldLargeBodyText()
+                    .bodyText(size: 18, weight: .bold)
                     .textColor()
                     .truncationMode(.tail)
                 

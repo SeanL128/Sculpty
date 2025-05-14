@@ -183,7 +183,7 @@ struct AddMeasurementPopup: CenterPopup {
                         TextField("", text: $heightFeet)
                             .keyboardType(.numberPad)
                             .focused($isHeightFeetFocused)
-                            .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isHeightFeetFocused }, set: { isHeightFeetFocused = $0 })))
+                            .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isHeightFeetFocused }, set: { isHeightFeetFocused = $0 }), text: $heightFeet))
                             .onChange(of: heightFeet) {
                                 heightFeet = heightFeet.filteredNumericWithoutDecimalPoint()
                             }
@@ -195,7 +195,7 @@ struct AddMeasurementPopup: CenterPopup {
                         TextField("", text: $heightInches)
                             .keyboardType(.numberPad)
                             .focused($isHeightInchesFocused)
-                            .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isHeightInchesFocused }, set: { isHeightInchesFocused = $0 })))
+                            .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isHeightInchesFocused }, set: { isHeightInchesFocused = $0 }), text: $heightInches))
                             .onChange(of: heightInches) {
                                 heightInches = heightInches.filteredNumeric()
                             }
@@ -209,7 +209,7 @@ struct AddMeasurementPopup: CenterPopup {
                         TextField("", text: $text)
                             .keyboardType(.decimalPad)
                             .focused($isTextFocused)
-                            .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isTextFocused }, set: { isTextFocused = $0 })))
+                            .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isTextFocused }, set: { isTextFocused = $0 }), text: $text))
                             .onChange(of: text) {
                                 text = text.filteredNumeric()
                             }

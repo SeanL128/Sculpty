@@ -23,7 +23,7 @@ struct MacroTextField: View {
                 TextField("", text: $value)
                     .keyboardType(.numberPad)
                     .focused($isFocused)
-                    .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isFocused }, set: { isFocused = $0 })))
+                    .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isFocused }, set: { isFocused = $0 }), text: $value))
                     .onChange(of: value) {
                         value = value.filteredNumericWithoutDecimalPoint()
                     }

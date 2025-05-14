@@ -10,11 +10,11 @@ import MijickPopups
 
 struct TempoPopup: CenterPopup {
     private var arr: [String]
-    private var xPresent: Bool
+    private var zeroPresent: Bool
     
-    init (tempo: String = "XXXX") {
+    init (tempo: String = "0000") {
         arr = tempo.map { String($0) }
-        xPresent = tempo.contains(where: { $0 == "X" })
+        zeroPresent = tempo.contains(where: { $0 == "0" })
     }
     
     var body: some View {
@@ -22,22 +22,18 @@ struct TempoPopup: CenterPopup {
             Text("\(arr[0]): Eccentric (Lowering/Lenthening)")
                 .bodyText()
                 .padding(1)
+            
             Text("\(arr[1]): Lengthened Pause (Fully Stretched)")
                 .bodyText()
                 .padding(1)
+            
             Text("\(arr[2]): Concentric (Lifting/Shortening)")
                 .bodyText()
                 .padding(1)
+            
             Text("\(arr[3]): Shortened Pause (Fully Shortened)")
                 .bodyText()
                 .padding(1)
-            
-            if xPresent {
-                Text("X = Instant")
-                    .subbodyText()
-                    .secondaryColor()
-                    .padding(.top, 6)
-            }
         }
         .textColor()
         .padding(.top, 20)

@@ -32,7 +32,7 @@ struct ConfirmationPopup: CenterPopup {
                 
                 if let resultText {
                     Text(resultText)
-                        .subbodyText()
+                        .bodyText(size: 14)
                         .multilineTextAlignment(.center)
                 }
             }
@@ -46,7 +46,7 @@ struct ConfirmationPopup: CenterPopup {
                     }
                 } label: {
                     Text(cancelText)
-                        .largeBodyText()
+                        .bodyText(size: 18)
                 }
                 .textColor()
                 
@@ -60,7 +60,7 @@ struct ConfirmationPopup: CenterPopup {
                     }
                 } label: {
                     Text(confirmText)
-                        .boldLargeBodyText()
+                        .bodyText(size: 18, weight: .bold)
                 }
                 .textColor()
             }

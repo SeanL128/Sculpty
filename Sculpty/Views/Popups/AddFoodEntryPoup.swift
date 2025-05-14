@@ -65,7 +65,7 @@ struct AddFoodEntryPoup: CenterPopup {
                     
                     TextField("", text: $nameInput)
                         .focused($isNameFocused)
-                        .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isNameFocused }, set: { isNameFocused = $0 })))
+                        .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isNameFocused }, set: { isNameFocused = $0 }), text: $nameInput))
                 }
                 .padding(.vertical, 5)
                 .padding(.horizontal)
@@ -79,7 +79,7 @@ struct AddFoodEntryPoup: CenterPopup {
                         TextField("", text: $caloriesInput)
                             .keyboardType(.numberPad)
                             .focused($isCaloriesFocused)
-                            .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isCaloriesFocused }, set: { isCaloriesFocused = $0 })))
+                            .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isCaloriesFocused }, set: { isCaloriesFocused = $0 }), text: $caloriesInput))
                             .onChange(of: caloriesInput) {
                                 caloriesInput = caloriesInput.filteredNumericWithoutDecimalPoint()
                             }
