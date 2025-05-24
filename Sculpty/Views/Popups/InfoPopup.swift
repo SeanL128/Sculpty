@@ -25,7 +25,7 @@ struct InfoPopup: CenterPopup {
                     .multilineTextAlignment(.center)
                 
                 Text(text)
-                    .bodyText()
+                    .bodyText(size: 16)
                     .textColor()
                     .multilineTextAlignment(.center)
             }

@@ -26,18 +26,30 @@ struct ViewWorkout: View {
     
     @State private var finishWorkoutSelection: Bool = false
     
+    private var allLogsDone: Bool {
+        for exerciseLog in log.exerciseLogs {
+            for setLog in exerciseLog.setLogs {
+                if !(setLog.completed || setLog.skipped) {
+                    return false
+                }
+            }
+        }
+        
+        return true
+    }
+    
     @AppStorage(UserKeys.disableAutoLock.rawValue) private var disableAutoLock: Bool = false
     @AppStorage(UserKeys.showTempo.rawValue) private var showTempo: Bool = false
     
     init(log: WorkoutLog) {
         self.log = log
         
-        self.exercises = log.exerciseLogs.sorted { $0.index < $1.index }.map(\.exercise)
-        self.exerciseLogs = log.exerciseLogs.sorted { $0.index < $1.index }
+        exercises = log.exerciseLogs.sorted { $0.index < $1.index }.map { $0.exercise }
+        exerciseLogs = log.exerciseLogs.sorted { $0.index < $1.index }
         
-        self.restTimer = MTimer(MTimerID(rawValue: "Rest Timer \(log.id)"))
+        restTimer = MTimer(MTimerID(rawValue: "Rest Timer \(log.id)"))
         
-        self.totalTime = log.getLength()
+        totalTime = log.getLength()
     }
     
     var body: some View {
@@ -52,13 +64,13 @@ struct ViewWorkout: View {
                             dismiss()
                         } label: {
                             Image(systemName: "chevron.left")
-                                .font(.title3)
-                                .textColor()
+                                .padding(.trailing, 6)
+                                .font(Font.system(size: 22))
                         }
-                        .padding(.trailing, 6)
+                        .textColor()
                         
                         Text(log.workout.name)
-                            .headingText()
+                            .headingText(size: 32)
                             .textColor()
                         
                         Spacer()
@@ -75,8 +87,8 @@ struct ViewWorkout: View {
                             }
                         } label: {
                             Image(systemName: log.completed ? "checkmark.circle.fill" : "checkmark.circle")
-                                .font(.title2)
                                 .padding(.horizontal, 3)
+                                .font(Font.system(size: 24))
                         }
                         .textColor()
                     }
@@ -106,8 +118,8 @@ struct ViewWorkout: View {
                                                         .bodyText(size: 14)
                                                     
                                                     Image(systemName: "chevron.right")
-                                                        .font(.caption2)
                                                         .padding(.leading, -2)
+                                                        .font(Font.system(size: 8))
                                                 }
                                                 .textColor()
                                             }
@@ -124,8 +136,8 @@ struct ViewWorkout: View {
                                                         .bodyText(size: 14)
                                                     
                                                     Image(systemName: "chevron.right")
-                                                        .font(.caption2)
                                                         .padding(.leading, -2)
+                                                        .font(Font.system(size: 8))
                                                 }
                                                 .textColor()
                                             }
@@ -152,8 +164,6 @@ struct ViewWorkout: View {
                                                             await EditDistanceSetPopup(set: exercises[exerciseLogIndex].sets[setIndex], log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer).present()
                                                         }
                                                     }
-                                                    
-                                                    checkExerciseDone(log: exerciseLog)
                                                 }
                                             } label: {
                                                 HStack {
@@ -163,6 +173,8 @@ struct ViewWorkout: View {
                                                     
                                                     if setLog.skipped {
                                                         Image(systemName: "arrowshape.turn.up.right.fill")
+                                                            .padding(.horizontal, 8)
+                                                            .font(Font.system(size: 16))
                                                     }
                                                 }
                                             }
@@ -193,7 +205,7 @@ struct ViewWorkout: View {
                         
                         Text("Total Time: \(timeIntervalToString(totalTime))")
                     }
-                    .statsText()
+                    .statsText(size: 16)
                     .secondaryColor()
                 }
                 .padding()
@@ -224,44 +236,14 @@ struct ViewWorkout: View {
                     try? context.save()
                 }
             }
-        }
-    }
-    
-    private func checkExerciseDone(log: ExerciseLog) {
-        var allDone: Bool = true
-        
-        for log in log.setLogs {
-            if !log.completed && !log.skipped {
-                allDone = false
-                break
-            }
-        }
-        
-        if allDone {
-            log.finish()
-        }
-        
-        try? context.save()
-        
-        checkWorkoutDone()
-    }
-    
-    private func checkWorkoutDone() {
-        print("check")
-        print(log.allLogsDone)
-        
-        var allDone: Bool = true
-        
-        for log in log.exerciseLogs {
-            if !log.completed {
-                allDone = false
-                break
-            }
-        }
-        
-        if allDone {
-            Task {
-                await ConfirmationPopup(selection: $finishWorkoutSelection, promptText: "Finish \(log.workout.name)?", cancelText: "Continue", confirmText: "Finish").present()
+            .onChange(of: allLogsDone) {
+                if allLogsDone && !log.completed {
+                    Task {
+                        try? await Task.sleep(for: .seconds(0.7))
+                        
+                        await ConfirmationPopup(selection: $finishWorkoutSelection, promptText: "Finish \(log.workout.name)?", cancelText: "Continue", confirmText: "Finish").present()
+                    }
+                }
             }
         }
     }

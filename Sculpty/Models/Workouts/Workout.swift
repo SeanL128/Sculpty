@@ -31,7 +31,7 @@ class Workout: Identifiable, Codable {
     }
     
     func started(date: Date = Date()) {
-        self.lastStarted = date
+        lastStarted = date
     }
     
     func hide() {

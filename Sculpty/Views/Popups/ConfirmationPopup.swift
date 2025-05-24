@@ -27,7 +27,7 @@ struct ConfirmationPopup: CenterPopup {
         VStack(alignment: .center, spacing: 36) {
             VStack (alignment: .center, spacing: 6) {
                 Text(promptText)
-                    .bodyText()
+                    .bodyText(size: 16)
                     .multilineTextAlignment(.center)
                 
                 if let resultText {

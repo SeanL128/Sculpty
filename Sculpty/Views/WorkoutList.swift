@@ -20,15 +20,15 @@ struct WorkoutList: View {
         ContainerView(title: "Workouts", spacing: 16, trailingItems: {
             NavigationLink(destination: PageRenderer(page: .exerciseList)) {
                 Image(systemName: "figure.run")
-                    .font(.title2)
-                    .padding(.horizontal, 3)
+                    .padding(.horizontal, 5)
+                    .font(Font.system(size: 24))
             }
             .textColor()
             
             NavigationLink(destination: PageRenderer(page: .upsertWorkout)) {
                 Image(systemName: "plus")
-                    .font(.title2)
-                    .padding(.horizontal, 3)
+                    .padding(.horizontal, 5)
+                    .font(Font.system(size: 24))
             }
             .textColor()
         }) {
@@ -44,6 +44,7 @@ struct WorkoutList: View {
                             NavigationLink(destination: UpsertWorkout(workout: workout)) {
                                 Image(systemName: "pencil")
                                     .padding(.horizontal, 8)
+                                    .font(Font.system(size: 18))
                             }
                             .textColor()
                             
@@ -58,18 +59,17 @@ struct WorkoutList: View {
                             } label: {
                                 Image(systemName: "play.fill")
                                     .padding(.horizontal, 8)
+                                    .font(Font.system(size: 18))
                             }
                             .textColor()
                         }
                         
-                        if let date = workout.lastStarted {
-                            HStack {
-                                Text("Last started: \(formatDateWithTime(date))")
-                                    .bodyText(size: 12)
-                                    .secondaryColor()
-                                
-                                Spacer()
-                            }
+                        HStack {
+                            Text("Last started: \(workout.lastStarted != nil ? formatDateWithTime(workout.lastStarted ?? Date()) : "N/A")")
+                                .bodyText(size: 12)
+                                .secondaryColor()
+                            
+                            Spacer()
                         }
                     }
                 }

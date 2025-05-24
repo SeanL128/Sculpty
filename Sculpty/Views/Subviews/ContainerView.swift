@@ -21,6 +21,9 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
     
     var showNavBar: Bool
     var showBackButton: Bool
+    var showScrollBar: Bool
+    
+    let onDismiss: (() -> Void)?
     
     init(
         title: String,
@@ -28,6 +31,8 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
         backgroundColor: Color = ColorManager.background,
         showNavBar: Bool = false,
         showBackButton: Bool = true,
+        showScrollBar: Bool = false,
+        onDismiss: (() -> Void)? = nil,
         @ViewBuilder content: () -> Content
     ) where TrailingItems == EmptyView {
         self.title = title
@@ -35,8 +40,10 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
         self.backgroundColor = backgroundColor
         self.showNavBar = showNavBar
         self.showBackButton = showBackButton
+        self.showScrollBar = showScrollBar
+        self.onDismiss = onDismiss
         self.content = content()
-        self.trailingItems = nil
+        trailingItems = nil
     }
     
     init(
@@ -45,6 +52,8 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
         backgroundColor: Color = ColorManager.background,
         showNavBar: Bool = false,
         showBackButton: Bool = true,
+        showScrollBar: Bool = false,
+        onDismiss: (() -> Void)? = nil,
         @ViewBuilder trailingItems: () -> TrailingItems,
         @ViewBuilder content: () -> Content
     ) {
@@ -53,6 +62,8 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
         self.backgroundColor = backgroundColor
         self.showNavBar = showNavBar
         self.showBackButton = showBackButton
+        self.showScrollBar = showScrollBar
+        self.onDismiss = onDismiss
         self.trailingItems = trailingItems()
         self.content = content()
     }
@@ -66,17 +77,21 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
                     HStack(alignment: .center) {
                         if showBackButton {
                             Button {
+                                if let onDismiss = onDismiss {
+                                    onDismiss()
+                                }
+                                
                                 dismiss()
                             } label: {
                                 Image(systemName: "chevron.left")
-                                    .font(.title3)
-                                    .textColor()
+                                    .padding(.trailing, 6)
+                                    .font(Font.system(size: 22))
                             }
-                            .padding(.trailing, 6)
+                            .textColor()
                         }
                         
                         Text(title.uppercased())
-                            .headingText()
+                            .headingText(size: 32)
                             .textColor()
                         
                         Spacer()
@@ -93,7 +108,7 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
                         }
                     }
                     .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
-                    .scrollIndicators(.hidden)
+                    .scrollIndicators(showScrollBar ? .visible : .hidden)
                     .scrollContentBackground(.hidden)
                 }
                 .padding()

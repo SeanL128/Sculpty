@@ -131,11 +131,11 @@ struct AddMeasurementPopup: CenterPopup {
                 
                 HStack(alignment: .center) {
                     Text(selection)
-                        .bodyText()
+                        .bodyText(size: 16)
                     
                     Image(systemName: "chevron.right")
-                        .font(.caption)
                         .padding(.leading, -2)
+                        .font(Font.system(size: 10))
                 }
                 .textColor()
             }
@@ -148,27 +148,33 @@ struct AddMeasurementPopup: CenterPopup {
             
             // Unit Selector
             if type != .bodyFat {
-                BRHSegmentedControl(
-                    selectedIndex: $selectedUnitsIndex,
-                    labels: ["Imperial", "Metric"],
-                    builder: { _, label in
-                        Text(label)
-                            .bodyText(size: 16)
-                    },
-                    styler: { state in
-                        switch state {
-                        case .none:
-                            return ColorManager.secondary
-                        case .touched:
-                            return ColorManager.secondary.opacity(0.7)
-                        case .selected:
-                            return ColorManager.text
+                VStack(alignment: .leading) {
+                    Text("Units")
+                        .bodyText(size: 12)
+                        .textColor()
+                    
+                    BRHSegmentedControl(
+                        selectedIndex: $selectedUnitsIndex,
+                        labels: ["Imperial", "Metric"],
+                        builder: { _, label in
+                            Text(label)
+                                .bodyText(size: 16)
+                        },
+                        styler: { state in
+                            switch state {
+                            case .none:
+                                return ColorManager.secondary
+                            case .touched:
+                                return ColorManager.secondary.opacity(0.7)
+                            case .selected:
+                                return ColorManager.text
+                            }
                         }
+                    )
+                    .onChange(of: selectedUnitsIndex) {
+                        let unitOption = unitOptionsMap[selectedUnitsIndex] ?? .imperial
+                        UserDefaults.standard.set(unitOption.rawValue, forKey: UserKeys.units.rawValue)
                     }
-                )
-                .onChange(of: selectedUnitsIndex) {
-                    let unitOption = unitOptionsMap[selectedUnitsIndex] ?? .imperial
-                    UserDefaults.standard.set(unitOption.rawValue, forKey: UserKeys.units.rawValue)
                 }
             }
             
@@ -180,44 +186,21 @@ struct AddMeasurementPopup: CenterPopup {
                 
                 if type == .height && selectedUnits == .imperial {
                     HStack(alignment: .bottom) {
-                        TextField("", text: $heightFeet)
-                            .keyboardType(.numberPad)
-                            .focused($isHeightFeetFocused)
-                            .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isHeightFeetFocused }, set: { isHeightFeetFocused = $0 }), text: $heightFeet))
+                        Input(title: "", text: $heightFeet, isFocused: _isHeightFeetFocused, unit: "ft", type: .numberPad)
                             .onChange(of: heightFeet) {
                                 heightFeet = heightFeet.filteredNumericWithoutDecimalPoint()
                             }
                         
-                        Text("ft")
-                            .bodyText(size: 16)
-                            .textColor()
-                        
-                        TextField("", text: $heightInches)
-                            .keyboardType(.numberPad)
-                            .focused($isHeightInchesFocused)
-                            .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isHeightInchesFocused }, set: { isHeightInchesFocused = $0 }), text: $heightInches))
+                        Input(title: "", text: $heightInches, isFocused: _isHeightInchesFocused, unit: "in", type: .numberPad)
                             .onChange(of: heightInches) {
                                 heightInches = heightInches.filteredNumeric()
                             }
-                        
-                        Text("in")
-                            .bodyText(size: 16)
-                            .textColor()
                     }
                 } else {
-                    HStack(alignment: .bottom) {
-                        TextField("", text: $text)
-                            .keyboardType(.decimalPad)
-                            .focused($isTextFocused)
-                            .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isTextFocused }, set: { isTextFocused = $0 }), text: $text))
-                            .onChange(of: text) {
-                                text = text.filteredNumeric()
-                            }
-                        
-                        Text(units)
-                            .bodyText(size: 16)
-                            .textColor()
-                    }
+                    Input(title: "", text: $text, isFocused: _isTextFocused, unit: units, type: .decimalPad)
+                        .onChange(of: text) {
+                            text = text.filteredNumeric()
+                        }
                 }
             }
             .padding(.horizontal)
@@ -260,7 +243,7 @@ struct AddMeasurementPopup: CenterPopup {
         }
         
         guard let value = Double(text) else {
-            print("Error saving measurement")
+            debugLog("Error saving measurement")
             return
         }
         

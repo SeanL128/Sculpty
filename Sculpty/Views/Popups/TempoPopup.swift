@@ -20,19 +20,19 @@ struct TempoPopup: CenterPopup {
     var body: some View {
         VStack {
             Text("\(arr[0]): Eccentric (Lowering/Lenthening)")
-                .bodyText()
+                .bodyText(size: 16)
                 .padding(1)
             
             Text("\(arr[1]): Lengthened Pause (Fully Stretched)")
-                .bodyText()
+                .bodyText(size: 16)
                 .padding(1)
             
             Text("\(arr[2]): Concentric (Lifting/Shortening)")
-                .bodyText()
+                .bodyText(size: 16)
                 .padding(1)
             
             Text("\(arr[3]): Shortened Pause (Fully Shortened)")
-                .bodyText()
+                .bodyText(size: 16)
                 .padding(1)
         }
         .textColor()

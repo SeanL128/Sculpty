@@ -12,6 +12,7 @@ enum UserKeys: String, CaseIterable {
     case accent = "ACCENT_COLOR"
     case dailyCalories = "DAILY_CALORIES"
     case disableAutoLock = "DISABLE_AUTO_LOCK"
+    case gender = "GENDER"
     case includeWarmUp = "INCLUDE_WARM_UP"
     case includeDropSet = "INCLUDE_DROP_SET"
     case includeCoolDown = "INCLUDE_COOL_DOWN"

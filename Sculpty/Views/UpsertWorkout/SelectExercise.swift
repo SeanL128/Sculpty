@@ -39,11 +39,11 @@ struct SelectExercise: View {
     }
     
     var body: some View {
-        ContainerView(title: "Select Exercise", spacing: 16, trailingItems: {
+        ContainerView(title: "Select Exercise", spacing: 16, showScrollBar: true, trailingItems: {
             NavigationLink(destination: UpsertExercise(selectedExercise: $selectedExercise)) {
                 Image(systemName: "plus")
-                    .font(.title2)
-                    .padding(.horizontal, 3)
+                    .padding(.horizontal, 5)
+                    .font(Font.system(size: 24))
             }
             .textColor()
         }) {
@@ -52,7 +52,7 @@ struct SelectExercise: View {
                 .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isSearchFocused }, set: { isSearchFocused = $0 }), text: $searchText))
                 .padding(.bottom, 5)
             
-            ForEach(MuscleGroup.allCases, id: \.self) { muscleGroup in
+            ForEach(MuscleGroup.displayOrder, id: \.self) { muscleGroup in
                 VStack(alignment: .leading, spacing: 9) {
                     if let exercisesForGroup = groupedExercises[muscleGroup], !exercisesForGroup.isEmpty {
                         Text(muscleGroup.rawValue.uppercased())
@@ -73,11 +73,11 @@ struct SelectExercise: View {
                                         Spacer()
                                         
                                         Image(systemName: "checkmark")
-                                            .font(.caption)
+                                            .padding(.horizontal, 8)
+                                            .font(Font.system(size: 16))
                                     }
                                 }
                                 .textColor()
-                                .padding(.trailing, 1)
                             }
                         }
                     }

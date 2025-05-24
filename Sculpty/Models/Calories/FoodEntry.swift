@@ -19,26 +19,30 @@ class FoodEntry: Identifiable, Codable {
     var protein: Double
     var fat: Double
     
-    init(name: String, calories: Double, carbs: Double = 0, protein: Double = 0, fat: Double = 0) {
+    var date: Date
+    
+    init(name: String, calories: Double, carbs: Double = 0, protein: Double = 0, fat: Double = 0, date: Date = Date()) {
         id = UUID()
         self.name = name
         self.calories = calories
         self.carbs = carbs
         self.protein = protein
         self.fat = fat
+        self.date = date
     }
     
-    init(id: UUID, name: String, calories: Double, carbs: Double = 0, protein: Double = 0, fat: Double = 0) {
+    init(id: UUID, name: String, calories: Double, carbs: Double = 0, protein: Double = 0, fat: Double = 0, date: Date = Date()) {
         self.id = id
         self.name = name
         self.calories = calories
         self.carbs = carbs
         self.protein = protein
         self.fat = fat
+        self.date = date
     }
     
     enum CodingKeys: String, CodingKey {
-        case id, caloriesLog, name, calories, carbs, protein, fat
+        case id, caloriesLog, name, calories, carbs, protein, fat, date
     }
     
     required init(from decoder: Decoder) throws {
@@ -50,6 +54,7 @@ class FoodEntry: Identifiable, Codable {
         carbs = try container.decode(Double.self, forKey: .carbs)
         protein = try container.decode(Double.self, forKey: .protein)
         fat = try container.decode(Double.self, forKey: .fat)
+        date = try container.decode(Date.self, forKey: .date)
     }
     
     func encode(to encoder: Encoder) throws {
@@ -61,5 +66,6 @@ class FoodEntry: Identifiable, Codable {
         try container.encode(carbs, forKey: .carbs)
         try container.encode(protein, forKey: .protein)
         try container.encode(fat, forKey: .fat)
+        try container.encode(date, forKey: .date)
     }
 }

@@ -9,7 +9,20 @@ import Foundation
 import SwiftUI
 
 enum MuscleGroup: String, CaseIterable, Codable, Identifiable {
-    case chest, back, biceps, triceps, shoulders, quads, hamstrings, glutes, forearms, calves, core, cardio, other, overall
+    case chest = "Chest"
+    case back = "Back"
+    case biceps = "Biceps"
+    case triceps = "Triceps"
+    case shoulders = "Shoulders"
+    case quads = "Quads"
+    case hamstrings = "Hamstrings"
+    case glutes = "Glutes"
+    case forearms = "Forearms"
+    case calves = "Calves"
+    case core = "Core"
+    case cardio = "Cardio"
+    case other = "Other"
+    case overall = "Overall"
     
     var id: String { self.rawValue }
     
@@ -19,7 +32,7 @@ enum MuscleGroup: String, CaseIterable, Codable, Identifiable {
         .cardio, .other
     ]
     
-    static let stringDisplayOrder: [String] = displayOrder.map(\.self.rawValue.capitalized)
+    static let stringDisplayOrder: [String] = displayOrder.map { $0.rawValue }
     
     static let colorMap: [MuscleGroup: Color] = [
         .chest: .red,

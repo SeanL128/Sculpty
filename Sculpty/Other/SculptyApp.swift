@@ -11,6 +11,8 @@ import MijickPopups
 
 @main
 struct SculptyApp: App {
+    @Environment(\.modelContext) private var context
+    
     @AppStorage(UserKeys.appearance.rawValue) private var selectedAppearance: Appearance = .automatic
     var colorScheme: ColorScheme? {
         switch selectedAppearance {
@@ -25,9 +27,11 @@ struct SculptyApp: App {
     
     @AppStorage(UserKeys.accent.rawValue) private var accentColorHex: String = "#C50A2B"
     
+    static var hasLaunched: Bool = false
+    
     var body: some Scene {
         WindowGroup {
-            Home()
+            Main()
                 .preferredColorScheme(colorScheme)
                 .accentColor(Color(hex: accentColorHex))
                 .dynamicTypeSize(.medium ... .xxxLarge)
@@ -46,6 +50,42 @@ struct SculptyApp: App {
                         .popupHorizontalPadding(5)
                     }
                 }
+                .task {
+                    if !SculptyApp.hasLaunched {
+                        performAppLaunchTasks()
+                        SculptyApp.hasLaunched = true
+                    }
+                }
+        }
+    }
+    
+    private func performAppLaunchTasks() {
+        do {
+            let workouts = try context.fetch(FetchDescriptor<Workout>())
+            
+            let invalidWorkouts = workouts.filter { $0.index < 0 }
+            
+            if !invalidWorkouts.isEmpty {
+                for workout in invalidWorkouts {
+                    workout.exercises.forEach { context.delete($0) }
+                    context.delete(workout)
+                }
+                
+                try context.save()
+            }
+            
+            for workout in workouts {
+                for exercise in workout.exercises {
+                    if exercise.exercise == nil {
+                        context.delete(exercise)
+                        workout.exercises.remove(at: workout.exercises.firstIndex(of: exercise)!)
+                    }
+                }
+            }
+            
+            try context.save()
+        } catch {
+            debugLog("Error: \(error.localizedDescription)")
         }
     }
 }

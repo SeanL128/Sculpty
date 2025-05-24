@@ -16,7 +16,7 @@ struct Home: View {
     @Query private var workouts: [Workout]
     @Query private var workoutLogs: [WorkoutLog]
     @Query(sort: \CaloriesLog.date) private var caloriesLogs: [CaloriesLog]
-    @Query(sort: \Measurement.date) private var measurements: [Measurement]
+    @Query(sort: [SortDescriptor(\Measurement.date, order: .reverse)]) private var measurements: [Measurement]
     
     private var startedWorkoutLogs: [WorkoutLog] {
         do {
@@ -29,35 +29,17 @@ struct Home: View {
             
             return logs
         } catch {
-            print("Error fetching logs: \(error.localizedDescription)")
+            debugLog("Error fetching logs: \(error.localizedDescription)")
         }
         
         return []
     }
     
     @State private var log: CaloriesLog?
-    @State private var fabOpen: Bool = false
-    
-    @State private var menuOpen: Bool = false
     
     @State private var workoutToStart: WorkoutLog? = nil
     @State private var measurementToAdd: Measurement? = nil
     
-    private var eligibleMeasurementTypes: [MeasurementType] {
-        var arr: [MeasurementType] = []
-        
-        for type in MeasurementType.displayOrder {
-            let measurements = self.measurements.filter({ $0.type == type }).sorted(by: { $0.date < $1.date }).prefix(10)
-            
-            if measurements.count > 1 {
-                arr.append(type)
-            }
-        }
-        
-        return arr
-    }
-    
-    @AppStorage(UserKeys.onboarded.rawValue) private var onboarded = false
     @AppStorage(UserKeys.dailyCalories.rawValue) private var dailyCalories: String = "0"
     
     var caloriesBreakdown: (Double, Double, Double, Double) {
@@ -72,327 +54,363 @@ struct Home: View {
     }
     
     var body: some View {
-        if !onboarded {
-            Onboarding()
-                .transition(.opacity)
-        } else {
-            ContainerView(title: "Home", spacing: 24, showBackButton: false, trailingItems: {
-                NavigationLink(destination: Options()) {
-                    Image(systemName: "gear")
-                        .font(.title2)
-                        .padding(.horizontal, 3)
+        ContainerView(title: "Home", spacing: 16, showBackButton: false, trailingItems: {
+            NavigationLink(destination: Options()) {
+                Image(systemName: "gear")
+                    .padding(.horizontal, 5)
+                    .font(Font.system(size: 24))
+            }
+            .textColor()
+        }) {
+            //                    Circle()
+            //                        .fill(LinearGradient(
+            //                            gradient: Gradient(colors: [Color.blue, Color.purple]),
+            //                            startPoint: .topLeading,
+            //                            endPoint: .bottomTrailing
+            //                        ))
+            //                        .frame(width: 350, height: 350)
+            //                        .opacity(0.9)
+            //                        .blur(radius: 400)
+            
+            // MARK: Workout Section
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    HStack(alignment: .center) {
+                        Spacer()
+                        
+                        Image(systemName: "dumbbell")
+                            .font(Font.system(size: 18))
+                        
+                        Spacer()
+                    }
+                    .frame(width: 25)
+                    
+                    Text("WORKOUTS")
+                        .headingText(size: 24)
+                    
+                    Spacer()
+                    
+                    NavigationLink(destination: WorkoutStats()) {
+                        Image(systemName: "chart.xyaxis.line")
+                            .padding(.horizontal, 3)
+                            .font(Font.system(size: 18))
+                    }
+                    
+                    NavigationLink(destination: WorkoutList(workoutToStart: $workoutToStart)) {
+                        Image(systemName: "plus")
+                            .padding(.horizontal, 3)
+                            .font(Font.system(size: 18))
+                    }
                 }
                 .textColor()
-            }) {
-                //                    Circle()
-                //                        .fill(LinearGradient(
-                //                            gradient: Gradient(colors: [Color.blue, Color.purple]),
-                //                            startPoint: .topLeading,
-                //                            endPoint: .bottomTrailing
-                //                        ))
-                //                        .frame(width: 350, height: 350)
-                //                        .opacity(0.9)
-                //                        .blur(radius: 400)
                 
-                // MARK: Workout Section
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        HStack(alignment: .center) {
-                            Spacer()
-                            
-                            Image(systemName: "dumbbell")
-                            
-                            Spacer()
-                        }
-                        .frame(width: 25)
+                if !startedWorkoutLogs.isEmpty {
+                    ForEach(startedWorkoutLogs, id: \.self) { log in
+                        let workout = log.workout
                         
-                        Text("WORKOUTS")
-                            .headingText(size: 24)
-                        
-                        Spacer()
-                        
-                        NavigationLink(destination: ViewWorkoutLogs()) {
-                            Image(systemName: "list.bullet.clipboard")
-                                .padding(.horizontal, 3)
-                        }
-                        
-                        NavigationLink(destination: WorkoutList(workoutToStart: $workoutToStart)) {
-                            Image(systemName: "plus")
-                                .padding(.trailing, 5)
-                        }
-                    }
-                    .textColor()
-                    
-                    if !startedWorkoutLogs.isEmpty {
-                        ForEach(startedWorkoutLogs, id: \.self) { log in
-                            WorkoutDisplay(workout: log.workout, log: log)
-                                .padding(.trailing, 6)
-                        }
-                    } else {
-                        VStack(alignment: .leading) {
-                            Text("Ready to track your workouts today")
-                                .bodyText()
-                            
-                            Text("Click the + to get started")
-                                .bodyText(size: 14)
-                        }
-                        .textColor()
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                
-                Spacer()
-                    .frame(height: 5)
-                
-                // MARK: Calories Section
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        HStack(alignment: .center) {
-                            Spacer()
-                            
-                            Image(systemName: "fork.knife")
-                            
-                            Spacer()
-                        }
-                        .frame(width: 25)
-                        
-                        Text("CALORIES")
-                            .headingText(size: 24)
-                        
-                        Spacer()
-                        
-                        NavigationLink(destination: CaloriesHistory()) {
-                            Image(systemName: "list.bullet.clipboard")
-                                .padding(.horizontal, 3)
-                        }
-                        
-                        Button {
-                            Task {
-                                await AddFoodEntryPoup(log: log ?? CaloriesLog()).present()
-                            }
-                        } label: {
-                            Image(systemName: "plus")
-                                .padding(.trailing, 5)
-                        }
-                    }
-                    .textColor()
-                    
-                    NavigationLink(destination: FoodEntries(log: log ?? CaloriesLog(), caloriesBreakdown: caloriesBreakdown)) {
-                        HStack(alignment: .center) {
-                            Text("\(caloriesBreakdown.0.formatted())cal")
-                                .statsText()
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.footnote)
-                                .padding(.leading, -2)
-                        }
-                        .textColor()
-                        .padding(.bottom, -2)
-                    }
-                    
-                    HStack(spacing: 4) {
-                        Text("Remaining:")
-                            .bodyText(size: 14)
-                        
-                        Text("\(((Double(dailyCalories) ?? 0) - caloriesBreakdown.0).formatted())cal")
-                            .statsText(size: 14)
-                    }
-                    .secondaryColor()
-                    
-                    HStack(spacing: 16) {
-                        HStack(spacing: 4) {
-                            Text("\(caloriesBreakdown.1.formatted())g")
-                                .statsText(size: 14)
-                            
-                            Text("Carbs")
-                                .bodyText(size: 14)
-                        }
-                        .foregroundStyle(.blue)
-                        
-                        HStack(spacing: 4) {
-                            Text("\(caloriesBreakdown.2.formatted())g")
-                                .statsText(size: 14)
-                            
-                            Text("Protein")
-                                .bodyText(size: 14)
-                        }
-                        .foregroundStyle(.red)
-                        
-                        HStack(spacing: 4) {
-                            Text("\(caloriesBreakdown.3.formatted())g")
-                                .statsText(size: 14)
-                            
-                            Text("Fat")
-                                .bodyText(size: 14)
-                        }
-                        .foregroundStyle(.orange)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                
-                Spacer()
-                    .frame(height: 5)
-                
-                // MARK: Measurement Section
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        HStack(alignment: .center) {
-                            Spacer()
-                            
-                            Image(systemName: "ruler")
-                            
-                            Spacer()
-                        }
-                        .frame(width: 25)
-                        
-                        Text("MEASUREMENTS")
-                            .headingText(size: 24)
-                        
-                        Spacer()
-                        
-                        NavigationLink(destination: Measurements()) {
-                            Image(systemName: "list.bullet.clipboard")
-                                .padding(.trailing, 5)
-                        }
-                        
-                        Button {
-                            Task {
-                                await AddMeasurementPopup(measurementToAdd: $measurementToAdd).present()
-                            }
-                        } label: {
-                            Image(systemName: "plus")
-                                .padding(.trailing, 5)
-                        }
-                    }
-                    .textColor()
-                    
-                    if !eligibleMeasurementTypes.isEmpty {
-                        TabView {
-                            ForEach(eligibleMeasurementTypes, id: \.self) { type in
-                                let measurements = self.measurements.filter({ $0.type == type }).sorted(by: { $0.date < $1.date }).prefix(10)
+                        NavigationLink(destination: ViewWorkout(log: log)) {
+                            HStack(alignment: .center) {
+                                Text(workout.name)
+                                    .bodyText(size: 18, weight: .bold)
+                                    .truncationMode(.tail)
                                 
+                                Spacer()
                                 
-                                let latest = measurements.last!
-                                
-                                let rawData = measurements.map {
-                                    if type == .bodyFat {
-                                        return $0.measurement
-                                    } else if type == .weight {
-                                        return WeightUnit(rawValue: $0.unit)!.convert($0.measurement, to: WeightUnit(rawValue: "kg")!)
-                                    } else {
-                                        return ShortLengthUnit(rawValue: $0.unit)!.convert($0.measurement, to: ShortLengthUnit(rawValue: "cm")!)
-                                    }
+                                HStack {
+                                    ProgressView(value: log.getProgress())
+                                        .frame(height: 6)
+                                        .frame(width: 95)
+                                        .progressViewStyle(.linear)
+                                        .accentColor(ColorManager.text)
+                                        .scaleEffect(x: 1, y: 1.5, anchor: .center)
+                                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                                    
+                                    Text("\((log.getProgress() * 100).rounded().formatted())%")
+                                        .statsText(size: 16)
+                                        .padding(.leading, 4)
+                                        .frame(width: 55)
                                 }
                                 
-                                let min = rawData.min() ?? 0
-                                let max = rawData.max() ?? 0
-                                
-                                let data = rawData.map { ($0 - min) / (max - min) }
-                                
-                                VStack {
-                                    HStack {
-                                        Text(type.rawValue)
-                                        
-                                        Spacer()
-                                        
-                                        Text("\(latest.measurement.formatted())\(latest.unit)")
-                                            .textCase(.uppercase)
-                                    }
-                                    .bodyText()
-                                    .textColor()
-                                    .frame(height: 45)
-                                    
-                                    Chart(data: data)
-                                        .chartStyle(
-                                            LineChartStyle(.quadCurve, lineColor: ColorManager.text, lineWidth: 3)
-                                        )
-                                        .frame(height: 75)
-                                    
-                                    Spacer()
-                                }
+                                Image(systemName: "chevron.right")
+                                    .padding(.leading, -2)
+                                    .font(Font.system(size: 12))
                             }
                         }
-                        .tabViewStyle(.page)
-                        .frame(height: 150)
-                    } else {
-                        VStack(alignment: .leading) {
-                            Text("Ready to track your progress")
-                                .bodyText()
-                        }
                         .textColor()
+                        .padding(.trailing, 6)
                     }
+                } else {
+                    VStack(alignment: .leading) {
+                        Text("Ready to track your workouts today")
+                            .bodyText(size: 16)
+                        
+                        HStack(alignment: .center, spacing: 0) {
+                            Text("Click the ")
+                                .bodyText(size: 14)
+                            
+                            Image(systemName: "plus")
+                                .font(Font.system(size: 8))
+                            
+                            Text(" to get started")
+                                .bodyText(size: 14)
+                        }
+                    }
+                    .textColor()
                 }
-                .frame(maxWidth: .infinity)
-                
-                Spacer()
-                    .frame(height: 5)
-                
-                // MARK: Stats Link
-                NavigationLink(destination: Stats()) {
+            }
+            .frame(maxWidth: .infinity)
+            
+            Spacer()
+                .frame(height: 5)
+            
+            // MARK: Calories Section
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
                     HStack(alignment: .center) {
-                        HStack(alignment: .center) {
-                            Spacer()
-                            
-                            Image(systemName: "chart.xyaxis.line")
-                            
-                            Spacer()
-                        }
-                        .frame(width: 25)
+                        Spacer()
                         
-                        Text("STATS")
-                            .headingText(size: 24)
+                        Image(systemName: "fork.knife")
+                            .font(Font.system(size: 18))
+                        
+                        Spacer()
+                    }
+                    .frame(width: 25)
+                    
+                    Text("CALORIES")
+                        .headingText(size: 24)
+                    
+                    Spacer()
+                    
+                    NavigationLink(destination: CaloriesHistory()) {
+                        Image(systemName: "list.bullet.clipboard")
+                            .padding(.horizontal, 3)
+                            .font(Font.system(size: 18))
+                    }
+                    
+                    Button {
+                        Task {
+                            await AddFoodEntryPoup(log: log ?? CaloriesLog()).present()
+                        }
+                    } label: {
+                        Image(systemName: "plus")
+                            .padding(.horizontal, 3)
+                            .font(Font.system(size: 18))
+                    }
+                }
+                .textColor()
+                
+                NavigationLink(destination: FoodEntries(log: log ?? CaloriesLog(), caloriesBreakdown: caloriesBreakdown)) {
+                    HStack(alignment: .center) {
+                        Text("\(caloriesBreakdown.0.formatted())cal")
+                            .statsText(size: 16)
                         
                         Image(systemName: "chevron.right")
-                            .font(.subheadline)
-                            .padding(.leading, 4)
-                            .padding(.trailing, 5)
+                            .padding(.leading, -2)
+                            .font(Font.system(size: 10))
+                    }
+                    .textColor()
+                    .padding(.bottom, -2)
+                }
+                
+                HStack(spacing: 0) {
+                    Text("Remaining: ")
+                        .bodyText(size: 14)
+                    
+                    Text("\(((Double(dailyCalories) ?? 0) - caloriesBreakdown.0).formatted())cal")
+                        .statsText(size: 14)
+                }
+                .secondaryColor()
+                
+                HStack(spacing: 16) {
+                    HStack(spacing: 0) {
+                        Text("\(caloriesBreakdown.1.formatted())g")
+                            .statsText(size: 14)
+                        
+                        Text(" Carbs")
+                            .bodyText(size: 14)
+                    }
+                    .foregroundStyle(.blue)
+                    
+                    HStack(spacing: 0) {
+                        Text("\(caloriesBreakdown.2.formatted())g")
+                            .statsText(size: 14)
+                        
+                        Text(" Protein")
+                            .bodyText(size: 14)
+                    }
+                    .foregroundStyle(.red)
+                    
+                    HStack(spacing: 0) {
+                        Text("\(caloriesBreakdown.3.formatted())g")
+                            .statsText(size: 14)
+                        
+                        Text(" Fat")
+                            .bodyText(size: 14)
+                    }
+                    .foregroundStyle(.orange)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            
+            Spacer()
+                .frame(height: 5)
+            
+            // MARK: Measurement Section
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    HStack(alignment: .center) {
+                        Spacer()
+                        
+                        Image(systemName: "ruler")
+                            .font(Font.system(size: 18))
                         
                         Spacer()
                     }
+                    .frame(width: 25)
+                    
+                    Text("MEASUREMENTS")
+                        .headingText(size: 24)
+                    
+                    Spacer()
+                    
+                    NavigationLink(destination: MeasurementStats()) {
+                        Image(systemName: "chart.xyaxis.line")
+                            .padding(.horizontal, 3)
+                            .font(Font.system(size: 18))
+                    }
+                    
+                    Button {
+                        Task {
+                            await AddMeasurementPopup(measurementToAdd: $measurementToAdd).present()
+                        }
+                    } label: {
+                        Image(systemName: "plus")
+                            .padding(.horizontal, 3)
+                            .font(Font.system(size: 18))
+                    }
                 }
                 .textColor()
-                .frame(maxWidth: .infinity)
                 
-                Spacer()
+                if !measurements.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        let latest = measurements.first!
+                        
+                        VStack(alignment: .leading, spacing: 0) {
+                            HStack(spacing: 0) {
+                                Text("\(latest.type.rawValue) - ")
+                                    .bodyText(size: 18, weight: .bold)
+                                    .textColor()
+                                
+                                Text("\(latest.measurement.formatted())\(latest.unit)")
+                                    .statsText(size: 18)
+                                    .textColor()
+                            }
+                            
+                            Text(formatDateWithTime(latest.date))
+                                .bodyText(size: 12)
+                                .secondaryColor()
+                        }
+                        
+                        ForEach(1..<min(measurements.count, 3), id: \.self) { index in
+                            let measurement = measurements[index]
+                            
+                            VStack(alignment: .leading, spacing: 0) {
+                                HStack(spacing: 0) {
+                                    Text("\(measurement.type.rawValue) - ")
+                                        .bodyText(size: 14)
+                                        .textColor()
+                                    
+                                    Text("\(measurement.measurement.formatted())\(measurement.unit)")
+                                        .statsText(size: 14)
+                                        .textColor()
+                                }
+                                
+                                Text(formatDateWithTime(measurement.date))
+                                    .bodyText(size: 10)
+                                    .secondaryColor()
+                            }
+                        }
+                    }
+                } else {
+                    VStack(alignment: .leading) {
+                        Text("Ready to track your progress")
+                            .bodyText(size: 16)
+                    }
+                    .textColor()
+                    
+                    VStack(alignment: .leading) {
+                        Text("Ready to track your measurements")
+                            .bodyText(size: 16)
+                        
+                        HStack(alignment: .center, spacing: 0) {
+                            Text("Click the ")
+                                .bodyText(size: 14)
+                            
+                            Image(systemName: "plus")
+                                .font(Font.system(size: 8))
+                            
+                            Text("to get started ")
+                                .bodyText(size: 14)
+                        }
+                    }
+                    .textColor()
+                }
             }
-            .onAppear() {
-                cleanupInvalidWorkouts()
+            .frame(maxWidth: .infinity)
+            
+            Spacer()
+                .frame(height: 5)
+            
+            // MARK: Insights Link
+//            NavigationLink(destination: Insights()) {
+//                HStack(alignment: .center) {
+//                    HStack(alignment: .center) {
+//                        Spacer()
+//                        
+//                        Image(systemName: "chart.xyaxis.line")
+//                            .font(Font.system(size: 18))
+//                        
+//                        Spacer()
+//                    }
+//                    .frame(width: 25)
+//                    
+//                    Text("INSIGHTS")
+//                        .headingText(size: 24)
+//                    
+//                    Image(systemName: "chevron.right")
+//                        .font(Font.system(size: 18))
+//                        .padding(.leading, 4)
+//                    
+//                    Spacer()
+//                }
+//            }
+//            .textColor()
+//            .frame(maxWidth: .infinity)
+            
+            Spacer()
+        }
+        .onAppear() {
+            setCaloriesLog()
+        }
+        .onChange(of: log?.entries) {
+            try? context.save()
+        }
+        .onChange(of: workoutToStart) {
+            if let log = workoutToStart {
+                log.startWorkout()
                 
-                setCaloriesLog()
-            }
-            .onChange(of: log?.entries) {
                 try? context.save()
-            }
-            .onChange(of: workoutToStart) {
-                if let log = workoutToStart {
-                    log.startWorkout()
-                    
-                    try? context.save()
-                    
-                    workoutToStart = nil
-                }
-            }
-            .onChange(of: measurementToAdd) {
-                if let measurement = measurementToAdd {
-                    context.insert(measurement)
-                    try? context.save()
-                    
-                    measurementToAdd = nil
-                }
+                
+                workoutToStart = nil
             }
         }
-    }
-    
-    private func cleanupInvalidWorkouts() {
-        let invalidWorkouts = workouts.filter { $0.index < 0 }
-        
-        if !invalidWorkouts.isEmpty {
-            for workout in invalidWorkouts {
-                workout.exercises.forEach { context.delete($0) }
-                context.delete(workout)
+        .onChange(of: measurementToAdd) {
+            if let measurement = measurementToAdd {
+                context.insert(measurement)
+                try? context.save()
+                
+                measurementToAdd = nil
             }
-            
-            try? context.save()
         }
     }
     
@@ -420,7 +438,6 @@ struct WorkoutDisplay: View {
             HStack(alignment: .center) {
                 Text(workout.name)
                     .bodyText(size: 18, weight: .bold)
-                    .textColor()
                     .truncationMode(.tail)
                 
                 Spacer()
@@ -435,17 +452,17 @@ struct WorkoutDisplay: View {
                         .clipShape(RoundedRectangle(cornerRadius: 6))
                     
                     Text("\((log.getProgress() * 100).rounded().formatted())%")
-                        .statsText()
-                        .textColor()
+                        .statsText(size: 16)
                         .padding(.leading, 4)
                         .frame(width: 55)
                 }
                 
                 Image(systemName: "chevron.right")
-                    .font(.subheadline)
-                    .textColor()
+                    .padding(.leading, -2)
+                    .font(Font.system(size: 12))
             }
         }
+        .textColor()
     }
 }
 

@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import Neumorphic
 import MijickPopups
 
 struct ExerciseInfo: View {
@@ -26,8 +25,6 @@ struct ExerciseInfo: View {
     @State private var restSeconds: Int
     @State private var specNotes: String
     @State private var tempoArr: [String]
-    
-    @State private var showAlert: Bool = false
     
     @FocusState private var isNotesFocused: Bool
     
@@ -82,15 +79,7 @@ struct ExerciseInfo: View {
                     .textColor()
             }
             
-            VStack(alignment: .leading) {
-                Text("Workout-Specific Notes")
-                    .bodyText(size: 12)
-                    .textColor()
-                
-                TextField("", text: $specNotes, axis: .vertical)
-                    .focused($isNotesFocused)
-                    .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isNotesFocused }, set: { isNotesFocused = $0 }), text: $specNotes))
-            }
+            Input(title: "Workout-Specific Notes", text: $specNotes, isFocused: _isNotesFocused, axis: .vertical)
             
             
             Spacer()
@@ -124,7 +113,8 @@ struct ExerciseInfo: View {
                             workoutExercise.sets = updatedSets
                         } label: {
                             Image(systemName: "xmark")
-                                .font(.caption)
+                                .padding(.horizontal, 8)
+                                .font(Font.system(size: 16))
                         }
                         .textColor()
                     }
@@ -143,8 +133,10 @@ struct ExerciseInfo: View {
             } label: {
                 HStack(alignment: .center) {
                     Image(systemName: "plus")
+                        .font(Font.system(size: 16))
                     
                     Text("Add Set")
+                        .bodyText(size: 16)
                 }
             }
             
@@ -198,7 +190,8 @@ struct ExerciseInfo: View {
                                 .bodyText(size: 12)
                             
                             Image(systemName: "chevron.right")
-                                .font(.caption2)
+                                .padding(.leading, -2)
+                                .font(Font.system(size: 6))
                         }
                     }
                     .textColor()

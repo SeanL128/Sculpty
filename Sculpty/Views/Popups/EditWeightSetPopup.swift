@@ -42,9 +42,9 @@ struct EditWeightSetPopup: CenterPopup {
         self._log = log
         
         self.restTime = restTime
-        self.restTimer = timer
+        restTimer = timer
         
-        self.setTimer = MTimer(MTimerID(rawValue: "Set Timer \(log.id)"))
+        setTimer = MTimer(MTimerID(rawValue: "Set Timer \(log.id)"))
         
         self.disableType = disableType
         
@@ -73,8 +73,9 @@ struct EditWeightSetPopup: CenterPopup {
                         }
                     } label: {
                         Image(systemName: "arrowshape.turn.up.right.fill")
+                            .padding(.horizontal, 3)
+                            .font(Font.system(size: 16))
                     }
-                    .padding(3)
                 }
                 
                 Button {
@@ -106,8 +107,9 @@ struct EditWeightSetPopup: CenterPopup {
                     }
                 } label: {
                     Image(systemName: "checkmark")
+                        .padding(.horizontal, 3)
+                        .font(Font.system(size: 16))
                 }
-                .padding(3)
             }
             .padding(.top, 30)
             .padding(.bottom, -20)
@@ -115,9 +117,7 @@ struct EditWeightSetPopup: CenterPopup {
             HStack {
                 // Reps
                 HStack {
-                    TextField("Reps", text: $repsString)
-                        .keyboardType(.numberPad)
-                        .focused($isRepsFocused)
+                    Input(title: "Reps", text: $repsString, isFocused: _isRepsFocused, type: .numberPad)
                         .onChange(of: repsString) {
                             repsString = repsString.filter { "0123456789".contains($0) }
                             
@@ -127,7 +127,6 @@ struct EditWeightSetPopup: CenterPopup {
                             
                             updatedSet.reps = (repsString as NSString).integerValue
                         }
-                        .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isRepsFocused }, set: { isRepsFocused = $0 }), text: $repsString))
                         .frame(maxWidth: 125)
                     
                     Spacer()
@@ -150,9 +149,7 @@ struct EditWeightSetPopup: CenterPopup {
                  
                 // Weight
                 HStack {
-                    TextField("Weight", text: $weightString)
-                        .keyboardType(.decimalPad)
-                        .focused($isWeightFocused)
+                    Input(title: "Weight", text: $weightString, isFocused: _isWeightFocused, type: .decimalPad)
                         .onChange(of: weightString) {
                             weightString = weightString.filteredNumeric()
                             
@@ -164,17 +161,16 @@ struct EditWeightSetPopup: CenterPopup {
                                 updatedSet.weight = (weightString as NSString).doubleValue
                             }
                         }
-                        .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isWeightFocused }, set: { isWeightFocused = $0 }), text: $weightString))
                         .frame(maxWidth: 125)
                     
                     Picker("Unit", selection: $updatedSet.unit) {
                         Text("lbs")
-                            .bodyText()
+                            .bodyText(size: 16)
                             .textColor()
                             .tag("lbs")
                         
                         Text("kg")
-                            .bodyText()
+                            .bodyText(size: 16)
                             .textColor()
                             .tag("kg")
                     }
@@ -191,7 +187,7 @@ struct EditWeightSetPopup: CenterPopup {
                 Picker("Type", selection: $updatedSet.type) {
                     ForEach(ExerciseSetType.displayOrder, id: \.self) { type in
                         Text("\(type.rawValue)")
-                            .bodyText()
+                            .bodyText(size: 16)
                             .textColor()
                             .tag(type)
                     }
@@ -209,7 +205,7 @@ struct EditWeightSetPopup: CenterPopup {
                     Picker("RIR", selection: $updatedSet.rir) {
                         ForEach(["Failure", "0", "1", "2", "3+"], id: \.self) { rir in
                             Text("\(rir)")
-                                .bodyText()
+                                .bodyText(size: 16)
                                 .textColor()
                                 .tag(rir)
                         }
@@ -236,17 +232,19 @@ struct EditWeightSetPopup: CenterPopup {
                         }
                     } label: {
                         Image(systemName: (setTimerStatus == .notStarted || setTimerStatus == .paused) ? "play.fill" : "pause.fill")
+                            .padding(.horizontal, 3)
+                            .font(Font.system(size: 16))
                     }
                     .buttonStyle(.borderedProminent)
-                    .padding(.trailing, 5)
                     
                     Button {
                         setTimer.cancel()
                     } label: {
                         Image(systemName: "stop.fill")
+                            .padding(.horizontal, 3)
+                            .font(Font.system(size: 16))
                     }
                     .buttonStyle(.borderedProminent)
-                    .padding(.leading, 5)
                     .disabled(setTimer.timerStatus != .running && setTimer.timerStatus != .paused)
                 }
                 .font(.title2)

@@ -8,7 +8,6 @@
 import Foundation
 import SwiftUI
 import SwiftData
-import Neumorphic
 
 @Query private var workouts: [Workout]
 
@@ -136,6 +135,12 @@ func formatDateWithTime(_ date: Date) -> String {
     return dateFormatter.string(from: date)
 }
 
+func debugLog(_ message: String) {
+    #if DEBUG
+    print("DEBUG:\t\t\(message)")
+    #endif
+}
+
 // MARK: Structs
 struct UnderlinedTextFieldStyle: TextFieldStyle {
     var isFocused: Binding<Bool>?
@@ -149,13 +154,13 @@ struct UnderlinedTextFieldStyle: TextFieldStyle {
     var emptyBackgroundColor: Color = .clear
     
     init() {
-        self.isFocused = nil
-        self.text = nil
+        isFocused = nil
+        text = nil
     }
     
     init(isFocused: Binding<Bool>) {
         self.isFocused = isFocused
-        self.text = nil
+        text = nil
     }
     
     init(
@@ -167,7 +172,7 @@ struct UnderlinedTextFieldStyle: TextFieldStyle {
         animationDuration: Double = 0.175
     ) {
         self.isFocused = isFocused
-        self.text = nil
+        text = nil
         self.normalLineColor = normalLineColor
         self.focusedLineColor = focusedLineColor
         self.normalLineHeight = normalLineHeight
@@ -197,18 +202,20 @@ struct UnderlinedTextFieldStyle: TextFieldStyle {
     
     func _body(configuration: TextField<Self._Label>) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            ZStack(alignment: .leading) {
-                let showBackground: Bool = text != nil && text!.wrappedValue.isEmpty && !(isFocused?.wrappedValue ?? false)
-                
-                emptyBackgroundColor
-                    .ignoresSafeArea(.container, edges: .horizontal)
-                    .frame(height: nil)
-                    .padding(.bottom, -2.5)
-                    .opacity(showBackground ? 0.05 : 0)
-                    .animation(.easeOut(duration: animationDuration), value: showBackground)
-                
-                configuration
-            }
+//            ZStack(alignment: .leading) {
+//                let showBackground: Bool = text != nil && text!.wrappedValue.isEmpty && !(isFocused?.wrappedValue ?? false)
+//                
+//                emptyBackgroundColor
+//                    .ignoresSafeArea(.container, edges: .horizontal)
+//                    .frame(height: nil)
+//                    .padding(.bottom, -2.5)
+//                    .opacity(showBackground ? 0.05 : 0)
+//                    .animation(.easeOut(duration: animationDuration), value: showBackground)
+//                
+//                configuration
+//            }
+            
+            configuration
             
             Group {
                 if let focusBinding = isFocused {
@@ -370,20 +377,20 @@ extension View {
     // Heading: 32
     // Subheading: 24
     // Subheading 2: 18
-    func headingText(size: CGFloat = 32) -> some View {
+    func headingText(size: CGFloat) -> some View {
         self.font(.custom("Oswald-Bold", size: size))
     }
     
     // Large: 18
     // Body: 16
     // Subbody: 14
-    func bodyText(size: CGFloat = 16, weight: FontWeight = .regular) -> some View {
+    func bodyText(size: CGFloat, weight: FontWeight = .regular) -> some View {
         self.font(.custom("PublicSans-\(weight.rawValue)", size: size))
     }
     
     // Stats: 16
     // Substats: 14
-    func statsText(size: CGFloat = 16) -> some View {
+    func statsText(size: CGFloat) -> some View {
         self.font(.custom("IBMPlexMono-Regular", size: size))
     }
 }

@@ -12,7 +12,6 @@ struct Onboarding: View {
     @Environment(\.modelContext) private var context
     
     @State private var restoring: Bool = false
-    @State private var showRestoreFailAlert: Bool = false
     
     var body: some View {
         ZStack {
@@ -67,7 +66,7 @@ struct Onboarding: View {
                                 .textColor()
                             
                             Text("Simple. Powerful. Yours.")
-                                .bodyText()
+                                .bodyText(size: 16)
                                 .secondaryColor()
                         }
                         
@@ -135,7 +134,7 @@ struct Onboarding: View {
                                 }
                             } label: {
                                 Text("GET STARTED")
-                                    .bodyText()
+                                    .bodyText(size: 16)
                                     .frame(maxWidth: .infinity)
                             }
                             .buttonStyle(FilledToBorderedButtonStyle())
@@ -144,7 +143,7 @@ struct Onboarding: View {
                                 restoring = true
                             } label: {
                                 Text("RESTORE FROM BACKUP")
-                                    .bodyText()
+                                    .bodyText(size: 16)
                                     .frame(maxWidth: .infinity)
                             }
                             .buttonStyle(BorderedToFilledButtonStyle())
@@ -166,129 +165,64 @@ struct Onboarding: View {
                         guard let url = urls.first else { return }
                         
                         guard url.startAccessingSecurityScopedResource() else {
-                            showRestoreFailAlert = true
+                            Task {
+                                await restoreFailAlert()
+                            }
+                            
                             return
                         }
                         
                         guard let importedData = try? Data(contentsOf: url) else {
-                            showRestoreFailAlert = true
+                            url.stopAccessingSecurityScopedResource()
+                            
+                            Task {
+                                await restoreFailAlert()
+                            }
+                            
                             return
                         }
                         
                         url.stopAccessingSecurityScopedResource()
                         
-                        let decoder = JSONDecoder()
-                        
-                        guard let data = try? decoder.decode(ExportData.self, from: importedData) else {
-                            showRestoreFailAlert = true
-                            return
-                        }
-                        
-                        DispatchQueue.main.async {
-                            for exercise in data.exercises {
-                                guard !exercise.name.isEmpty && exercise.muscleGroup != nil else { continue }
-                                if exercise.notes.isEmpty { exercise.notes = "" }
-                                
-                                context.insert(Exercise(name: exercise.name, notes: exercise.notes, muscleGroup: exercise.muscleGroup ?? .other, type: exercise.type))
-                            }
-                            
-                            var importedWorkouts: [Workout] = []
-                            
-                            for workout in data.workouts {
-                                var exercises: [WorkoutExercise] = []
-                                for workoutExercise in workout.exercises {
-                                    let exercise: Exercise = workoutExercise.exercise!
-                                    
-                                    let newExercise = Exercise(name: exercise.name, notes: exercise.notes, muscleGroup: exercise.muscleGroup ?? .other)
-                                    workoutExercise.exercise = newExercise
-                                    context.insert(newExercise)
-                                    
-                                    exercises.append(workoutExercise)
-                                }
-                                
-                                let newWorkout = Workout(name: workout.name, exercises: [], notes: workout.notes)
-                                for workoutExercise in exercises {
-                                    workoutExercise.workout = newWorkout
-                                }
-                                
-                                context.insert(newWorkout)
-                                
-                                do {
-                                    try context.save()
-                                } catch {
-                                    print("Failed to save workout: \(error.localizedDescription)")
-                                }
-                                
-                                importedWorkouts.append(newWorkout)
-                                context.insert(WorkoutLog(workout: newWorkout))
-                            }
-
+                        Task {
                             do {
-                                try context.save()
+                                // Use the DataTransferManager to import the data
+                                try DataTransferManager.shared.importAllData(from: importedData, into: context)
+                                
+                                // Update user defaults
+                                await MainActor.run {
+                                    withAnimation {
+                                        UserDefaults.standard.set(true, forKey: UserKeys.onboarded.rawValue)
+                                    }
+                                }
                             } catch {
-                                print("Failed to save imported data: \(error.localizedDescription)")
-                            }
-                            
-                            for log in data.workoutLogs {
-                                if let workout = importedWorkouts.first(where: { $0.name == log.workout.name }) {
-                                    let newLog = WorkoutLog(workout: workout, started: log.started, completed: log.completed, start: log.start, end: log.end)
-                                    
-                                    for exerciseLog in log.exerciseLogs {
-                                        if let exercise = workout.exercises.first(where: { $0.exercise?.name == exerciseLog.exercise.exercise?.name }) {
-                                            let newExerciseLog = ExerciseLog(index: exerciseLog.index, exercise: exercise)
-                                            newLog.exerciseLogs.append(newExerciseLog)
-                                        } else {
-                                            print("Error: Exercise not found for ExerciseLog")
+                                debugLog("Failed to import data: \(error.localizedDescription)")
+                                
+                                await MainActor.run {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                        Task {
+                                            await restoreFailAlert()
                                         }
                                     }
-                                    
-                                    context.insert(newLog)
-                                } else {
-                                    print("Error: Workout not found for WorkoutLog")
-                                }
-                            }
-                            
-                            for log in data.caloriesLogs {
-                                let log = CaloriesLog(from: log)
-                                
-                                guard !log.entries.isEmpty && log.date.timeIntervalSince1970 != 0 else { continue }
-                                
-                                var entries: [FoodEntry] = []
-                                for entry in log.entries {
-                                    guard !entry.name.isEmpty && entry.calories >= 0 && entry.carbs >= 0 && entry.protein >= 0 && entry.fat >= 0 else { continue }
-                                    
-                                    entries.append(FoodEntry(name: entry.name, calories: entry.calories, carbs: entry.carbs, protein: entry.protein, fat: entry.fat))
-                                }
-                                
-                                context.insert(CaloriesLog(date: log.date, entries: entries))
-                            }
-                            
-                            do {
-                                try context.save()
-                                
-                                withAnimation {
-                                    UserDefaults.standard.set(true, forKey: UserKeys.onboarded.rawValue)
-                                }
-                            } catch {
-                                print("Failed to save imported data: \(error.localizedDescription)")
-                                
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                    showRestoreFailAlert = true
                                 }
                             }
                         }
                         
                         restoring = false
                     case .failure(let error):
-                        print(error.localizedDescription)
+                        debugLog(error.localizedDescription)
+                        
+                        Task {
+                            await restoreFailAlert()
+                        }
                     }
-                }
-                .alert(isPresented: $showRestoreFailAlert) {
-                    Alert(title: Text("Error"),
-                          message: Text("There was an error when attempting to restore your data. Please make sure that you are uploading the correct file. You may need to try again later or report an issue."))
                 }
             }
         }
+    }
+    
+    private func restoreFailAlert() async {
+        await InfoPopup(title: "Error", text: "There was an error when attempting to restore your data. Please make sure that you are uploading the correct file.").present()
     }
     
     private func preloadData() {
@@ -300,7 +234,7 @@ struct Onboarding: View {
             do {
                 try context.save()
             } catch {
-                print("Error preloading data: \(error)")
+                debugLog("Error preloading data: \(error.localizedDescription)")
             }
         }
     }

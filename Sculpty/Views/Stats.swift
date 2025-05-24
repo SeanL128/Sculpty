@@ -2,263 +2,175 @@
 //  Stats.swift
 //  Sculpty
 //
-//  Created by Sean Lindsay on 1/19/25.
+//  Created by Sean Lindsay on 5/19/25.
 //
 
 import SwiftUI
 import SwiftData
-import SwiftUICharts
+import Charts
+import BRHSegmentedControl
 
 struct Stats: View {
-    @Query private var workouts: [Workout]
-    @Query private var exercises: [Exercise]
-    @Query(filter: #Predicate<WorkoutLog> { $0.started }, sort: \WorkoutLog.start) private var workoutLogs: [WorkoutLog]
-    @Query private var measurements: [Measurement]
+    @State private var selectedTab: Int = 0
     
-    @StateObject private var viewModel: StatsViewModel = StatsViewModel()
-    
-    @State private var selectedRange: TimeRange = .month
-    @State private var rangeStart: Date?
-    @State private var rangeEnd: Date?
-    
-    @State private var loaded: Bool = false
+    @Namespace private var animation
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                ColorManager.background
-                    .ignoresSafeArea(edges: .all)
-                
-                VStack {
-                    HStack(alignment: .center) {
-                        Text(viewModel.title)
-                            .font(.title.bold())
-                            .lineLimit(2)
-                            .truncationMode(.tail)
-                        
-                        Spacer()
-                        
-//                        NavigationLink(destination: ViewWorkoutLogs()) {
-//                            Image(systemName: "list.bullet.clipboard")
-//                        }
-//                        .padding(.trailing, 10)
-                        
-                        Menu("View \(Image(systemName: "chevron.up.chevron.down"))") {
-                            Menu("Workouts") {
-                                Button {
-                                    viewModel.selectOverall()
-                                } label: {
-                                    Text("Overall")
-                                }
-                                
-                                Menu("By Workout") {
-                                    ForEach(viewModel.data?.workouts ?? [], id: \.id) { workout in
-                                        Button {
-                                            viewModel.selectWorkout(workout: workout)
-                                        } label: {
-                                            Text(workout.name)
-                                        }
-                                    }
-                                }
-                                
-                                Menu("By Exercise") {
-                                    ForEach(viewModel.data?.exercises ?? [], id: \.self) { exercise in
-                                        Button {
-                                            viewModel.selectExercise(exercise: exercise)
-                                        } label: {
-                                            Text(exercise.name)
-                                        }
-                                    }
-                                }
-                            }
+        ContainerView(title: "Stats", spacing: 20) {
+            GeometryReader { geometry in
+                HStack(spacing: 0) {
+                    ForEach(0..<3) { index in
+                        VStack(spacing: 4) {
+                            Text(index == 0 ? "WORKOUTS" : index == 1 ? "FOOD ENTRIES" : "MEASUREMENTS")
+                                .headingText(size: 16)
+                                .foregroundStyle(selectedTab == index ? ColorManager.text : ColorManager.secondary)
+                                .frame(maxWidth: .infinity)
                             
-                            Menu("Measurements") {
-                                ForEach(viewModel.data?.measurementTypes ?? [], id: \.self) { measurementType in
-                                    Button {
-                                        viewModel.selectMeasurementType(measurementType: measurementType)
-                                    } label: {
-                                        Text(measurementType.rawValue)
-                                    }
-                                }
+                            if selectedTab == index {
+                                Rectangle()
+                                    .fill(Color.accent)
+                                    .frame(height: 3)
+                                    .matchedGeometryEffect(id: "underline", in: animation)
+                            } else {
+                                Rectangle()
+                                    .fill(Color.clear)
+                                    .frame(height: 3)
                             }
                         }
-                    }
-                    .padding()
-                    
-                    ScrollView {
-                        VStack {
-                            if viewModel.showCharts {
-                                if viewModel.workoutRelated {
-                                    Text("Total Time: \(lengthToString(length: viewModel.selectedTotalTime))")
-                                    
-                                    VStack {
-//                                        PieChartView (
-//                                            data: viewModel.selectedMuscleGroupRepBreakdownChartData.map(\.0),
-//                                            title: "Muscle Group Reps Breakdown",
-//                                            form: ChartForm.large,
-//                                            dropShadow: false,
-//                                            segmentColors: viewModel.selectedMuscleGroupRepBreakdownChartData.map(\.2),
-//                                            unit: " reps"
-//                                        )
-                                        
-                                        MuscleGroupColorKey(muscleGroups: Array(viewModel.selectedMuscleGroupRepBreakdown.keys))
-                                        
-                                        VStack {
-                                            ForEach(MuscleGroup.displayOrder, id: \.self) { key in
-                                                if key != .overall && viewModel.selectedMuscleGroupRepBreakdown.keys.contains(key) {
-                                                    Text("\(key.rawValue.capitalized): \(viewModel.selectedMuscleGroupRepBreakdown[key] ?? 0) reps")
-                                                }
-                                            }
-                                        }
-                                        .padding(.top)
-                                        
-//                                        PieChartView (
-//                                            data: viewModel.selectedMuscleGroupWeightBreakdownChartData.map(\.0),
-//                                            title: "Muscle Group Weight Breakdown",
-//                                            form: ChartForm.large,
-//                                            dropShadow: false,
-//                                            segmentColors: viewModel.selectedMuscleGroupWeightBreakdownChartData.map(\.2),
-//                                            unit: UnitsManager.weight
-//                                        )
-                                        
-                                        MuscleGroupColorKey(muscleGroups: Array(viewModel.selectedMuscleGroupWeightBreakdown.keys))
-                                        
-                                        VStack {
-                                            ForEach(MuscleGroup.displayOrder, id: \.self) { key in
-                                                if key != .overall && viewModel.selectedMuscleGroupRepBreakdown.keys.contains(key) {
-                                                    Text("\(key.rawValue.capitalized): \(viewModel.selectedMuscleGroupWeightBreakdown[key]?.formatted() ?? 0.formatted())\(UnitsManager.weight)")
-                                                }
-                                            }
-                                        }
-                                        .padding(.top)
-                                    }
-                                }
+                        .frame(width: geometry.size.width / 3)
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                selectedTab = index
                             }
-                            
-                            if viewModel.showGraph {
-                                if viewModel.showCharts {
-                                    Divider()
-                                        .padding()
-                                }
-                                
-                                if viewModel.workoutRelated {
-                                    VStack {
-                                        Picker("Time Range", selection: $selectedRange) {
-                                            ForEach(TimeRange.allCases, id: \.self) { range in
-                                                Text(range.rawValue).tag(range)
-                                            }
-                                        }
-                                        .pickerStyle(.segmented)
-                                        .padding()
-                                        .onChange(of: selectedRange) {
-                                            viewModel.data?.filter(selectedRange: selectedRange, rangeStart: rangeStart, rangeEnd: rangeEnd)
-                                        }
-                                        
-                                        if selectedRange == .custom {
-                                            DatePicker(
-                                                "Pick a start date",
-                                                selection: Binding(
-                                                    get: { rangeStart ?? Date() },
-                                                    set: { rangeStart = $0 }
-                                                ),
-                                                in: workoutLogs.first!.start...Date(),
-                                                displayedComponents: [.date]
-                                            )
-                                            .padding()
-
-                                            if let start = rangeStart {
-                                                DatePicker(
-                                                    "Pick an end date",
-                                                    selection: Binding(
-                                                        get: { rangeEnd ?? start },
-                                                        set: { rangeEnd = $0 }
-                                                    ),
-                                                    in: start...Date(),
-                                                    displayedComponents: [.date]
-                                                )
-                                                .padding()
-                                            }
-                                        }
-                                        
-//                                        if viewModel.getWorkoutGraphInfo().map(\.0.count).max() ?? 0 > 1 {
-                                            LineChartView(
-                                                data: viewModel.getWorkoutGraphRepsInfo() ?? [],
-                                                title: "Reps Trend",
-                                                form: ChartForm.large
-                                            )
-                                            
-                                            LineChartView(
-                                                data: viewModel.getWorkoutGraphWeightInfo() ?? [],
-                                                title: "Weight Trend",
-                                                form: ChartForm.large
-                                            )
-//                                        } else {
-//                                            Text("Not enough data in the selected date range.")
-//                                        }
-                                        
-                                        Divider()
-                                            .padding()
-                                        
-                                        VStack {
-                                            let dateFormatter = DateFormatter()
-                                            let _ = dateFormatter.dateFormat = "MM/dd/yyyy"
-                                            
-                                            HStack {
-                                                Text("Date")
-                                                    .frame(width: 100)
-                                                
-                                                Spacer()
-                                                
-                                                Text("Reps")
-                                                    .frame(width: 100)
-                                                
-                                                Spacer()
-                                                
-                                                Text("Weight (\(UnitsManager.weight))")
-                                                    .frame(width: 100)
-                                            }
-                                            
-                                            ForEach(viewModel.getWorkoutRawGraphInfo(), id: \.0) { log in
-                                                HStack {
-                                                    Text(dateFormatter.string(from: log.2))
-                                                        .frame(width: 100)
-                                                    
-                                                    Spacer()
-                                                    
-                                                    Text(log.0.formatted())
-                                                        .frame(width: 100)
-                                                    
-                                                    Spacer()
-                                                    
-                                                    Text(log.1.formatted())
-                                                        .frame(width: 100)
-                                                }
-                                            }
-                                        }
-                                        .textColor()
-                                        .padding(.top)
-                                    }
-                                }
-                            }
-                            
-                            Spacer()
                         }
-                        .padding()
                     }
                 }
             }
-        }
-        .onAppear() {
-            if !loaded {
-                viewModel.update(workoutLogs: workoutLogs, measurements: measurements)
-                viewModel.selectOverall()
+            .frame(height: 20)
+            
+            ZStack(alignment: .topLeading) {
+                let width = UIScreen.main.bounds.width
                 
-                loaded = true
+                // Workouts View
+                WorkoutsView()
+                    .offset(x: CGFloat(0 - selectedTab) * width)
+                
+                // Food Entries View
+                FoodEntriesView()
+                    .offset(x: CGFloat(1 - selectedTab) * width)
+                
+                // Measurements View
+                MeasurementsView()
+                    .offset(x: CGFloat(2 - selectedTab) * width)
+            }
+            .animation(.easeInOut, value: selectedTab)
+        }
+    }
+}
+
+// Placeholder views for each tab
+struct WorkoutsView: View {
+    @State private var show: Bool = true
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            if show {
+                
             }
         }
     }
 }
 
-#Preview {
-    Stats()
+struct FoodEntriesView: View {
+    var body: some View {
+        VStack {
+            Text("Food Entry Statistics")
+                .font(.title2)
+                .padding()
+            
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.accent.opacity(0.1))
+                .overlay(
+                    Image(systemName: "fork.knife")
+                        .font(.system(size: 40))
+                        .foregroundColor(.accent)
+                )
+                .frame(height: 200)
+                .padding()
+        }
+    }
+}
+
+struct MeasurementsView: View {
+    @Environment(\.modelContext) private var context
+    
+    @Query private var measurements: [Measurement]
+    
+    @State private var show: Bool = true
+    
+    @State private var type: MeasurementType = .weight
+    private var typeOptions: [String : MeasurementType] {
+        var dict: [String: MeasurementType] = [:]
+        
+        for type in MeasurementType.displayOrder {
+            if !measurements.filter({ $0.type == type }).isEmpty {
+                dict[type.rawValue] = type
+            }
+        }
+        
+        return dict
+    }
+    
+    @State private var dataValues: [Measurement] = []
+    private var data: [(date: Date, value: Double)] {
+        dataValues
+            .map { (date: $0.date, value: $0.measurement) }
+            .sorted { $0.date < $1.date }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            if show {
+                if typeOptions.keys.count > 1 {
+                    Button {
+                        Task {
+                            await MeasurementMenuPopup(options: typeOptions, selection: $type).present()
+                        }
+                    } label: {
+                        HStack(alignment: .center) {
+                            Text(type.rawValue)
+                                .bodyText(size: 24, weight: .bold)
+                            
+                            Image(systemName: "chevron.right")
+                                .padding(.leading, -2)
+                                .font(Font.system(size: 10, weight: .bold))
+                        }
+                        .textColor()
+                    }
+                    .onChange(of: type) {
+                        dataValues = measurements.filter { $0.type == type }
+                    }
+                } else {
+                    Text(type.rawValue)
+                        .bodyText(size: 24, weight: .bold)
+                        .textColor()
+                }
+                
+                StatsLineChart(data: data, units: dataValues.first?.unit ?? "")
+            } else {
+                Text("No Data")
+                    .bodyText(size: 20)
+                    .textColor()
+            }
+        }
+        .onAppear() {
+            dataValues = measurements.filter { $0.type == type }
+            
+            if typeOptions.isEmpty {
+                show = false
+            } else if !typeOptions.keys.contains(where: { $0 == type.rawValue }) {
+                type = MeasurementType(rawValue: typeOptions.keys.first!)!
+            }
+        }
+    }
 }

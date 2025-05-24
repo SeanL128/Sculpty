@@ -21,18 +21,6 @@ class CaloriesLog: Identifiable, Codable {
         self.entries = entries
     }
     
-    init(from dto: CaloriesLogDTO) {
-        id = dto.id
-        date = dto.date
-        
-        var entries: [FoodEntry] = []
-        for entry in dto.entries {
-            entries.append(FoodEntry(id: entry.id, name: entry.name, calories: entry.calories, carbs: entry.carbs, protein: entry.protein, fat: entry.fat))
-        }
-        
-        self.entries = entries
-    }
-    
     func getTotalCalories() -> Double {
         return entries.reduce(0) { $0 + $1.calories }
     }

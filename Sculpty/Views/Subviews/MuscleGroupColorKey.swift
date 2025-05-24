@@ -19,7 +19,7 @@ struct MuscleGroupColorKey: View {
                             .fill(MuscleGroup.colorMap[group]!)
                             .frame(width: 10, height: 10)
                         
-                        Text(group.rawValue.capitalized)
+                        Text(group.rawValue)
                     }
                     .padding(.horizontal, 4)
                 }

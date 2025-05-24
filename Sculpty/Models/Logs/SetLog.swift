@@ -26,6 +26,9 @@ class SetLog: Identifiable, Codable {
     var reps: Int?
     var weight: Double?
     var measurement: String?
+    var volume: Double {
+        (WeightUnit(rawValue: unit)?.convert((weight ?? 0), to: WeightUnit(rawValue: UnitsManager.weight) ?? .lbs) ?? 0) * Double(reps ?? 0)
+    }
     
     // Distance-specific
     var time: Double?

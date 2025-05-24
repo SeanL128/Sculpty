@@ -51,54 +51,46 @@ struct AddFoodEntryPoup: CenterPopup {
             newEntry = false
         }
         
-        self.log = log
         self.entry = entry
+        self.log = log
     }
     
     var body: some View {
         VStack(alignment: .center, spacing: 12) {
             HStack(alignment: .center) {
-                VStack(alignment: .leading) {
-                    Text("Name")
-                        .bodyText(size: 12)
-                        .textColor()
-                    
-                    TextField("", text: $nameInput)
-                        .focused($isNameFocused)
-                        .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isNameFocused }, set: { isNameFocused = $0 }), text: $nameInput))
-                }
-                .padding(.vertical, 5)
-                .padding(.horizontal)
+                Input(title: "Name", text: $nameInput, isFocused: _isNameFocused, autoCapitalization: .words)
+                    .padding(.vertical, 5)
+                    .padding(.horizontal)
                 
-                VStack(alignment: .leading) {
-                    Text("Calories")
-                        .bodyText(size: 12)
-                        .textColor()
-                    
-                    HStack(alignment: .bottom) {
-                        TextField("", text: $caloriesInput)
-                            .keyboardType(.numberPad)
-                            .focused($isCaloriesFocused)
-                            .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isCaloriesFocused }, set: { isCaloriesFocused = $0 }), text: $caloriesInput))
-                            .onChange(of: caloriesInput) {
-                                caloriesInput = caloriesInput.filteredNumericWithoutDecimalPoint()
-                            }
-                        
-                        Text("cal")
-                            .bodyText(size: 16)
-                            .textColor()
+                Input(title: "Calories", text: $caloriesInput, isFocused: _isCaloriesFocused, unit: "cal", type: .numberPad)
+                    .padding(.horizontal)
+                    .padding(.vertical, 5)
+                    .onChange(of: caloriesInput) {
+                        caloriesInput = caloriesInput.filteredNumericWithoutDecimalPoint()
                     }
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 5)
             }
             
             HStack(alignment: .center) {
-                MacroTextField(title: "Carbs", value: $carbsInput, isFocused: _isCarbsFocused)
+                Input(title: "Carbs", text: $carbsInput, isFocused: _isCarbsFocused, unit: "g", type: .numberPad)
+                    .padding(.horizontal)
+                    .padding(.vertical, 5)
+                    .onChange(of: carbsInput) {
+                        carbsInput = carbsInput.filteredNumericWithoutDecimalPoint()
+                    }
                 
-                MacroTextField(title: "Protein", value: $proteinInput, isFocused: _isProteinFocused)
+                Input(title: "Protein", text: $proteinInput, isFocused: _isProteinFocused, unit: "g", type: .numberPad)
+                    .padding(.horizontal)
+                    .padding(.vertical, 5)
+                    .onChange(of: proteinInput) {
+                        proteinInput = proteinInput.filteredNumericWithoutDecimalPoint()
+                    }
                 
-                MacroTextField(title: "Fat", value: $fatInput, isFocused: _isFatFocused)
+                Input(title: "Fat", text: $fatInput, isFocused: _isFatFocused, unit: "g", type: .numberPad)
+                    .padding(.horizontal)
+                    .padding(.vertical, 5)
+                    .onChange(of: fatInput) {
+                        fatInput = fatInput.filteredNumericWithoutDecimalPoint()
+                    }
             }
             .padding(.bottom, 4)
             

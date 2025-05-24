@@ -28,15 +28,19 @@ struct WorkoutSummaryPopup: CenterPopup {
                 
                 
                 Text("Total Time: \(lengthToString(length: log.getLength()))")
-                    .bodyText()
+                    .bodyText(size: 16)
                     .textColor()
                 
                 Text("Total Reps: \(log.getTotalReps(includeWarmUp, includeDropSet, includeCoolDown)) reps")
-                    .bodyText()
+                    .bodyText(size: 16)
                     .textColor()
                 
                 Text("Total Weight: \(log.getTotalWeight(includeWarmUp, includeDropSet, includeCoolDown).formatted())\(UnitsManager.weight)")
-                    .bodyText()
+                    .bodyText(size: 16)
+                    .textColor()
+                
+                Text("Score: \(log.getScore().formatted())")
+                    .bodyText(size: 16)
                     .textColor()
                 
                 
@@ -46,7 +50,7 @@ struct WorkoutSummaryPopup: CenterPopup {
                 
                 let muscleGroups = log.getMuscleGroupBreakdown()
                 Text("Muscle Groups Worked:")
-                    .bodyText()
+                    .bodyText(size: 16)
                     .textColor()
                 
                 ForEach(MuscleGroup.displayOrder, id: \.id) { group in
@@ -56,8 +60,8 @@ struct WorkoutSummaryPopup: CenterPopup {
                                 .fill(MuscleGroup.colorMap[group]!)
                                 .frame(width: 8, height: 8)
                             
-                            Text(group.rawValue.capitalized)
-                                .bodyText()
+                            Text(group.rawValue)
+                                .bodyText(size: 16)
                                 .textColor()
                         }
                     }

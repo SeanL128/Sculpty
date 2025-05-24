@@ -80,6 +80,20 @@ class ExerciseLog: Identifiable, Codable {
             }
     }
     
+    func getTotalVolume(_ includeWarmUp: Bool, _ includeDropSet: Bool, _ includeCoolDown: Bool) -> Double {
+        return setLogs.filter {
+                guard let set = $0.set else { return false }
+                return set.exerciseType == .weight &&
+                    (set.type == .main ||
+                    (includeWarmUp && set.type == .warmUp) ||
+                    (includeDropSet && set.type == .dropSet) ||
+                    (includeCoolDown && set.type == .coolDown))
+            }
+            .reduce(0) {
+                $0 + $1.volume
+            }
+    }
+    
     func getTotalTime(_ includeWarmUp: Bool, _ includeDropSet: Bool, _ includeCoolDown: Bool) -> Double {
         return setLogs.filter {
                 guard let set = $0.set else { return false }

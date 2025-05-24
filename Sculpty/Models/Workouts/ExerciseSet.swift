@@ -102,10 +102,10 @@ class ExerciseSet: Identifiable, Codable {
     }
     
     private init(from set: ExerciseSet) {
-        self.index = set.index
-        self.unit = set.unit
-        self.type = set.type
-        self.exerciseType = set.exerciseType
+        index = set.index
+        unit = set.unit
+        type = set.type
+        exerciseType = set.exerciseType
         
         if set.exerciseType == .weight,
            let reps = set.reps,

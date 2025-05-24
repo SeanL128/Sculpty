@@ -37,11 +37,11 @@ struct ExerciseList: View {
     }
     
     var body: some View {
-        ContainerView(title: "Exercises", spacing: 16, trailingItems: {
+        ContainerView(title: "Exercises", spacing: 16, showScrollBar: true, trailingItems: {
             NavigationLink(destination: UpsertExercise()) {
                 Image(systemName: "plus")
-                    .font(.title2)
-                    .padding(.horizontal, 3)
+                    .padding(.horizontal, 5)
+                    .font(Font.system(size: 24))
             }
             .textColor()
         }) {
@@ -50,13 +50,13 @@ struct ExerciseList: View {
                 .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isSearchFocused }, set: { isSearchFocused = $0 }), text: $searchText))
                 .padding(.bottom, 5)
             
-            ForEach(MuscleGroup.allCases, id: \.self) { muscleGroup in
-                VStack(alignment: .leading, spacing: 9) {
-                    if let exercisesForGroup = groupedExercises[muscleGroup], !exercisesForGroup.isEmpty {
+            ForEach(MuscleGroup.displayOrder, id: \.self) { muscleGroup in
+                if let exercisesForGroup = groupedExercises[muscleGroup], !exercisesForGroup.isEmpty {
+                    VStack(alignment: .leading, spacing: 16) {
                         Text(muscleGroup.rawValue.uppercased())
                             .headingText(size: 14)
                             .textColor()
-                            .padding(.bottom, -2)
+                            .padding(.bottom, -8)
                         
                         ForEach(exercisesForGroup) { exercise in
                             HStack(alignment: .center) {
@@ -68,8 +68,8 @@ struct ExerciseList: View {
                                 
                                 NavigationLink(destination: UpsertExercise(exercise: exercise)) {
                                     Image(systemName: "pencil")
-                                        .font(.caption)
                                         .padding(.horizontal, 8)
+                                        .font(Font.system(size: 16))
                                 }
                             }
                             .textColor()

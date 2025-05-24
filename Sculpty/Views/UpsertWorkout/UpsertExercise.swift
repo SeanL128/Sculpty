@@ -39,26 +39,9 @@ struct UpsertExercise: View {
     
     var body: some View {
         ContainerView(title: "\(new ? "Add" : "Edit") Exercise", spacing: 20) {
-            VStack(alignment: .leading) {
-                Text("Name")
-                    .bodyText(size: 12)
-                    .textColor()
-                
-                TextField("", text: $exercise.name)
-                    .textInputAutocapitalization(.words)
-                    .focused($isNameFocused)
-                    .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isNameFocused }, set: { isNameFocused = $0 }), text: $exercise.name))
-            }
+            Input(title: "Name", text: $exercise.name, isFocused: _isNameFocused, autoCapitalization: .words)
             
-            VStack(alignment: .leading) {
-                Text("Notes")
-                    .bodyText(size: 12)
-                    .textColor()
-                
-                TextField("", text: $exercise.notes, axis: .vertical)
-                    .focused($isNotesFocused)
-                    .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isNotesFocused }, set: { isNotesFocused = $0 }), text: $exercise.notes))
-            }
+            Input(title: "Notes", text: $exercise.notes, isFocused: _isNotesFocused, axis: .vertical)
             
             
             Spacer()
@@ -74,18 +57,20 @@ struct UpsertExercise: View {
                     Task {
                         await MenuPopup(title: "Muscle Group", options: MuscleGroup.stringDisplayOrder, selection: $selectedMuscleGroup).present()
                     }
-                    
-                    exercise.muscleGroup = MuscleGroup(rawValue: (selectedMuscleGroup ?? "other").lowercased())
                 } label: {
                     HStack(alignment: .center) {
                         Text(selectedMuscleGroup ?? "Select")
                             .bodyText(size: 16)
                         
                         Image(systemName: "chevron.right")
-                            .font(.caption2)
+                            .padding(.leading, -2)
+                            .font(Font.system(size: 10))
                     }
                 }
                 .textColor()
+                .onChange(of: selectedMuscleGroup) {
+                    exercise.muscleGroup = MuscleGroup(rawValue: selectedMuscleGroup ?? "Other")
+                }
             }
             
             VStack(alignment: .leading) {
@@ -144,7 +129,7 @@ struct UpsertExercise: View {
         }
         .onAppear() {
             if !new {
-                selectedMuscleGroup = exercise.muscleGroup?.rawValue.capitalized ?? "Other"
+                selectedMuscleGroup = exercise.muscleGroup?.rawValue ?? "Other"
                 selectedExerciseType = ExerciseType.stringDisplayOrder.firstIndex(of: exercise.type.rawValue) ?? 0
             }
         }

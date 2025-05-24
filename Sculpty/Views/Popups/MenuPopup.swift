@@ -44,7 +44,7 @@ struct MenuPopup: CenterPopup {
                         } label: {
                             HStack(alignment: .center) {
                                 Text(option)
-                                    .bodyText(weight: selection == option ? .bold : .regular)
+                                    .bodyText(size: 16, weight: selection == option ? .bold : .regular)
                                     .textColor()
                                     .multilineTextAlignment(.leading)
                                 
@@ -53,11 +53,11 @@ struct MenuPopup: CenterPopup {
                                     Spacer()
                                     
                                     Image(systemName: "checkmark")
-                                        .font(.caption)
+                                        .padding(.horizontal, 8)
+                                        .font(Font.system(size: 16))
                                 }
                             }
                             .textColor()
-                            .padding(.trailing, 1)
                         }
                     }
                 }

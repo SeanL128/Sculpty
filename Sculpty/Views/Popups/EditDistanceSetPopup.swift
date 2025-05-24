@@ -43,20 +43,20 @@ struct EditDistanceSetPopup: CenterPopup {
         self._log = log
         
         self.restTime = restTime
-        self.restTimer = timer
+        restTimer = timer
         
-        self.setTimer = MTimer(MTimerID(rawValue: "Set Timer \(log.id)"))
+        setTimer = MTimer(MTimerID(rawValue: "Set Timer \(log.id)"))
         
         self.disableType = disableType
         
         _updatedSet = State(initialValue: set)
         
         let total = Int(set.time ?? 0)
-        self.hours = total / 3600
-        self.minutes = (total % 3600) / 60
-        self.seconds = total % 60
+        hours = total / 3600
+        minutes = (total % 3600) / 60
+        seconds = total % 60
         
-        self.distanceString = (set.distance ?? 0).formatted()
+        distanceString = (set.distance ?? 0).formatted()
     }
     
     var body: some View {
@@ -75,8 +75,9 @@ struct EditDistanceSetPopup: CenterPopup {
                         }
                     } label: {
                         Image(systemName: "arrowshape.turn.up.right.fill")
+                            .padding(.horizontal, 3)
+                            .font(Font.system(size: 16))
                     }
-                    .padding(3)
                 }
                 
                 Button {
@@ -106,8 +107,9 @@ struct EditDistanceSetPopup: CenterPopup {
                     }
                 } label: {
                     Image(systemName: "checkmark")
+                        .padding(.horizontal, 3)
+                        .font(Font.system(size: 16))
                 }
-                .padding(3)
             }
             .padding(.top, 30)
             .padding(.bottom, -20)
@@ -146,9 +148,7 @@ struct EditDistanceSetPopup: CenterPopup {
                 .onChange(of: seconds) { updateTime() }
                 
                 HStack {
-                    TextField("Distance", text: $distanceString)
-                        .keyboardType(.decimalPad)
-                        .focused($isDistanceFocused)
+                    Input(title: "Distance", text: $distanceString, isFocused: _isDistanceFocused, type: .decimalPad)
                         .onChange(of: distanceString) {
                             distanceString = distanceString.filteredNumeric()
                              
@@ -160,17 +160,16 @@ struct EditDistanceSetPopup: CenterPopup {
                                 updatedSet.distance = (distanceString as NSString).doubleValue
                             }
                         }
-                        .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isDistanceFocused }, set: { isDistanceFocused = $0 }), text: $distanceString))
                         .frame(maxWidth: 125)
                     
                     Picker("Unit", selection: $updatedSet.unit) {
                         Text("mi")
-                            .bodyText()
+                            .bodyText(size: 16)
                             .textColor()
                             .tag("mi")
                         
                         Text("km")
-                            .bodyText()
+                            .bodyText(size: 16)
                             .textColor()
                             .tag("km")
                     }
@@ -187,7 +186,7 @@ struct EditDistanceSetPopup: CenterPopup {
                 Picker("Type", selection: $updatedSet.type) {
                     ForEach(ExerciseSetType.displayOrder, id: \.self) { type in
                         Text("\(type.rawValue)")
-                            .bodyText()
+                            .bodyText(size: 16)
                             .textColor()
                             .tag(type)
                     }
@@ -212,17 +211,19 @@ struct EditDistanceSetPopup: CenterPopup {
                         }
                     } label: {
                         Image(systemName: (setTimerStatus == .notStarted || setTimerStatus == .paused) ? "play.fill" : "pause.fill")
+                            .padding(.horizontal, 3)
+                            .font(Font.system(size: 16))
                     }
                     .buttonStyle(.borderedProminent)
-                    .padding(.trailing, 5)
                     
                     Button {
                         setTimer.cancel()
                     } label: {
                         Image(systemName: "stop.fill")
+                            .padding(.horizontal, 3)
+                            .font(Font.system(size: 16))
                     }
                     .buttonStyle(.borderedProminent)
-                    .padding(.leading, 5)
                     .disabled(setTimer.timerStatus != .running && setTimer.timerStatus != .paused)
                 }
                 .font(.title2)

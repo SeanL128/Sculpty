@@ -8,7 +8,6 @@
 import SwiftUI
 import SwiftData
 import SwiftUICharts
-import Neumorphic
 
 struct MeasurementPage: View {
     @Environment(\.modelContext) private var context
@@ -16,77 +15,53 @@ struct MeasurementPage: View {
     var title: String
     var type: MeasurementType
     
-    @Binding var text: String
     @Binding var unit: String
-    @FocusState var isFocused: Bool
     
-    @State var data: [Measurement] = []
+    @State private var data: [Measurement] = []
     
-    @State var toDelete: Measurement? = nil
+    @State private var confirmDelete: Bool = false
+    @State private var measurementToDelete: Measurement? = nil
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                ColorManager.background
-                    .edgesIgnoringSafeArea(.all)
-                
-                
-                VStack {
+        ContainerView(title: title) {
+            if data.isEmpty {
+                Text("No measurements yet.")
+                    .bodyText(size: 18)
+                    .textColor()
+            } else {
+                ForEach(data, id: \.self) { measurement in
                     HStack(alignment: .center) {
-                        Text(title)
-                            .font(.largeTitle)
-                            .bold()
+                        Text("\(formatDateWithTime(measurement.date))  -  \(measurement.measurement.formatted())\(measurement.unit)")
+                            .bodyText(size: 16)
                         
                         Spacer()
-                    }
-                    .padding()
-                    
-                    if !data.isEmpty {
-                        List {
-                            ForEach(data, id: \.self) { measurement in
-                                Text("\(formatDateWithTime(measurement.date)) - \(measurement.measurement.formatted())\(measurement.unit)")
-                                    .swipeActions {
-                                        Button("Delete") {
-                                            toDelete = measurement
-                                        }
-                                        .tint(.red)
-                                    }
+                        
+                        Button {
+                            measurementToDelete = measurement
+                            
+                            Task {
+                                await ConfirmationPopup(selection: $confirmDelete, promptText: "Delete measurement from \(formatDateWithTime(measurement.date))?", cancelText: "Cancel", confirmText: "Delete").present()
+                            }
+                        } label: {
+                            Image(systemName: "xmark")
+                                .padding(.horizontal, 8)
+                                .font(Font.system(size: 16))
+                        }
+                        .textColor()
+                        .onChange(of: confirmDelete) {
+                            if confirmDelete,
+                               let measurement = measurementToDelete {
+                                context.delete(measurement)
+                                try? context.save()
+                                
+                                setData()
+                                
+                                confirmDelete = false
+                                measurementToDelete = nil
                             }
                         }
-                        .scrollContentBackground(.hidden)
-                        .confirmationDialog("Delete measurement?", isPresented: Binding(
-                            get: { toDelete != nil },
-                            set: { if !$0 { toDelete = nil } }
-                        ), titleVisibility: .visible) {
-                            Button("Delete", role: .destructive) {
-                                if let measurement = toDelete {
-                                    context.delete(measurement)
-                                    try? context.save()
-                                    
-                                    setData()
-                                    
-                                    toDelete = nil
-                                }
-                            }
-                        }
-                    } else {
-                        Text("No measurements yet.")
                     }
-                    
-                    Spacer()
-                }
-                .padding()
-            }
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    
-                    Button {
-                        isFocused = false
-                    } label: {
-                        Text("Done")
-                    }
-                    .disabled(!isFocused)
+                    .textColor()
                 }
             }
         }
@@ -97,11 +72,11 @@ struct MeasurementPage: View {
     
     private func setData() {
         do {
-            let fetched = try context.fetch(FetchDescriptor<Measurement>()).filter({ $0.type == type })
+            let fetched = try context.fetch(FetchDescriptor<Measurement>()).filter({ $0.type == type }).sorted(by: { $0.date > $1.date })
             
-            data = fetched.isEmpty ? [] : fetched
+            data = fetched
         } catch {
-            print(error.localizedDescription)
+            debugLog(error.localizedDescription)
             
             data = []
         }
@@ -109,5 +84,5 @@ struct MeasurementPage: View {
 }
 
 #Preview {
-    MeasurementPage(title: "Weight", type: .weight, text: .constant("100"), unit: .constant("lbs"))
+    MeasurementPage(title: "Weight", type: .weight, unit: .constant("lbs"))
 }

@@ -11,8 +11,8 @@ struct SetView: View {
     var set: ExerciseSet
     var setLog: SetLog?
     
-    @AppStorage(UserKeys.show1RM.rawValue) private var show1RM: Bool = false
     @AppStorage(UserKeys.showRir.rawValue) private var showRir: Bool = false
+    @AppStorage(UserKeys.show1RM.rawValue) private var show1RM: Bool = false
     
     var body: some View {
         HStack {
@@ -20,10 +20,13 @@ struct SetView: View {
                 switch (set.type) {
                 case (.warmUp):
                     Image(systemName: "bolt.fill")
+                        .font(Font.system(size: 16))
                 case (.dropSet):
                     Image(systemName: "arrowtriangle.down.fill")
+                        .font(Font.system(size: 16))
                 case (.coolDown):
                     Image(systemName: "drop.fill")
+                        .font(Font.system(size: 16))
                 default:
                     Text("")
                 }
@@ -36,7 +39,8 @@ struct SetView: View {
                let measurement = set.measurement,
                let rir = set.rir {
                 Text("\(reps) \(measurement) \(String(format: "%0.2f", weight)) \(set.unit) \((showRir && [.main, .dropSet].contains(set.type)) ? "(\(rir)\((rir) == "Failure" ? "" : " RIR"))" : "")")
-                    .bodyText()
+                    .bodyText(size: 16)
+                    .textColor()
                     .strikethrough(setLog?.completed ?? false || setLog?.skipped ?? false)
                 
                 Spacer()
@@ -48,12 +52,12 @@ struct SetView: View {
             } else if set.exerciseType == .distance,
                       let distance = set.distance {
                 Text("\(set.timeString) \(String(format: "%0.2f", distance)) \(set.unit)")
-                    .bodyText()
+                    .bodyText(size: 16)
+                    .textColor()
                     .strikethrough(setLog?.completed ?? false || setLog?.skipped ?? false)
                 
                 Spacer()
             }
         }
-//        .frame(height: 37)
     }
 }

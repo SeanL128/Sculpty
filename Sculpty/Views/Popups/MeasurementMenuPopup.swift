@@ -34,8 +34,8 @@ struct MeasurementMenuPopup: CenterPopup {
                             .bodyText(size: 16, weight: (selection == type) ? .bold : .regular)
                         
                         Image(systemName: "chevron.right")
-                            .font(.caption)
                             .padding(.leading, -2)
+                            .font(Font.system(size: 10))
                     }
                     .textColor()
                 }
