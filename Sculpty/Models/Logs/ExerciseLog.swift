@@ -80,20 +80,6 @@ class ExerciseLog: Identifiable, Codable {
             }
     }
     
-    func getTotalVolume(_ includeWarmUp: Bool, _ includeDropSet: Bool, _ includeCoolDown: Bool) -> Double {
-        return setLogs.filter {
-                guard let set = $0.set else { return false }
-                return set.exerciseType == .weight &&
-                    (set.type == .main ||
-                    (includeWarmUp && set.type == .warmUp) ||
-                    (includeDropSet && set.type == .dropSet) ||
-                    (includeCoolDown && set.type == .coolDown))
-            }
-            .reduce(0) {
-                $0 + $1.volume
-            }
-    }
-    
     func getTotalTime(_ includeWarmUp: Bool, _ includeDropSet: Bool, _ includeCoolDown: Bool) -> Double {
         return setLogs.filter {
                 guard let set = $0.set else { return false }
@@ -120,6 +106,17 @@ class ExerciseLog: Identifiable, Codable {
             .reduce(0) {
                 $0 + (LongLengthUnit(rawValue: $1.unit)?.convert(($1.distance ?? 0), to: targetUnit) ?? 0)
             }
+    }
+    
+    func getLastFinishedSetLog() -> SetLog? {
+        return setLogs
+            .filter { $0.completed || $0.skipped }
+            .sorted { $0.end < $1.end }
+            .last
+    }
+    
+    func getMaxOneRM() -> Double {
+        return setLogs.map({ $0.getOneRM() }).max() ?? 0
     }
     
     enum CodingKeys: String, CodingKey {

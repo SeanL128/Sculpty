@@ -1,37 +1,25 @@
 //
-//  MenuPopup.swift
+//  WorkoutMenuPopup.swift
 //  Sculpty
 //
-//  Created by Sean Lindsay on 5/11/25.
+//  Created by Sean Lindsay on 5/24/25.
 //
 
 import SwiftUI
 import MijickPopups
 
-struct MenuPopup: CenterPopup {
-    private var title: String
-    private var options: [String]
+struct WorkoutMenuPopup: CenterPopup {
+    private var options: [Workout]
     
-    @Binding var selection: String?
+    @Binding var selection: Workout?
     
-    init(title: String, options: [String], selection: Binding<String?>) {
-        self.title = title
+    init(options: [Workout], selection: Binding<Workout?>) {
         self.options = options
         self._selection = selection
     }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Spacer()
-                
-                Text(title)
-                    .bodyText(size: 18, weight: .bold)
-                    .multilineTextAlignment(.center)
-                
-                Spacer()
-            }
-            
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(options, id: \.self) { option in
@@ -43,13 +31,12 @@ struct MenuPopup: CenterPopup {
                             }
                         } label: {
                             HStack(alignment: .center) {
-                                Text(option)
+                                Text(option.name)
                                     .bodyText(size: 16, weight: selection == option ? .bold : .regular)
                                     .textColor()
                                     .multilineTextAlignment(.leading)
                                 
-                                if let selection = selection,
-                                   selection == option {
+                                if selection == option {
                                     Spacer()
                                     
                                     Image(systemName: "checkmark")

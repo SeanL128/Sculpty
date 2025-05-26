@@ -31,10 +31,9 @@ struct EditWeightSetPopup: CenterPopup {
     @FocusState private var isWeightFocused: Bool
     
     @AppStorage(UserKeys.showRir.rawValue) private var showRir: Bool = false
-    @AppStorage(UserKeys.showSetTimer.rawValue) private var showSetTimer: Bool = false
     
     init (set: ExerciseSet,
-          log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet())),
+          log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet(), unit: UnitsManager.weight)),
           restTime: Double = 0,
           timer: MTimer? = nil,
           disableType: Bool = false) {
@@ -76,14 +75,15 @@ struct EditWeightSetPopup: CenterPopup {
                             .padding(.horizontal, 3)
                             .font(Font.system(size: 16))
                     }
+                    .textColor()
                 }
                 
                 Button {
                     if log.index > -1 {
-                        let weight = updatedSet.measurement == "x" ? Double(updatedSet.reps ?? 0) * (updatedSet.weight ?? 0) : 0
+                        let weight = Double(updatedSet.reps ?? 0) * (updatedSet.weight ?? 0)
                         
                         log.unskip()
-                        log.finish(reps: updatedSet.reps ?? 0, weight: weight, measurement: updatedSet.measurement ?? "x")
+                        log.finish(reps: updatedSet.reps ?? 0, weight: weight)
                         
                         if let restTimer = restTimer {
                             var time: Double = 0
@@ -110,40 +110,30 @@ struct EditWeightSetPopup: CenterPopup {
                         .padding(.horizontal, 3)
                         .font(Font.system(size: 16))
                 }
+                .textColor()
             }
             .padding(.top, 30)
-            .padding(.bottom, -20)
             
             HStack {
                 // Reps
-                HStack {
-                    Input(title: "Reps", text: $repsString, isFocused: _isRepsFocused, type: .numberPad)
-                        .onChange(of: repsString) {
-                            repsString = repsString.filter { "0123456789".contains($0) }
-                            
-                            if repsString.isEmpty {
-                                updatedSet.reps = 0
-                            }
-                            
-                            updatedSet.reps = (repsString as NSString).integerValue
+                Input(title: "Reps", text: $repsString, isFocused: _isRepsFocused, type: .numberPad)
+                    .onChange(of: repsString) {
+                        repsString = repsString.filter { "0123456789".contains($0) }
+                        
+                        if repsString.isEmpty {
+                            updatedSet.reps = 0
                         }
-                        .frame(maxWidth: 125)
-                    
-                    Spacer()
-                }
+                        
+                        updatedSet.reps = (repsString as NSString).integerValue
+                    }
+                    .frame(maxWidth: 115)
                 
                 Spacer()
-                
-                // Measurement
-                Picker("Measurement", selection: $updatedSet.measurement) {
-                    ForEach(["x", "min", "sec"], id: \.self) { measurement in
-                        Text("\(measurement)")
-                            .tag(measurement)
-                    }
-                }
-                .pickerStyle(.wheel)
-                .frame(maxWidth: 75, maxHeight: 125)
-                .clipped()
+                    
+                Text("x")
+                    .bodyText(size: 20)
+                    .textColor()
+                    .frame(maxWidth: 45)
                 
                 Spacer()
                  
@@ -161,7 +151,7 @@ struct EditWeightSetPopup: CenterPopup {
                                 updatedSet.weight = (weightString as NSString).doubleValue
                             }
                         }
-                        .frame(maxWidth: 125)
+                        .frame(maxWidth: 145)
                     
                     Picker("Unit", selection: $updatedSet.unit) {
                         Text("lbs")
@@ -175,11 +165,10 @@ struct EditWeightSetPopup: CenterPopup {
                             .tag("kg")
                     }
                     .pickerStyle(.wheel)
-                    .frame(maxWidth: 65, maxHeight: 100)
+                    .frame(maxWidth: 55, maxHeight: 100)
                     .clipped()
-                    .padding(.leading, 5)
                 }
-                .frame(maxWidth: 190)
+                .frame(maxWidth: 230)
             }
             .padding(.bottom, 10)
             
@@ -215,42 +204,6 @@ struct EditWeightSetPopup: CenterPopup {
                 }
                 .padding(.top, 10)
             }
-            
-            if log.index != -1 && showSetTimer && ["min", "sec"].contains(set.measurement) {
-                HStack {
-                    Text("\(setTime.toString())")
-                    
-                    Spacer()
-                    
-                    Button {
-                        if setTimerStatus == .notStarted {
-                            try? startTimer()
-                        } else if setTimerStatus == .paused {
-                            try? setTimer.resume()
-                        } else {
-                            setTimer.pause()
-                        }
-                    } label: {
-                        Image(systemName: (setTimerStatus == .notStarted || setTimerStatus == .paused) ? "play.fill" : "pause.fill")
-                            .padding(.horizontal, 3)
-                            .font(Font.system(size: 16))
-                    }
-                    .buttonStyle(.borderedProminent)
-                    
-                    Button {
-                        setTimer.cancel()
-                    } label: {
-                        Image(systemName: "stop.fill")
-                            .padding(.horizontal, 3)
-                            .font(Font.system(size: 16))
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(setTimer.timerStatus != .running && setTimer.timerStatus != .paused)
-                }
-                .font(.title2)
-                .padding(.top, 10)
-                .padding(.horizontal, 30)
-            }
         }
         .padding(.horizontal)
         .padding(.bottom)
@@ -259,13 +212,7 @@ struct EditWeightSetPopup: CenterPopup {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
                 
-                Button {
-                    isRepsFocused = false
-                    isWeightFocused = false
-                } label: {
-                    Text("Done")
-                }
-                .disabled(!(isRepsFocused || isWeightFocused))
+                KeyboardDoneButton(focusStates: [_isRepsFocused, _isWeightFocused])
             }
         }
     }

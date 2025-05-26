@@ -46,22 +46,6 @@ struct CalorieCalculator: View {
         }
     }
     
-    @State private var selectedUnitsIndex: Int = UserDefaults.standard.object(forKey: UserKeys.units.rawValue) as? String == "Metric" ? 1 : 0
-    private let unitOptionsMap: [Int: UnitOptions] = [
-        0: .imperial,
-        1: .metric
-    ]
-    private var selectedUnits: UnitOptions {
-        get { unitOptionsMap[selectedUnitsIndex] ?? .imperial }
-        set {
-            if newValue == .metric {
-                selectedUnitsIndex = 1
-            } else {
-                selectedUnitsIndex = 0
-            }
-        }
-    }
-    
     @AppStorage(UserKeys.units.rawValue) private var units: String = "Imperial"
     
     var body: some View {
@@ -108,40 +92,35 @@ struct CalorieCalculator: View {
                     .bodyText(size: 12)
                     .textColor()
                 
-                BRHSegmentedControl(
-                    selectedIndex: $selectedUnitsIndex,
-                    labels: ["Imperial", "Metric"],
-                    builder: { _, label in
-                        Text(label)
-                            .bodyText(size: 16)
-                    },
-                    styler: { state in
-                        switch state {
-                        case .none:
-                            return ColorManager.secondary
-                        case .touched:
-                            return ColorManager.secondary.opacity(0.7)
-                        case .selected:
-                            return ColorManager.text
-                        }
+                Button {
+                    Task {
+                        await UnitMenuPopup(selection: $units).present()
                     }
-                )
-                .onChange(of: selectedUnitsIndex) {
-                    let unitOption = unitOptionsMap[selectedUnitsIndex] ?? .imperial
-                    UserDefaults.standard.set(unitOption.rawValue, forKey: UserKeys.units.rawValue)
-                    
-                    units = selectedUnits.rawValue
+                } label: {
+                    HStack {
+                        if units == "Imperial" {
+                            Text("Imperial (mi, ft, in, lbs)")
+                                .bodyText(size: 16)
+                        } else {
+                            Text("Metric (km, m, cm, kg)")
+                                .bodyText(size: 16)
+                        }
+                        
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(Font.system(size: 12))
+                    }
                 }
+                .textColor()
             }
             
             // Weight
-            Input(title: "Weight", text: $weight, isFocused: _isWeightFocused, unit: selectedUnits == .imperial ? "lbs" : "kg", type: .decimalPad)
+            Input(title: "Weight", text: $weight, isFocused: _isWeightFocused, unit: units == "Imperial" ? "lbs" : "kg", type: .decimalPad)
                 .onChange(of: weight) {
                     weight = weight.filteredNumeric()
                 }
             
             // Height Input
-            if selectedUnits == .imperial {
+            if units == "Imperial" {
                 HStack(alignment: .bottom) {
                     Input(title: "Height", text: $heightFeet, isFocused: _isHeightFeetFocused, unit: "ft", type: .numberPad)
                         .onChange(of: heightFeet) {
@@ -160,7 +139,7 @@ struct CalorieCalculator: View {
                     }
             }
             
-            // Activity Level Picker
+            // Activity Level Menu
             VStack(alignment: .leading) {
                 Text("Activity Level")
                     .bodyText(size: 12)
@@ -239,16 +218,7 @@ struct CalorieCalculator: View {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
                 
-                Button {
-                    isAgeFocused = false
-                    isWeightFocused = false
-                    isHeightFeetFocused = false
-                    isHeightInchesFocused = false
-                    isHeightCmFocused = false
-                } label: {
-                    Text("Done")
-                }
-                .disabled(!(isAgeFocused || isWeightFocused || isHeightFeetFocused || isHeightInchesFocused || isHeightCmFocused))
+                KeyboardDoneButton(focusStates: [_isAgeFocused, _isWeightFocused, _isHeightFeetFocused, _isHeightInchesFocused, _isHeightCmFocused])
             }
         }
     }
@@ -258,9 +228,9 @@ struct CalorieCalculator: View {
             return 0
         }
         
-        let heightCmDouble: Double = selectedUnits == .imperial ? ((Double(heightFeet) ?? 0) * 30.48 + (Double(heightInches) ?? 0) * 2.54) : (Double(heightCm) ?? 0)
+        let heightCmDouble: Double = units == "Imperial" ? ((Double(heightFeet) ?? 0) * 30.48 + (Double(heightInches) ?? 0) * 2.54) : (Double(heightCm) ?? 0)
         
-        let weightKg = selectedUnits == .imperial ? weightDouble * 0.453592 : weightDouble
+        let weightKg = units == "Imperial" ? weightDouble * 0.453592 : weightDouble
         
         let bmr: Double
         if selectedGender == .male {
@@ -287,42 +257,4 @@ struct CalorieCalculator: View {
     }
 }
 
-enum Gender: String {
-    case male = "Male"
-    case female = "Female"
-}
 
-enum UnitOptions: String {
-    case imperial = "Imperial"
-    case metric = "Metric"
-}
-
-enum ActivityLevel: String, CaseIterable {
-    case sedentary = "Sedentary (little or no exercise)"
-    case light = "Light (1-3 days/week)"
-    case moderate = "Moderate (3-5 days/week)"
-    case active = "Active (6-7 days/week)"
-    case veryActive = "Very Active (athlete, intense training)"
-    
-    static let displayOrder: [ActivityLevel] = [
-        .sedentary, .light, .moderate, .active, .veryActive
-    ]
-    
-    static let stringDisplayOrder: [String] = displayOrder.map(\.self.rawValue)
-}
-
-enum Goal: String, CaseIterable {
-    case lose = "Lose Weight"
-    case maintain = "Maintain Weight"
-    case gain = "Gain Weight"
-    
-    static let displayOrder: [Goal] = [
-        .lose, .maintain, .gain
-    ]
-    
-    static let stringDisplayOrder: [String] = displayOrder.map(\.self.rawValue)
-}
-
-#Preview {
-    CalorieCalculator()
-}

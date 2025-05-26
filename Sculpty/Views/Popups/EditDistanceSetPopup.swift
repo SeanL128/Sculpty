@@ -35,7 +35,7 @@ struct EditDistanceSetPopup: CenterPopup {
     @AppStorage(UserKeys.showSetTimer.rawValue) private var showSetTimer: Bool = false
     
     init (set: ExerciseSet,
-          log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet())),
+          log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet(), unit: UnitsManager.longLength)),
           restTime: Double = 0,
           timer: MTimer? = nil,
           disableType: Bool = false) {
@@ -78,6 +78,7 @@ struct EditDistanceSetPopup: CenterPopup {
                             .padding(.horizontal, 3)
                             .font(Font.system(size: 16))
                     }
+                    .textColor()
                 }
                 
                 Button {
@@ -110,6 +111,7 @@ struct EditDistanceSetPopup: CenterPopup {
                         .padding(.horizontal, 3)
                         .font(Font.system(size: 16))
                 }
+                .textColor()
             }
             .padding(.top, 30)
             .padding(.bottom, -20)
@@ -122,7 +124,7 @@ struct EditDistanceSetPopup: CenterPopup {
                         }
                     }
                     .pickerStyle(.wheel)
-                    .frame(width: 75, height: 100)
+                    .frame(width: 65, height: 100)
                     .clipped()
 
                     Picker("Minutes", selection: $minutes) {
@@ -131,7 +133,7 @@ struct EditDistanceSetPopup: CenterPopup {
                         }
                     }
                     .pickerStyle(.wheel)
-                    .frame(width: 75, height: 100)
+                    .frame(width: 65, height: 100)
                     .clipped()
 
                     Picker("Seconds", selection: $seconds) {
@@ -140,7 +142,7 @@ struct EditDistanceSetPopup: CenterPopup {
                         }
                     }
                     .pickerStyle(.wheel)
-                    .frame(width: 75, height: 100)
+                    .frame(width: 65, height: 100)
                     .clipped()
                 }
                 .onChange(of: hours) { updateTime() }
@@ -160,7 +162,7 @@ struct EditDistanceSetPopup: CenterPopup {
                                 updatedSet.distance = (distanceString as NSString).doubleValue
                             }
                         }
-                        .frame(maxWidth: 125)
+                        .frame(maxWidth: 150)
                     
                     Picker("Unit", selection: $updatedSet.unit) {
                         Text("mi")
@@ -211,19 +213,22 @@ struct EditDistanceSetPopup: CenterPopup {
                         }
                     } label: {
                         Image(systemName: (setTimerStatus == .notStarted || setTimerStatus == .paused) ? "play.fill" : "pause.fill")
-                            .padding(.horizontal, 3)
+                            .padding(.horizontal, 1)
+                            .padding(.vertical, -4)
                             .font(Font.system(size: 16))
                     }
-                    .buttonStyle(.borderedProminent)
+                    .textColor()
+                    .buttonStyle(RoundedFilledButtonStyle())
                     
                     Button {
                         setTimer.cancel()
                     } label: {
                         Image(systemName: "stop.fill")
-                            .padding(.horizontal, 3)
+                            .padding(.horizontal, 1)
+                            .padding(.vertical, -4)
                             .font(Font.system(size: 16))
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(RoundedFilledButtonStyle())
                     .disabled(setTimer.timerStatus != .running && setTimer.timerStatus != .paused)
                 }
                 .font(.title2)
@@ -238,12 +243,7 @@ struct EditDistanceSetPopup: CenterPopup {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
                 
-                Button {
-                    isDistanceFocused = false
-                } label: {
-                    Text("Done")
-                }
-                .disabled(!isDistanceFocused)
+                KeyboardDoneButton(focusStates: [_isDistanceFocused])
             }
         }
     }

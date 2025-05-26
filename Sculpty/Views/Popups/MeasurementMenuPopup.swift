@@ -20,28 +20,33 @@ struct MeasurementMenuPopup: CenterPopup {
     }
     
     var body: some View {
-        VStack(alignment: .center, spacing: 12) {
-            ForEach(options.sorted { MeasurementType.displayOrder.firstIndex(of: $0.value)! < MeasurementType.displayOrder.firstIndex(of: $1.value)! }, id: \.key) { str, type in
-                Button {
-                    selection = type
-                    
-                    Task {
-                        await dismissLastPopup()
-                    }
-                } label: {
-                    HStack(alignment: .center) {
-                        Text(str)
-                            .bodyText(size: 16, weight: (selection == type) ? .bold : .regular)
+        ScrollView {
+            VStack(alignment: .center, spacing: 12) {
+                ForEach(options.sorted { MeasurementType.displayOrder.firstIndex(of: $0.value)! < MeasurementType.displayOrder.firstIndex(of: $1.value)! }, id: \.key) { str, type in
+                    Button {
+                        selection = type
                         
-                        Image(systemName: "chevron.right")
-                            .padding(.leading, -2)
-                            .font(Font.system(size: 10))
+                        Task {
+                            await dismissLastPopup()
+                        }
+                    } label: {
+                        HStack(alignment: .center) {
+                            Text(str)
+                                .bodyText(size: 16, weight: (selection == type) ? .bold : .regular)
+                            
+                            Image(systemName: "chevron.right")
+                                .padding(.leading, -2)
+                                .font(Font.system(size: 10))
+                        }
                     }
                     .textColor()
                 }
             }
+            .padding(.vertical, 20)
         }
-        .padding(.vertical, 20)
+        .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
+        .scrollIndicators(.hidden)
+        .scrollContentBackground(.hidden)
         .padding(.horizontal, 8)
     }
     

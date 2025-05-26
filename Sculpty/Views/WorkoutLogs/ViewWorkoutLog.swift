@@ -46,10 +46,6 @@ struct ViewWorkoutLog: View {
                     .bodyText(size: 16)
                     .textColor()
                 
-                Text("Score: \(log.getScore().formatted())")
-                    .bodyText(size: 16)
-                    .textColor()
-                
                 
                 Spacer()
                     .frame(height: 5)
@@ -111,9 +107,8 @@ struct ViewWorkoutLog: View {
                                     if set.exerciseType == .weight,
                                        let reps = set.reps,
                                        let weight = set.weight,
-                                       let measurement = set.measurement,
                                        let rir = set.rir {
-                                        Text("\(reps) \(measurement) \(String(format: "%0.2f", weight)) \(set.unit) \((showRir && [.main, .dropSet].contains(set.type)) ? "(\(rir)\((rir) == "Failure" ? "" : " RIR"))" : "")")
+                                        Text("\(reps) x \(String(format: "%0.2f", weight)) \(set.unit) \((showRir && [.main, .dropSet].contains(set.type)) ? "(\(rir)\((rir) == "Failure" ? "" : " RIR"))" : "")")
                                             .bodyText(size: 16)
                                             .textColor()
                                     } else if set.exerciseType == .distance,

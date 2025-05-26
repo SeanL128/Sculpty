@@ -121,8 +121,8 @@ struct ViewWorkout: View {
                                                         .padding(.leading, -2)
                                                         .font(Font.system(size: 8))
                                                 }
-                                                .textColor()
                                             }
+                                            .textColor()
                                         }
                                         
                                         if !exercise.specNotes.isEmpty {
@@ -139,8 +139,8 @@ struct ViewWorkout: View {
                                                         .padding(.leading, -2)
                                                         .font(Font.system(size: 8))
                                                 }
-                                                .textColor()
                                             }
+                                            .textColor()
                                         }
                                     }
                                     .padding(.bottom, 6)
@@ -155,9 +155,8 @@ struct ViewWorkout: View {
                                                 
                                                 Task {
                                                     if let setIndex = exercises[exerciseIndex].sets.firstIndex(where: { $0.id == eSet.id }),
-                                                       let setLogIndex = exerciseLog.setLogs.firstIndex(where: { $0.id == setLog.id }) {
-                                                        let type = exercises[exerciseLogIndex].sets[setIndex].exerciseType
-                                                        
+                                                       let setLogIndex = exerciseLog.setLogs.firstIndex(where: { $0.id == setLog.id }),
+                                                       let type = exercises[exerciseLogIndex].exercise?.type {
                                                         if type == .weight {
                                                             await EditWeightSetPopup(set: exercises[exerciseLogIndex].sets[setIndex], log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer).present()
                                                         } else if type == .distance {
@@ -229,19 +228,23 @@ struct ViewWorkout: View {
                 totalTimer?.invalidate()
                 totalTimer = nil
             }
-            .onChange(of: finishWorkoutSelection) {
-                if finishWorkoutSelection {
-                    log.finishWorkout()
-                    
-                    try? context.save()
-                }
-            }
             .onChange(of: allLogsDone) {
                 if allLogsDone && !log.completed {
                     Task {
                         try? await Task.sleep(for: .seconds(0.7))
                         
                         await ConfirmationPopup(selection: $finishWorkoutSelection, promptText: "Finish \(log.workout.name)?", cancelText: "Continue", confirmText: "Finish").present()
+                    }
+                }
+            }
+            .onChange(of: finishWorkoutSelection) {
+                if finishWorkoutSelection {
+                    log.finishWorkout()
+                    
+                    try? context.save()
+                    
+                    Task {
+                        await WorkoutSummaryPopup(log: log).present()
                     }
                 }
             }
@@ -252,7 +255,7 @@ struct ViewWorkout: View {
         let interval = Int(time)
         let seconds = interval % 60
         let minutes = (interval / 60) % 60
-        let hours = (interval / (60*60)) % 60
+        let hours = (interval / 3600) % 60
         
         return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
     }

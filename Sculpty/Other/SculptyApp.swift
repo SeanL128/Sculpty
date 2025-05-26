@@ -25,15 +25,13 @@ struct SculptyApp: App {
         }
     }
     
-    @AppStorage(UserKeys.accent.rawValue) private var accentColorHex: String = "#C50A2B"
-    
     static var hasLaunched: Bool = false
     
     var body: some Scene {
         WindowGroup {
             Main()
                 .preferredColorScheme(colorScheme)
-                .accentColor(Color(hex: accentColorHex))
+                .accentColor(Color("AccentColor"))
                 .dynamicTypeSize(.medium ... .xxxLarge)
                 .modelContainer(for: [Workout.self, Exercise.self, WorkoutLog.self, CaloriesLog.self, Measurement.self])
                 .registerPopups(id: .shared) { config in config

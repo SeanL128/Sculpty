@@ -24,9 +24,10 @@ struct ExerciseInfo: View {
     @State private var restMinutes: Int
     @State private var restSeconds: Int
     @State private var specNotes: String
-    @State private var tempoArr: [String]
+    @State private var tempo: String
     
     @FocusState private var isNotesFocused: Bool
+    @FocusState private var isTempoFocused: Bool
     
     @AppStorage(UserKeys.showTempo.rawValue) private var showTempo: Bool = false
     
@@ -44,46 +45,50 @@ struct ExerciseInfo: View {
         let initialRestMinutes = Int(restTotalSeconds / 60)
         let initialRestSeconds = Int(restTotalSeconds - Double(initialRestMinutes * 60))
         let initialSpecNotes = workoutExercise.specNotes
-        var initialTempoArr = workoutExercise.tempo.map { String($0) }
+        var initialTempo = workoutExercise.tempo
         
-        while initialTempoArr.count < 4 {
-            initialTempoArr.append("0")
+        while initialTempo.count < 4 {
+            initialTempo.append("0")
         }
-        if initialTempoArr.count > 4 {
-            initialTempoArr = Array(initialTempoArr.prefix(4))
+        if initialTempo.count > 4 {
+            initialTempo = String(initialTempo.prefix(4))
         }
         
         _restMinutes = State(initialValue: initialRestMinutes)
         _restSeconds = State(initialValue: initialRestSeconds)
         _specNotes = State(initialValue: initialSpecNotes)
-        _tempoArr = State(initialValue: initialTempoArr)
+        _tempo = State(initialValue: initialTempo)
     }
 
     var body: some View {
         ContainerView(title: "Exercise Info", spacing: 20) {
-            NavigationLink(destination: SelectExercise(selectedExercise: $exercise)) {
-                HStack(alignment: .center) {
-                    Text(exercise?.name ?? "Select Exercise")
-                        .bodyText(size: 20, weight: .bold)
+            VStack(alignment: .leading, spacing: 20) {
+                NavigationLink(destination: SelectExercise(selectedExercise: $exercise)) {
+                    HStack(alignment: .center) {
+                        Text(exercise?.name ?? "Select Exercise")
+                            .bodyText(size: 20, weight: .bold)
+                        
+                        Image(systemName: "chevron.right")
+                            .padding(.leading, -2)
+                            .font(Font.system(size: 14, weight: .bold))
+                    }
+                }
+                .textColor()
+                .onChange(of: exercise) {
+                    if exercise?.type != type {
+                        workoutExercise.sets.removeAll()
+                    }
                     
-                    Image(systemName: "chevron.right")
-                        .padding(.leading, -2)
-                        .font(Font.system(size: 14, weight: .bold))
+                    type = exercise?.type
+                }
+                
+                if let notes = workoutExercise.exercise?.notes, !notes.isEmpty {
+                    Text(workoutExercise.exercise!.notes)
+                        .bodyText(size: 16)
+                        .textColor()
                 }
             }
-            .textColor()
-            
-            if let notes = workoutExercise.exercise?.notes, !notes.isEmpty {
-                Text(workoutExercise.exercise!.notes)
-                    .bodyText(size: 16)
-                    .textColor()
-            }
-            
-            Input(title: "Workout-Specific Notes", text: $specNotes, isFocused: _isNotesFocused, axis: .vertical)
-            
-            
-            Spacer()
-                .frame(height: 5)
+            .padding(.bottom, 20)
             
             
             ForEach(workoutExercise.sets.sorted { $0.index < $1.index }, id: \.id) { set in
@@ -139,6 +144,7 @@ struct ExerciseInfo: View {
                         .bodyText(size: 16)
                 }
             }
+            .textColor()
             
             
             Spacer()
@@ -182,7 +188,7 @@ struct ExerciseInfo: View {
                 VStack(alignment: .leading) {
                     Button {
                         Task {
-                            await TempoPopup(tempo: tempoArr.joined(separator: "")).present()
+                            await TempoPopup(tempo: tempo).present()
                         }
                     } label: {
                         HStack {
@@ -196,39 +202,27 @@ struct ExerciseInfo: View {
                     }
                     .textColor()
                     
-                    HStack (spacing: 5) {
-                        Picker("Tempo 1", selection: $tempoArr[0]) {
-                            tempoPicker()
-                        }
-                        .pickerStyle(WheelPickerStyle())
-                        .frame(maxWidth: 50)
-                        .clipped()
-                        
-                        Picker("Tempo 2", selection: $tempoArr[1]) {
-                            tempoPicker()
-                        }
-                        .pickerStyle(WheelPickerStyle())
-                        .frame(maxWidth: 50)
-                        .clipped()
-                        
-                        Picker("Tempo 3", selection: $tempoArr[2]) {
-                            tempoPicker()
-                        }
-                        .pickerStyle(WheelPickerStyle())
-                        .frame(maxWidth: 50)
-                        .clipped()
-                        
-                        Picker("Tempo 4", selection: $tempoArr[3]) {
-                            tempoPicker()
-                        }
-                        .pickerStyle(WheelPickerStyle())
-                        .frame(maxWidth: 50)
-                        .clipped()
+                    HStack(alignment: .bottom) {
+                        TextField("", text: $tempo, prompt: Text("0000"))
+                            .keyboardType(.numberPad)
+                            .focused($isTempoFocused)
+                            .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isTempoFocused }, set: { isTempoFocused = $0 }), text: $tempo))
+                            .onChange(of: tempo) {
+                                if tempo.count > 4 {
+                                    tempo = String(tempo.prefix(4))
+                                }
+                            }
                     }
-                    .frame(height: 65)
-                    .padding(.bottom)
+                    .frame(maxWidth: 50)
                 }
             }
+            
+            
+            Spacer()
+                .frame(height: 5)
+            
+            
+            Input(title: "Workout-Specific Notes", text: $specNotes, isFocused: _isNotesFocused, axis: .vertical)
             
             
             Spacer()
@@ -241,18 +235,14 @@ struct ExerciseInfo: View {
                 Text("Save")
                     .bodyText(size: 18)
             }
+            .textColor()
             .disabled(!isValid)
         }
         .toolbar {
             ToolbarItemGroup (placement: .keyboard) {
                 Spacer()
                 
-                Button {
-                    isNotesFocused = false
-                } label: {
-                    Text("Done")
-                }
-                .disabled(!isNotesFocused)
+                KeyboardDoneButton(focusStates: [_isNotesFocused, _isTempoFocused])
             }
         }
     }
@@ -265,16 +255,12 @@ struct ExerciseInfo: View {
         
         workoutExercise.specNotes = specNotes
         
-        workoutExercise.tempo = tempoArr.joined()
+        while tempo.count < 4 {
+            tempo.append("0")
+        }
+        workoutExercise.tempo = tempo
         
         dismiss()
-    }
-    
-    private func tempoPicker() -> some View {
-        ForEach(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"], id: \.self) { num in
-            Text(num)
-                .tag(num)
-        }
     }
 }
  

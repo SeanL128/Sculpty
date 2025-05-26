@@ -79,12 +79,8 @@ struct UpsertWorkout: View {
             }
         }) {
             Input(title: "Name", text: $workoutName, isFocused: _isNameFocused, autoCapitalization: .words)
-            
-            Input(title: "Notes", text: $workoutNotes, isFocused: _isNotesFocused, axis: .vertical)
-            
-            
-            Spacer()
-                .frame(height: 5)
+                .frame(maxWidth: 250)
+                .padding(.bottom, 20)
             
             
             ForEach(exercises.sorted { $0.index < $1.index }, id: \.id) { exercise in
@@ -146,6 +142,14 @@ struct UpsertWorkout: View {
                         .bodyText(size: 16)
                 }
             }
+            .textColor()
+            
+            
+            Spacer()
+                .frame(height: 5)
+            
+            
+            Input(title: "Notes", text: $workoutNotes, isFocused: _isNotesFocused, axis: .vertical)
             
             
             Spacer()
@@ -158,19 +162,14 @@ struct UpsertWorkout: View {
                 Text("Save")
                     .bodyText(size: 18)
             }
+            .textColor()
             .disabled(!isValid)
         }
         .toolbar {
             ToolbarItemGroup (placement: .keyboard) {
                 Spacer()
                 
-                Button {
-                    isNameFocused = false
-                    isNotesFocused = false
-                } label: {
-                    Text("DONE")
-                }
-                .disabled(!(isNameFocused || isNotesFocused))
+                KeyboardDoneButton(focusStates: [_isNameFocused, _isNotesFocused])
             }
         }
         .onAppear() {

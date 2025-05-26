@@ -71,36 +71,39 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                backgroundColor.ignoresSafeArea()
+                backgroundColor
+                    .ignoresSafeArea(edges: .all)
                 
                 VStack(alignment: .leading) {
-                    HStack(alignment: .center) {
-                        if showBackButton {
-                            Button {
-                                if let onDismiss = onDismiss {
-                                    onDismiss()
+                    if !title.isEmpty {
+                        HStack(alignment: .center) {
+                            if showBackButton {
+                                Button {
+                                    if let onDismiss = onDismiss {
+                                        onDismiss()
+                                    }
+                                    
+                                    dismiss()
+                                } label: {
+                                    Image(systemName: "chevron.left")
+                                        .padding(.trailing, 6)
+                                        .font(Font.system(size: 22))
                                 }
-                                
-                                dismiss()
-                            } label: {
-                                Image(systemName: "chevron.left")
-                                    .padding(.trailing, 6)
-                                    .font(Font.system(size: 22))
+                                .textColor()
                             }
-                            .textColor()
+                            
+                            Text(title.uppercased())
+                                .headingText(size: 32)
+                                .textColor()
+                            
+                            Spacer()
+                            
+                            if let trailingItems = trailingItems {
+                                trailingItems
+                            }
                         }
-                        
-                        Text(title.uppercased())
-                            .headingText(size: 32)
-                            .textColor()
-                        
-                        Spacer()
-                        
-                        if let trailingItems = trailingItems {
-                            trailingItems
-                        }
+                        .padding(.bottom)
                     }
-                    .padding(.bottom)
                     
                     ScrollView {
                         VStack(alignment: .leading, spacing: spacing) {

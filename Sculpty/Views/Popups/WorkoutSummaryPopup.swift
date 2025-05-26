@@ -39,10 +39,6 @@ struct WorkoutSummaryPopup: CenterPopup {
                     .bodyText(size: 16)
                     .textColor()
                 
-                Text("Score: \(log.getScore().formatted())")
-                    .bodyText(size: 16)
-                    .textColor()
-                
                 
                 Spacer()
                     .frame(height: 5)

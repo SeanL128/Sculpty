@@ -36,9 +36,8 @@ struct SetView: View {
             if set.exerciseType == .weight,
                let reps = set.reps,
                let weight = set.weight,
-               let measurement = set.measurement,
                let rir = set.rir {
-                Text("\(reps) \(measurement) \(String(format: "%0.2f", weight)) \(set.unit) \((showRir && [.main, .dropSet].contains(set.type)) ? "(\(rir)\((rir) == "Failure" ? "" : " RIR"))" : "")")
+                Text("\(reps) x \(String(format: "%0.2f", weight)) \(set.unit) \((showRir && [.main, .dropSet].contains(set.type)) ? "(\(rir)\((rir) == "Failure" ? "" : " RIR"))" : "")")
                     .bodyText(size: 16)
                     .textColor()
                     .strikethrough(setLog?.completed ?? false || setLog?.skipped ?? false)

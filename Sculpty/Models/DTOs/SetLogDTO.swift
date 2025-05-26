@@ -20,7 +20,6 @@ struct SetLogDTO: Identifiable, Codable {
     // Weight-specific
     var reps: Int?
     var weight: Double?
-    var measurement: String?
     
     // Distance-specific
     var time: Double?
@@ -37,7 +36,6 @@ struct SetLogDTO: Identifiable, Codable {
         self.unit = model.unit
         self.reps = model.reps
         self.weight = model.weight
-        self.measurement = model.measurement
         self.time = model.time
         self.distance = model.distance
     }
@@ -46,15 +44,14 @@ struct SetLogDTO: Identifiable, Codable {
         let setLog: SetLog
         
         if let setId = setId, let set = setMap?[setId] {
-            if set.exerciseType == .weight, let measurement = set.measurement {
-                setLog = SetLog(index: index, set: set, unit: unit, measurement: measurement)
+            if set.exerciseType == .weight {
+                setLog = SetLog(index: index, set: set, unit: unit)
             } else {
                 setLog = SetLog(index: index, set: set, unit: unit)
             }
         } else {
             // Create a basic SetLog with default unit and measurement to avoid validation errors
-            let defaultMeasurement = "x" // Default measurement for weight
-            setLog = SetLog(index: index, set: ExerciseSet(), unit: unit.isEmpty ? UnitsManager.weight : unit, measurement: defaultMeasurement)
+            setLog = SetLog(index: index, set: ExerciseSet(), unit: unit.isEmpty ? UnitsManager.weight : unit)
         }
         
         setLog.id = id
@@ -64,7 +61,6 @@ struct SetLogDTO: Identifiable, Codable {
         setLog.end = end
         setLog.reps = reps ?? 0
         setLog.weight = weight ?? 0
-        setLog.measurement = measurement ?? "x"
         setLog.time = time ?? 0
         setLog.distance = distance ?? 0
         

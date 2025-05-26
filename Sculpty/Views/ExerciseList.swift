@@ -83,12 +83,7 @@ struct ExerciseList: View {
             ToolbarItemGroup (placement: .keyboard) {
                 Spacer()
                 
-                Button {
-                    isSearchFocused = false
-                } label: {
-                    Text("Done")
-                }
-                .disabled(!isSearchFocused)
+                KeyboardDoneButton(focusStates: [_isSearchFocused])
             }
         }
     }

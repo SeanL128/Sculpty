@@ -119,7 +119,7 @@ struct Home: View {
                                 HStack {
                                     ProgressView(value: log.getProgress())
                                         .frame(height: 6)
-                                        .frame(width: 95)
+                                        .frame(width: 100)
                                         .progressViewStyle(.linear)
                                         .accentColor(ColorManager.text)
                                         .scaleEffect(x: 1, y: 1.5, anchor: .center)
@@ -127,8 +127,7 @@ struct Home: View {
                                     
                                     Text("\((log.getProgress() * 100).rounded().formatted())%")
                                         .statsText(size: 16)
-                                        .padding(.leading, 4)
-                                        .frame(width: 55)
+                                        .frame(width: 40)
                                 }
                                 
                                 Image(systemName: "chevron.right")
@@ -297,12 +296,16 @@ struct Home: View {
                         
                         VStack(alignment: .leading, spacing: 0) {
                             HStack(spacing: 0) {
-                                Text("\(latest.type.rawValue) - ")
-                                    .bodyText(size: 18, weight: .bold)
+                                Text("\(latest.type.rawValue) (")
+                                    .bodyText(size: 18)
                                     .textColor()
                                 
                                 Text("\(latest.measurement.formatted())\(latest.unit)")
                                     .statsText(size: 18)
+                                    .textColor()
+                                
+                                Text(")")
+                                    .bodyText(size: 18)
                                     .textColor()
                             }
                             
@@ -316,12 +319,16 @@ struct Home: View {
                             
                             VStack(alignment: .leading, spacing: 0) {
                                 HStack(spacing: 0) {
-                                    Text("\(measurement.type.rawValue) - ")
+                                    Text("\(measurement.type.rawValue) (")
                                         .bodyText(size: 14)
                                         .textColor()
                                     
                                     Text("\(measurement.measurement.formatted())\(measurement.unit)")
                                         .statsText(size: 14)
+                                        .textColor()
+                                    
+                                    Text(")")
+                                        .bodyText(size: 14)
                                         .textColor()
                                 }
                                 
@@ -332,12 +339,6 @@ struct Home: View {
                         }
                     }
                 } else {
-                    VStack(alignment: .leading) {
-                        Text("Ready to track your progress")
-                            .bodyText(size: 16)
-                    }
-                    .textColor()
-                    
                     VStack(alignment: .leading) {
                         Text("Ready to track your measurements")
                             .bodyText(size: 16)
@@ -427,45 +428,4 @@ struct Home: View {
         
         log = todaysLog!
     }
-}
-
-struct WorkoutDisplay: View {
-    let workout: Workout
-    let log: WorkoutLog
-    
-    var body: some View {
-        NavigationLink(destination: ViewWorkout(log: log)) {
-            HStack(alignment: .center) {
-                Text(workout.name)
-                    .bodyText(size: 18, weight: .bold)
-                    .truncationMode(.tail)
-                
-                Spacer()
-                
-                HStack {
-                    ProgressView(value: log.getProgress())
-                        .frame(height: 6)
-                        .frame(width: 95)
-                        .progressViewStyle(.linear)
-                        .accentColor(ColorManager.text)
-                        .scaleEffect(x: 1, y: 1.5, anchor: .center)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                    
-                    Text("\((log.getProgress() * 100).rounded().formatted())%")
-                        .statsText(size: 16)
-                        .padding(.leading, 4)
-                        .frame(width: 55)
-                }
-                
-                Image(systemName: "chevron.right")
-                    .padding(.leading, -2)
-                    .font(Font.system(size: 12))
-            }
-        }
-        .textColor()
-    }
-}
-
-#Preview {
-    Home()
 }

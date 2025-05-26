@@ -81,15 +81,14 @@ let defaultExercises = [
     Exercise(name: "Wide-Grip Cable Row", muscleGroup: .back, type: .weight),
     Exercise(name: "Machine Row", muscleGroup: .back, type: .weight),
     Exercise(name: "Dumbbell Lateral Raise", muscleGroup: .shoulders, type: .weight),
+    Exercise(name: "Cable Lateral Raise", muscleGroup: .shoulders, type: .weight),
     Exercise(name: "One-Arm Cable Lateral Raise", muscleGroup: .shoulders, type: .weight),
     Exercise(name: "Rope Triceps Pushdown", muscleGroup: .triceps, type: .weight),
-    Exercise(name: "One-Arm Rope Triceps Pushdown", muscleGroup: .triceps, type: .weight),
     Exercise(name: "Straight Bar Triceps Pushdown", muscleGroup: .triceps, type: .weight),
-    Exercise(name: "One-Arm Straight Bar Triceps Pushdown", muscleGroup: .triceps, type: .weight),
+    Exercise(name: "One-Arm Triceps Pushdown", muscleGroup: .triceps, type: .weight),
     Exercise(name: "Rope Overhead Triceps Extension", muscleGroup: .triceps, type: .weight),
-    Exercise(name: "One-Arm Rope Overhead Triceps Extension", muscleGroup: .triceps, type: .weight),
     Exercise(name: "Straight Bar Overhead Triceps Extension", muscleGroup: .triceps, type: .weight),
-    Exercise(name: "One-Arm Straight Bar Overhead Triceps Extension", muscleGroup: .triceps, type: .weight),
+    Exercise(name: "One-Arm Overhead Triceps Extension", muscleGroup: .triceps, type: .weight),
     Exercise(name: "Dumbbell Calf Raise", muscleGroup: .calves, type: .weight),
     Exercise(name: "Barbell Calf Raise", muscleGroup: .calves, type: .weight),
     Exercise(name: "Smith Machine Calf Raise", muscleGroup: .calves, type: .weight),
@@ -97,6 +96,18 @@ let defaultExercises = [
     Exercise(name: "Dumbbell Bulgarian Split Squat", muscleGroup: .quads, type: .weight),
     Exercise(name: "Barbell Bulgarian Split Squat", muscleGroup: .quads, type: .weight),
     Exercise(name: "Smith Machine Bulgarian Split Squat", muscleGroup: .quads, type: .weight),
+    Exercise(name: "Dumbbell Wrist Curl", muscleGroup: .forearms, type: .weight),
+    Exercise(name: "Barbell Wrist Curl", muscleGroup: .forearms, type: .weight),
+    Exercise(name: "Cable Wrist Curl", muscleGroup: .forearms, type: .weight),
+    Exercise(name: "EZ-Bar Wrist Curl", muscleGroup: .forearms, type: .weight),
+    Exercise(name: "Dumbbell Reverse Wrist Curl", muscleGroup: .forearms, type: .weight),
+    Exercise(name: "Barbell Reverse Wrist Curl", muscleGroup: .forearms, type: .weight),
+    Exercise(name: "Cable Reverse Wrist Curl", muscleGroup: .forearms, type: .weight),
+    Exercise(name: "EZ-Bar Reverse Wrist Curl", muscleGroup: .forearms, type: .weight),
+    Exercise(name: "Dumbbell Reverse Curl", muscleGroup: .forearms, type: .weight),
+    Exercise(name: "Barbell Reverse Curl", muscleGroup: .forearms, type: .weight),
+    Exercise(name: "Cable Reverse Curl", muscleGroup: .forearms, type: .weight),
+    Exercise(name: "EZ-Bar Reverse Curl", muscleGroup: .forearms, type: .weight),
     Exercise(name: "Treadmill Walking", muscleGroup: .cardio, type: .distance),
     Exercise(name: "Treadmill Running", muscleGroup: .cardio, type: .distance),
     Exercise(name: "Walking", muscleGroup: .cardio, type: .distance),
@@ -120,6 +131,12 @@ func formatDate(_ date: Date) -> String {
 func formatDateNoYear(_ date: Date) -> String {
     let dateFormatter = DateFormatter()
     dateFormatter.dateFormat = "MMM dd"
+    return dateFormatter.string(from: date)
+}
+
+func formatMonth(_ date: Date) -> String {
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "MMM ''yy"
     return dateFormatter.string(from: date)
 }
 
@@ -312,7 +329,9 @@ final class ColorManager {
 }
 
 final class UnitsManager {
-    static let selection = UserDefaults.standard.object(forKey: UserKeys.units.rawValue) as? String ?? "Imperial"
+    static var selection: String {
+        UserDefaults.standard.object(forKey: UserKeys.units.rawValue) as? String ?? "Imperial"
+    }
     
     static var weight: String {
         switch selection {
@@ -328,7 +347,7 @@ final class UnitsManager {
         case "Metric":
             return "cm"
         default:
-            return "inch"
+            return "in"
         }
     }
     
@@ -368,10 +387,6 @@ extension View {
         self.foregroundStyle(ColorManager.secondary)
     }
     
-    func accentColor() -> some View {
-        self.foregroundStyle(Color.accentColor)
-    }
-    
     // Fonts
     
     // Heading: 32
@@ -406,28 +421,6 @@ extension String {
     func filteredNumericWithoutDecimalPoint() -> String {
         let filtered = self.filter { "0123456789".contains($0) }
         return filtered.count > 1 ? filtered.replacing(/^([+-])?0+/, with: {$0.output.1 ?? ""}) : filtered
-    }
-}
-
-extension Color {
-    init(hex: String) {
-        let hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
-        var rgb: UInt64 = 0
-        Scanner(string: hexSanitized.replacingOccurrences(of: "#", with: "")).scanHexInt64(&rgb)
-
-        let r = Double((rgb >> 16) & 0xFF) / 255.0
-        let g = Double((rgb >> 8) & 0xFF) / 255.0
-        let b = Double(rgb & 0xFF) / 255.0
-
-        self.init(red: r, green: g, blue: b)
-    }
-
-    func toHex() -> String? {
-        guard let components = UIColor(self).cgColor.components else { return nil }
-        let r = Int(components[0] * 255)
-        let g = Int(components[1] * 255)
-        let b = Int(components[2] * 255)
-        return String(format: "#%02X%02X%02X", r, g, b)
     }
 }
 

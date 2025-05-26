@@ -25,10 +25,6 @@ class SetLog: Identifiable, Codable {
     // Weight-specific
     var reps: Int?
     var weight: Double?
-    var measurement: String?
-    var volume: Double {
-        (WeightUnit(rawValue: unit)?.convert((weight ?? 0), to: WeightUnit(rawValue: UnitsManager.weight) ?? .lbs) ?? 0) * Double(reps ?? 0)
-    }
     
     // Distance-specific
     var time: Double?
@@ -36,8 +32,7 @@ class SetLog: Identifiable, Codable {
     
     init(index: Int,
          set: ExerciseSet,
-         unit: String = UnitsManager.weight,
-         measurement: String) {
+         unit: String) {
         self.index = index
         self.set = set
         completed = false
@@ -46,29 +41,10 @@ class SetLog: Identifiable, Codable {
         end = Date(timeIntervalSince1970: 0)
         self.unit = unit
         
-        reps = 0
-        weight = 0
-        self.measurement = measurement
-    }
-    
-    init(index: Int,
-         set: ExerciseSet,
-         unit: String = UnitsManager.longLength) {
-        self.index = index
-        self.set = set
-        completed = false
-        skipped = false
-        start = Date()
-        end = Date(timeIntervalSince1970: 0)
-        self.unit = unit
-        
-        if set.exerciseType == .weight,
-           let measurement = set.measurement {
+        if set.exerciseType == .weight {
             reps = 0
             weight = 0
-            self.measurement = measurement
-        }
-        else if set.exerciseType == .distance {
+        } else if set.exerciseType == .distance {
             time = 0
             distance = 0
         }
@@ -83,25 +59,21 @@ class SetLog: Identifiable, Codable {
         end = Date(timeIntervalSince1970: 0)
         unit = set.unit
         
-        if set.exerciseType == .weight,
-           let measurement = set.measurement {
+        if set.exerciseType == .weight {
             reps = 0
             weight = 0
-            self.measurement = measurement
-        }
-        else if set.exerciseType == .distance {
+        } else if set.exerciseType == .distance {
             time = 0
             distance = 0
         }
     }
     
-    func finish(reps: Int, weight: Double, measurement: String) {
+    func finish(reps: Int, weight: Double) {
         completed = true
         end = Date()
         
         self.reps = reps
         self.weight = weight * Double(reps)
-        self.measurement = measurement
     }
     
     func finish(time: Double, distance: Double) {
@@ -127,6 +99,7 @@ class SetLog: Identifiable, Codable {
     
     func skip() {
         skipped = true
+        completed = false
         end = Date()
         
         if reps != nil && weight != nil {
@@ -151,8 +124,18 @@ class SetLog: Identifiable, Codable {
         }
     }
     
+    func getOneRM() -> Double {
+        if set?.type == .main,
+           let weight = weight,
+           let reps = reps {
+            return round((weight * (1.0 + (Double(reps) / 30.0))) * 100) / 100.0
+        } else {
+            return 0
+        }
+    }
+    
     enum CodingKeys: String, CodingKey {
-        case id, index, completed, skipped, start, end, unit, reps, weight, measurement, time, distance
+        case id, index, completed, skipped, start, end, unit, reps, weight, time, distance
     }
     
     required init(from decoder: Decoder) throws {
@@ -167,7 +150,6 @@ class SetLog: Identifiable, Codable {
         
         reps = try container.decodeIfPresent(Int.self, forKey: .reps)
         weight = try container.decodeIfPresent(Double.self, forKey: .weight)
-        measurement = try container.decodeIfPresent(String.self, forKey: .measurement)
         
         time = try container.decodeIfPresent(Double.self, forKey: .time)
         distance = try container.decodeIfPresent(Double.self, forKey: .distance)
@@ -185,7 +167,6 @@ class SetLog: Identifiable, Codable {
         
         try container.encode(reps, forKey: .reps)
         try container.encode(weight, forKey: .weight)
-        try container.encode(measurement, forKey: .measurement)
         
         try container.encode(time, forKey: .time)
         try container.encode(distance, forKey: .distance)

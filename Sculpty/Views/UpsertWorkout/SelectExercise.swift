@@ -77,8 +77,8 @@ struct SelectExercise: View {
                                             .font(Font.system(size: 16))
                                     }
                                 }
-                                .textColor()
                             }
+                            .textColor()
                         }
                     }
                 }
@@ -88,12 +88,7 @@ struct SelectExercise: View {
             ToolbarItemGroup (placement: .keyboard) {
                 Spacer()
                 
-                Button {
-                    isSearchFocused = false
-                } label: {
-                    Text("Done")
-                }
-                .disabled(!isSearchFocused)
+                KeyboardDoneButton(focusStates: [_isSearchFocused])
             }
         }
         .onChange(of: selectedExercise) {

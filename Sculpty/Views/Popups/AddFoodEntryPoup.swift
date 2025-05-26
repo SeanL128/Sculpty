@@ -100,6 +100,7 @@ struct AddFoodEntryPoup: CenterPopup {
                 Text("Save")
                     .bodyText(size: 18)
             }
+            .textColor()
             .disabled(!isValid)
         }
         .padding(.vertical, 20)
@@ -108,16 +109,7 @@ struct AddFoodEntryPoup: CenterPopup {
             ToolbarItemGroup (placement: .keyboard) {
                 Spacer()
                 
-                Button {
-                    isNameFocused = false
-                    isCaloriesFocused = false
-                    isCarbsFocused = false
-                    isProteinFocused = false
-                    isFatFocused = false
-                } label: {
-                    Text("Done")
-                }
-                .disabled(!(isNameFocused || isCaloriesFocused || isCarbsFocused || isProteinFocused || isFatFocused))
+                KeyboardDoneButton(focusStates: [_isNameFocused, _isCaloriesFocused, _isCarbsFocused, _isProteinFocused, _isFatFocused])
             }
         }
     }

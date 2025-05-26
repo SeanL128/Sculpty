@@ -16,6 +16,7 @@ class Exercise: Identifiable, Codable {
     var notes: String
     var muscleGroup: MuscleGroup?
     var type: ExerciseType
+    var hidden: Bool = false
     
     init(name: String = "", notes: String = "", muscleGroup: MuscleGroup = MuscleGroup.other, type: ExerciseType = .weight) {
         self.name = name
@@ -24,8 +25,12 @@ class Exercise: Identifiable, Codable {
         self.type = type
     }
     
+    func hide() {
+        hidden = true
+    }
+    
     enum CodingKeys: String, CodingKey {
-        case id, name, notes, muscleGroup, type
+        case id, name, notes, muscleGroup, type, hidden
     }
     
     required init(from decoder: Decoder) throws {
@@ -35,6 +40,7 @@ class Exercise: Identifiable, Codable {
         notes = try container.decode(String.self, forKey: .notes)
         muscleGroup = try container.decodeIfPresent(MuscleGroup.self, forKey: .muscleGroup)
         type = try container.decode(ExerciseType.self, forKey: .type)
+        hidden = try container.decode(Bool.self, forKey: .hidden)
     }
     
     func encode(to encoder: Encoder) throws {
@@ -44,5 +50,6 @@ class Exercise: Identifiable, Codable {
         try container.encode(notes, forKey: .notes)
         try container.encode(muscleGroup, forKey: .muscleGroup)
         try container.encode(type, forKey: .type)
+        try container.encode(hidden, forKey: .hidden)
     }
 }

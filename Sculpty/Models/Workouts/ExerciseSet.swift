@@ -21,7 +21,6 @@ class ExerciseSet: Identifiable, Codable {
     // Weight-specific
     var reps: Int?
     var weight: Double?
-    var measurement: String?
     var rir: String?
     
     // Distance-specific
@@ -48,7 +47,6 @@ class ExerciseSet: Identifiable, Codable {
          reps: Int = 12,
          weight: Double = 40,
          unit: String = UnitsManager.weight,
-         measurement: String = "x",
          type: ExerciseSetType = .main,
          rir: String = "0") {
         self.index = index
@@ -58,7 +56,6 @@ class ExerciseSet: Identifiable, Codable {
         
         self.reps = reps
         self.weight = weight
-        self.measurement = measurement
         self.rir = rir
     }
     
@@ -87,7 +84,6 @@ class ExerciseSet: Identifiable, Codable {
             
             reps = 12
             weight = 40
-            measurement = "x"
             rir = "0"
         } else if type == .distance {
             unit = UnitsManager.longLength
@@ -110,11 +106,9 @@ class ExerciseSet: Identifiable, Codable {
         if set.exerciseType == .weight,
            let reps = set.reps,
            let weight = set.weight,
-           let measurement = set.measurement,
            let rir = set.rir {
             self.reps = reps
             self.weight = weight
-            self.measurement = measurement
             self.rir = rir
         }
         
@@ -143,7 +137,7 @@ class ExerciseSet: Identifiable, Codable {
     }
     
     enum CodingKeys: String, CodingKey {
-        case id, index, unit, type, exerciseType, reps, weight, measurement, rir, time, distance
+        case id, index, unit, type, exerciseType, reps, weight, rir, time, distance
     }
     
     required init(from decoder: Decoder) throws {
@@ -156,7 +150,6 @@ class ExerciseSet: Identifiable, Codable {
         
         reps = try container.decodeIfPresent(Int.self, forKey: .reps)
         weight = try container.decodeIfPresent(Double.self, forKey: .weight)
-        measurement = try container.decodeIfPresent(String.self, forKey: .measurement)
         rir = try container.decodeIfPresent(String.self, forKey: .rir)
         
         time = try container.decodeIfPresent(Double.self, forKey: .time)
@@ -173,7 +166,6 @@ class ExerciseSet: Identifiable, Codable {
         
         try container.encode(reps, forKey: .reps)
         try container.encode(weight, forKey: .weight)
-        try container.encode(measurement, forKey: .measurement)
         try container.encode(rir, forKey: .rir)
         
         try container.encode(time, forKey: .time)

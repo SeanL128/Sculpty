@@ -120,9 +120,6 @@ class DataTransferManager {
                 for set in workoutExercise.sets {
                     set.workoutExercise = workoutExercise
                     
-                    if set.exerciseType == .weight && set.measurement == nil {
-                        set.measurement = "x"
-                    }
                     if set.unit.isEmpty {
                         set.unit = set.exerciseType == .weight ? UnitsManager.weight : UnitsManager.longLength
                     }

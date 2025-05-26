@@ -10,7 +10,7 @@ import Charts
 import BRHSegmentedControl
 
 struct StatsLineChart: View {
-    @State private var selectedRangeIndex: Int = 0
+    @Binding var selectedRangeIndex: Int
     private var endDate: Date {
         Date()
     }
@@ -20,7 +20,7 @@ struct StatsLineChart: View {
         case 1: return Calendar.current.date(byAdding: .day, value: -29, to: endDate) ?? endDate
         case 2: return Calendar.current.date(byAdding: .month, value: -6, to: endDate) ?? endDate
         case 3: return Calendar.current.date(byAdding: .year, value: -1, to: endDate) ?? endDate
-        default: return data.sorted { $0.date > $1.date }.last?.date ?? (Calendar.current.date(byAdding: .day, value: -6, to: endDate) ?? endDate)
+        default: return Calendar.current.date(byAdding: .year, value: -5, to: endDate) ?? endDate
         }
     }
     
@@ -39,13 +39,13 @@ struct StatsLineChart: View {
                         x: .value("Date", item.date),
                         y: .value("Value", item.value)
                     )
-                    .foregroundStyle(ColorManager.text)
+                    .foregroundStyle(Color.accentColor)
                     
                     PointMark(
                         x: .value("Date", item.date),
                         y: .value("Value", item.value)
                     )
-                    .foregroundStyle(ColorManager.text)
+                    .foregroundStyle(Color.accentColor)
                     .symbolSize(36)
                     
                     AreaMark(
@@ -54,7 +54,7 @@ struct StatsLineChart: View {
                     )
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [ColorManager.text.opacity(0.2), .clear],
+                            colors: [Color.accentColor.opacity(0.2), .clear],
                             startPoint: .top,
                             endPoint: .bottom
                         )
@@ -66,7 +66,7 @@ struct StatsLineChart: View {
                         x: .value("Selected Date", selectedDate)
                     )
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                    .foregroundStyle(ColorManager.secondary)
+                    .foregroundStyle(ColorManager.text)
                 }
             }
             .chartXScale(domain: startDate...endDate)
@@ -76,7 +76,9 @@ struct StatsLineChart: View {
                     AxisGridLine()
                     AxisValueLabel {
                         if let date = value.as(Date.self) {
-                            Text(formatDateNoYear(date))
+                            Text(selectedRangeIndex <= 1 ? formatDateNoYear(date) : formatMonth(date))
+                                .bodyText(size: 12)
+                                .textColor()
                         }
                     }
                 }
@@ -87,6 +89,8 @@ struct StatsLineChart: View {
                     AxisValueLabel {
                         if let numericValue = value.as(Double.self) {
                             Text("\(numericValue.formatted())\(units)")
+                                .bodyText(size: 12)
+                                .textColor()
                         }
                     }
                 }
@@ -120,8 +124,10 @@ struct StatsLineChart: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(formatDateWithTime(date))
                         .bodyText(size: 12)
-                    Text("Value: \(value.formatted())")
+                        .textColor()
+                    Text("\(value.formatted())\(units)")
                         .bodyText(size: 12, weight: .bold)
+                        .textColor()
                 }
                 .padding(8)
                 .background(
@@ -136,25 +142,6 @@ struct StatsLineChart: View {
         }
         .padding()
         .animation(.easeInOut(duration: 0.5), value: selectedRangeIndex)
-        
-        BRHSegmentedControl(
-            selectedIndex: $selectedRangeIndex,
-            labels: ["Last 7 Days", "Last 30 Days", "Last 6 Months", "Last Year", "All Time"],
-            builder: { _, label in
-                Text(label)
-                    .bodyText(size: 12)
-            },
-            styler: { state in
-                switch state {
-                case .none:
-                    return ColorManager.secondary
-                case .touched:
-                    return ColorManager.secondary.opacity(0.7)
-                case .selected:
-                    return ColorManager.text
-                }
-            }
-        )
     }
     
     private func findClosestDate(at position: CGFloat, proxy: ChartProxy, geometry: GeometryProxy) -> Date? {

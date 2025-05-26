@@ -1,22 +1,17 @@
 //
-//  MenuPopup.swift
+//  AppearanceMenuPopup.swift
 //  Sculpty
 //
-//  Created by Sean Lindsay on 5/11/25.
+//  Created by Sean Lindsay on 5/25/25.
 //
 
 import SwiftUI
 import MijickPopups
 
-struct MenuPopup: CenterPopup {
-    private var title: String
-    private var options: [String]
+struct AppearanceMenuPopup: CenterPopup {
+    @Binding var selection: Appearance
     
-    @Binding var selection: String?
-    
-    init(title: String, options: [String], selection: Binding<String?>) {
-        self.title = title
-        self.options = options
+    init(selection: Binding<Appearance>) {
         self._selection = selection
     }
     
@@ -25,7 +20,7 @@ struct MenuPopup: CenterPopup {
             HStack {
                 Spacer()
                 
-                Text(title)
+                Text("Dark Mode")
                     .bodyText(size: 18, weight: .bold)
                     .multilineTextAlignment(.center)
                 
@@ -34,22 +29,21 @@ struct MenuPopup: CenterPopup {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    ForEach(options, id: \.self) { option in
+                    ForEach(Appearance.displayOrder, id: \.id) { appearance in
                         Button {
-                            selection = option
+                            selection = appearance
                             
                             Task {
                                 await dismissLastPopup()
                             }
                         } label: {
                             HStack(alignment: .center) {
-                                Text(option)
-                                    .bodyText(size: 16, weight: selection == option ? .bold : .regular)
+                                Text(appearance.rawValue)
+                                    .bodyText(size: 16, weight: selection == appearance ? .bold : .regular)
                                     .textColor()
                                     .multilineTextAlignment(.leading)
                                 
-                                if let selection = selection,
-                                   selection == option {
+                                if selection == appearance {
                                     Spacer()
                                     
                                     Image(systemName: "checkmark")

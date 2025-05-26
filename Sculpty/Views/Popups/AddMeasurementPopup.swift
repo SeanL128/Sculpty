@@ -24,13 +24,13 @@ struct AddMeasurementPopup: CenterPopup {
             
             if type == .bodyFat {
                 output += " (%)"
-            } else if selectedUnits == .metric {
+            } else if selectedUnits == "Metric" {
                 if type == .weight {
                     output += " (kg)"
                 } else if type != .other {
                     output += " (cm)"
                 }
-            } else if selectedUnits == .imperial {
+            } else if selectedUnits == "Imperial" {
                 if type == .weight {
                     output += " (lbs)"
                 } else if type == .height {
@@ -50,21 +50,7 @@ struct AddMeasurementPopup: CenterPopup {
     @State private var heightFeet: String = ""
     @State private var heightInches: String = ""
     
-    @State private var selectedUnitsIndex: Int = UserDefaults.standard.object(forKey: UserKeys.units.rawValue) as? String == "Metric" ? 1 : 0
-    private let unitOptionsMap: [Int: UnitOptions] = [
-        0: .imperial,
-        1: .metric
-    ]
-    private var selectedUnits: UnitOptions {
-        get { unitOptionsMap[selectedUnitsIndex] ?? .imperial }
-        set {
-            if newValue == .metric {
-                selectedUnitsIndex = 1
-            } else {
-                selectedUnitsIndex = 0
-            }
-        }
-    }
+    @AppStorage(UserKeys.units.rawValue) private var selectedUnits: String = "Imperial"
     
     @FocusState var isTextFocused: Bool
     @FocusState var isHeightFeetFocused: Bool
@@ -73,13 +59,13 @@ struct AddMeasurementPopup: CenterPopup {
     var units: String {
         if type == .bodyFat {
             return "%"
-        } else if selectedUnits == .metric {
+        } else if selectedUnits == "Metric" {
             if type == .weight {
                 return "kg"
             } else {
                 return "cm"
             }
-        } else if selectedUnits == .imperial {
+        } else if selectedUnits == "Imperial" {
             if type == .weight {
                 return "lbs"
             } else {
@@ -99,7 +85,7 @@ struct AddMeasurementPopup: CenterPopup {
     }
     
     var body: some View {
-        VStack(alignment: .center, spacing: 12) {
+        VStack(alignment: .center, spacing: 20) {
             Button {
                 Task {
                     await MeasurementMenuPopup(options: typeOptions, selection: $type).present()
@@ -110,13 +96,13 @@ struct AddMeasurementPopup: CenterPopup {
                     
                     if type == .bodyFat {
                         output += " (%)"
-                    } else if selectedUnits == .metric {
+                    } else if selectedUnits == "Metric" {
                         if type == .weight {
                             output += " (kg)"
                         } else if type != .other {
                             output += " (cm)"
                         }
-                    } else if selectedUnits == .imperial {
+                    } else if selectedUnits == "Imperial" {
                         if type == .weight {
                             output += " (lbs)"
                         } else if type == .height {
@@ -137,8 +123,8 @@ struct AddMeasurementPopup: CenterPopup {
                         .padding(.leading, -2)
                         .font(Font.system(size: 10))
                 }
-                .textColor()
             }
+            .textColor()
             .padding(.bottom, 2)
             .onChange(of: type) {
                 text = ""
@@ -148,34 +134,25 @@ struct AddMeasurementPopup: CenterPopup {
             
             // Unit Selector
             if type != .bodyFat {
-                VStack(alignment: .leading) {
-                    Text("Units")
-                        .bodyText(size: 12)
-                        .textColor()
-                    
-                    BRHSegmentedControl(
-                        selectedIndex: $selectedUnitsIndex,
-                        labels: ["Imperial", "Metric"],
-                        builder: { _, label in
-                            Text(label)
+                Button {
+                    Task {
+                        await UnitMenuPopup(selection: $selectedUnits).present()
+                    }
+                } label: {
+                    HStack {
+                        if selectedUnits == "Imperial" {
+                            Text("Imperial (mi, ft, in, lbs)")
                                 .bodyText(size: 16)
-                        },
-                        styler: { state in
-                            switch state {
-                            case .none:
-                                return ColorManager.secondary
-                            case .touched:
-                                return ColorManager.secondary.opacity(0.7)
-                            case .selected:
-                                return ColorManager.text
-                            }
+                        } else {
+                            Text("Metric (km, m, cm, kg)")
+                                .bodyText(size: 16)
                         }
-                    )
-                    .onChange(of: selectedUnitsIndex) {
-                        let unitOption = unitOptionsMap[selectedUnitsIndex] ?? .imperial
-                        UserDefaults.standard.set(unitOption.rawValue, forKey: UserKeys.units.rawValue)
+                        
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(Font.system(size: 12))
                     }
                 }
+                .textColor()
             }
             
             // Input
@@ -184,7 +161,7 @@ struct AddMeasurementPopup: CenterPopup {
                     .bodyText(size: 12)
                     .textColor()
                 
-                if type == .height && selectedUnits == .imperial {
+                if type == .height && selectedUnits == "Imperial" {
                     HStack(alignment: .bottom) {
                         Input(title: "", text: $heightFeet, isFocused: _isHeightFeetFocused, unit: "ft", type: .numberPad)
                             .onChange(of: heightFeet) {
@@ -207,12 +184,12 @@ struct AddMeasurementPopup: CenterPopup {
             .padding(.vertical, 5)
             
             Button {
-                unfocus()
                 save()
             } label: {
                 Text("Save")
                     .bodyText(size: 18)
             }
+            .textColor()
             .disabled(!isValid)
         }
         .padding(.vertical, 20)
@@ -221,24 +198,13 @@ struct AddMeasurementPopup: CenterPopup {
             ToolbarItemGroup (placement: .keyboard) {
                 Spacer()
                 
-                Button {
-                    unfocus()
-                } label: {
-                    Text("Done")
-                }
-                .disabled(!(isTextFocused || isHeightFeetFocused || isHeightInchesFocused))
+                KeyboardDoneButton(focusStates: [_isTextFocused, _isHeightFeetFocused, _isHeightInchesFocused])
             }
         }
     }
     
-    private func unfocus() {
-        isTextFocused = false
-        isHeightFeetFocused = false
-        isHeightInchesFocused = false
-    }
-    
     private func save() {
-        if selectedUnits == .imperial && type == .height {
+        if selectedUnits == "Imperial" && type == .height {
             text = "\(((Double(heightFeet) ?? 0) * 12) + (Double(heightInches) ?? 0))"
         }
         
@@ -249,7 +215,7 @@ struct AddMeasurementPopup: CenterPopup {
         
         var unit: String = "%"
         if type != .bodyFat {
-            if selectedUnits == .imperial {
+            if selectedUnits == "Imperial" {
                 if type == .weight {
                     unit = "lbs"
                 } else {

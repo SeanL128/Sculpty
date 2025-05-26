@@ -24,33 +24,18 @@ class Measurement: Identifiable, Codable {
         self.type = type
     }
     
-    func getMeasurementString() -> String {
+    func getConvertedMeasurement() -> Double {
         // Weight
         if type == .weight {
-            return "\(WeightUnit.kg.convert(measurement, to: WeightUnit(rawValue: UnitsManager.weight)!).formatted())\(UnitsManager.weight)"
-        }
-        // Height
-        else if type == .height {
-            let unit = MediumLengthUnit(rawValue: UnitsManager.mediumLength)!
-            let height = MediumLengthUnit.m.convert(measurement, to: unit)
-            
-            if unit.rawValue == "ft" {
-                return "\(Int(height))ft\((height - (height.truncatingRemainder(dividingBy: 12))).isZero ? "" : " \(Int(height - (height.truncatingRemainder(dividingBy: 12))))in")"
-            } else {
-                return "\(height.formatted())m"
-            }
+            return WeightUnit(rawValue: unit)!.convert(measurement, to: WeightUnit(rawValue: UnitsManager.weight)!)
         }
         // Length
-        else if [.neck, .shoulders, .chest, .upperArmLeft, .upperArmRight, .forearmLeft, .forearmRight, .waist, .hips, .thighLeft, .thighRight, .calfLeft, .calfRight].contains(type) {
-            return "\(ShortLengthUnit.cm.convert(measurement, to: ShortLengthUnit(rawValue: UnitsManager.shortLength)!).formatted())\(UnitsManager.shortLength)"
+        else if [.height, .neck, .shoulders, .chest, .upperArmLeft, .upperArmRight, .forearmLeft, .forearmRight, .waist, .hips, .thighLeft, .thighRight, .calfLeft, .calfRight].contains(type) {
+            return ShortLengthUnit(rawValue: unit)!.convert(measurement, to: ShortLengthUnit(rawValue: UnitsManager.shortLength)!)
         }
-        // Percent
-        else if type == .bodyFat {
-            return "\(measurement.formatted())%"
-        }
-        // Other
+        // Percent/Other
         else {
-            return measurement.formatted()
+            return measurement
         }
     }
     

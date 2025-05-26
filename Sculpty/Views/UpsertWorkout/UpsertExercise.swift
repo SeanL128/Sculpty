@@ -40,12 +40,7 @@ struct UpsertExercise: View {
     var body: some View {
         ContainerView(title: "\(new ? "Add" : "Edit") Exercise", spacing: 20) {
             Input(title: "Name", text: $exercise.name, isFocused: _isNameFocused, autoCapitalization: .words)
-            
-            Input(title: "Notes", text: $exercise.notes, isFocused: _isNotesFocused, axis: .vertical)
-            
-            
-            Spacer()
-                .frame(height: 5)
+                .frame(maxWidth: 250)
             
             
             VStack(alignment: .leading) {
@@ -106,25 +101,27 @@ struct UpsertExercise: View {
                 .frame(height: 5)
             
             
+            Input(title: "Notes", text: $exercise.notes, isFocused: _isNotesFocused, axis: .vertical)
+            
+            
+            Spacer()
+                .frame(height: 5)
+            
+            
             Button {
                 save()
             } label: {
                 Text("Save")
                     .bodyText(size: 18)
             }
+            .textColor()
             .disabled(!isValid)
         }
         .toolbar {
             ToolbarItemGroup (placement: .keyboard) {
                 Spacer()
                 
-                Button {
-                    isNameFocused = false
-                    isNotesFocused = false
-                } label: {
-                    Text("Done")
-                }
-                .disabled(!(isNameFocused || isNotesFocused))
+                KeyboardDoneButton(focusStates: [_isNameFocused, _isNotesFocused])
             }
         }
         .onAppear() {

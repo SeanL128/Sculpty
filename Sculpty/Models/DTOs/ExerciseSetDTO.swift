@@ -18,7 +18,6 @@ struct ExerciseSetDTO: Identifiable, Codable {
     // Weight-specific
     var reps: Int?
     var weight: Double?
-    var measurement: String?
     var rir: String?
     
     // Distance-specific
@@ -33,7 +32,6 @@ struct ExerciseSetDTO: Identifiable, Codable {
         self.exerciseType = model.exerciseType
         self.reps = model.reps
         self.weight = model.weight
-        self.measurement = model.measurement
         self.rir = model.rir
         self.time = model.time
         self.distance = model.distance
@@ -48,7 +46,6 @@ struct ExerciseSetDTO: Identifiable, Codable {
                 reps: reps ?? 12,
                 weight: weight ?? 40,
                 unit: unit.isEmpty ? UnitsManager.weight : unit,
-                measurement: measurement ?? "x",
                 type: type,
                 rir: rir ?? "0"
             )

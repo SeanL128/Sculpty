@@ -24,13 +24,14 @@ struct Options: View {
     @AppStorage(UserKeys.units.rawValue) private var units: String = "Imperial"
     
     @AppStorage(UserKeys.appearance.rawValue) private var selectedAppearance: Appearance = .automatic
-    @AppStorage(UserKeys.accent.rawValue) private var accentColorHex: String = "#C50A2B"
     
     @AppStorage(UserKeys.disableAutoLock.rawValue) private var disableAutoLock: Bool = false
     @AppStorage(UserKeys.show1RM.rawValue) private var show1RM: Bool = false
     @AppStorage(UserKeys.showRir.rawValue) private var showRir: Bool = false
     @AppStorage(UserKeys.showSetTimer.rawValue) private var showSetTimer: Bool = false
     @AppStorage(UserKeys.showTempo.rawValue) private var showTempo: Bool = false
+    @AppStorage(UserKeys.targetWeeklyWorkouts.rawValue) private var targetWeeklyWorkouts: String = "3"
+    @FocusState private var isTargetWeeklyWorkoutsFocused: Bool
     
     @AppStorage(UserKeys.dailyCalories.rawValue) private var dailyCalories: String = "0"
     @FocusState private var isDailyCaloriesFocused: Bool
@@ -63,18 +64,14 @@ struct Options: View {
                 
                 HStack {
                     Text("Units")
-                        .bodyText(size: 18, weight: .bold)
+                        .bodyText(size: 18)
                     
                     Spacer()
                     
-                    Menu {
-                        Picker(selection: $units) {
-                            Text("Imperial (mi, ft, in, lbs)")
-                                .tag("Imperial")
-                            
-                            Text("Metric (km, m, cm, kg)")
-                                .tag("Metric")
-                        } label: {}
+                    Button {
+                        Task {
+                            await UnitMenuPopup(selection: $units).present()
+                        }
                     } label: {
                         HStack {
                             if units == "Imperial" {
@@ -89,7 +86,6 @@ struct Options: View {
                                 .font(Font.system(size: 14))
                         }
                     }
-                    .id(units)
                     .textColor()
                 }
             }
@@ -118,17 +114,14 @@ struct Options: View {
                 
                 HStack {
                     Text("Dark Mode")
-                        .bodyText(size: 18, weight: .bold)
+                        .bodyText(size: 18)
                     
                     Spacer()
                     
-                    Menu {
-                        Picker(selection: $selectedAppearance) {
-                            ForEach(Appearance.displayOrder, id: \.id) { appearance in
-                                Text("\(appearance.rawValue)")
-                                    .tag(appearance)
-                            }
-                        } label: {}
+                    Button {
+                        Task {
+                            await AppearanceMenuPopup(selection: $selectedAppearance).present()
+                        }
                     } label: {
                         HStack {
                             Text(selectedAppearance.rawValue)
@@ -138,39 +131,6 @@ struct Options: View {
                                 .font(Font.system(size: 14))
                         }
                     }
-                    .id(selectedAppearance)
-                    .textColor()
-                }
-                
-                HStack {
-                    Text("Accent Color")
-                        .bodyText(size: 18, weight: .bold)
-                    
-                    Spacer()
-                    
-                    Menu {
-                        Picker(selection: $accentColorHex) {
-                            ForEach(AccentColor.displayOrder, id: \.id) { color in
-                                Text("\(color.rawValue)")
-                                    .tag(AccentColor.colorMap[color]!)
-                            }
-                        } label: {}
-                    } label: {
-                        HStack {
-                            Circle()
-                                .fill(Color(hex: accentColorHex))
-                                .frame(width: 10, height: 10)
-                            
-                            if let accent = AccentColor.fromHex(accentColorHex) {
-                                Text(accent.rawValue)
-                                    .bodyText(size: 18)
-                            }
-                            
-                            Image(systemName: "chevron.up.chevron.down")
-                                .font(Font.system(size: 14))
-                        }
-                    }
-                    .id(accentColorHex)
                     .textColor()
                 }
             }
@@ -197,33 +157,51 @@ struct Options: View {
                 }
                 .textColor()
                 
+                HStack {
+                    Text("Weekly Workouts Goal")
+                        .bodyText(size: 18)
+                        .textColor()
+                    
+                    Spacer()
+                    
+                    Input(title: "", text: $targetWeeklyWorkouts, isFocused: _isTargetWeeklyWorkoutsFocused, type: .numberPad)
+                        .frame(maxWidth: 100)
+                        .onChange(of: targetWeeklyWorkouts) {
+                            targetWeeklyWorkouts = targetWeeklyWorkouts.filteredNumericWithoutDecimalPoint()
+                            
+                            if targetWeeklyWorkouts.isEmpty {
+                                targetWeeklyWorkouts = "0"
+                            }
+                        }
+                }
+                
                 Toggle(isOn: $disableAutoLock) {
                     Text("Disable Auto Lock")
-                        .bodyText(size: 18, weight: .bold)
+                        .bodyText(size: 18)
                         .textColor()
                 }
                 
                 Toggle(isOn: $showRir) {
                     Text("Enable RIR")
-                        .bodyText(size: 18, weight: .bold)
+                        .bodyText(size: 18)
                         .textColor()
                 }
                 
                 Toggle(isOn: $show1RM) {
                     Text("Enable 1RM")
-                        .bodyText(size: 18, weight: .bold)
+                        .bodyText(size: 18)
                         .textColor()
                 }
                 
                 Toggle(isOn: $showTempo) {
                     Text("Enable Tempo")
-                        .bodyText(size: 18, weight: .bold)
+                        .bodyText(size: 18)
                         .textColor()
                 }
                 
                 Toggle(isOn: $showSetTimer) {
                     Text("Enable Set Timers")
-                        .bodyText(size: 18, weight: .bold)
+                        .bodyText(size: 18)
                         .textColor()
                 }
             }
@@ -232,7 +210,7 @@ struct Options: View {
             Spacer()
                 .frame(height: 5)
             
-            // MARK: Calorie Tracking
+            // MARK: Calories
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     HStack(alignment: .center) {
@@ -245,7 +223,7 @@ struct Options: View {
                     }
                     .frame(width: 25)
                     
-                    Text("CALORIE TRACKING")
+                    Text("CALORIES")
                         .headingText(size: 24)
                 }
                 .textColor()
@@ -253,7 +231,7 @@ struct Options: View {
                 VStack(alignment: .leading) {
                     HStack {
                         Text("Daily Calories Goal")
-                            .bodyText(size: 18, weight: .bold)
+                            .bodyText(size: 18)
                             .textColor()
                         
                         Spacer()
@@ -275,10 +253,10 @@ struct Options: View {
                             
                             Image(systemName: "chevron.right")
                                 .padding(.leading, -2)
-                                .font(Font.system(size: 12, weight: .bold))
+                                .font(Font.system(size: 10))
                         }
                     }
-                    .bodyText(size: 16)
+                    .bodyText(size: 14)
                     .textColor()
                 }
             }
@@ -307,19 +285,19 @@ struct Options: View {
                 
                 Toggle(isOn: $includeWarmUp) {
                     Text("Include Warm Up Sets")
-                        .bodyText(size: 18, weight: .bold)
+                        .bodyText(size: 18)
                         .textColor()
                 }
                 
                 Toggle(isOn: $includeDropSet) {
                     Text("Include Drop Sets")
-                        .bodyText(size: 18, weight: .bold)
+                        .bodyText(size: 18)
                         .textColor()
                 }
                 
                 Toggle(isOn: $includeCoolDown) {
                     Text("Include Cool Down Sets")
-                        .bodyText(size: 18, weight: .bold)
+                        .bodyText(size: 18)
                         .textColor()
                 }
             }
@@ -352,13 +330,13 @@ struct Options: View {
                     } label: {
                         HStack(alignment: .center) {
                             Text("Back Up All Data")
-                                .bodyText(size: 18, weight: .bold)
+                                .bodyText(size: 18)
                             
                             Spacer()
                             
                             Image(systemName: "chevron.right")
                                 .padding(.leading, -2)
-                                .font(Font.system(size: 12, weight: .bold))
+                                .font(Font.system(size: 12))
                         }
                     }
                     .textColor()
@@ -369,13 +347,13 @@ struct Options: View {
                 } label: {
                     HStack(alignment: .center) {
                         Text("Export Workout Logs to CSV")
-                            .bodyText(size: 18, weight: .bold)
+                            .bodyText(size: 18)
                         
                         Spacer()
                         
                         Image(systemName: "chevron.right")
                             .padding(.leading, -2)
-                            .font(Font.system(size: 12, weight: .bold))
+                            .font(Font.system(size: 12))
                     }
                 }
                 .textColor()
@@ -385,13 +363,13 @@ struct Options: View {
                 } label: {
                     HStack(alignment: .center) {
                         Text("Export Calories Data to CSV")
-                            .bodyText(size: 18, weight: .bold)
+                            .bodyText(size: 18)
                         
                         Spacer()
                         
                         Image(systemName: "chevron.right")
                             .padding(.leading, -2)
-                            .font(Font.system(size: 12, weight: .bold))
+                            .font(Font.system(size: 12))
                     }
                 }
                 .textColor()
@@ -403,13 +381,13 @@ struct Options: View {
                 } label: {
                     HStack(alignment: .center) {
                         Text("Reset Data")
-                            .bodyText(size: 18, weight: .bold)
+                            .bodyText(size: 18)
                         
                         Spacer()
                         
                         Image(systemName: "chevron.right")
                             .padding(.leading, -2)
-                            .font(Font.system(size: 12, weight: .bold))
+                            .font(Font.system(size: 12))
                     }
                 }
                 .textColor()
@@ -455,7 +433,7 @@ struct Options: View {
             // MARK: Misc
             VStack(alignment: .center, spacing: 8) {
                 Link("Website", destination: URL(string: "https://sculpty.app")!)
-                    .bodyText(size: 18, weight: .bold)
+                    .bodyText(size: 18)
                 
                 if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String, let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
                     Text("Sculpty Version \(version) Build \(build)")
@@ -468,12 +446,7 @@ struct Options: View {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
                 
-                Button {
-                    isDailyCaloriesFocused = false
-                } label: {
-                    Text("Done")
-                }
-                .disabled(!isDailyCaloriesFocused)
+                KeyboardDoneButton(focusStates: [_isDailyCaloriesFocused, _isTargetWeeklyWorkoutsFocused])
             }
         }
     }
