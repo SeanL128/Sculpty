@@ -266,13 +266,35 @@ struct BorderedToFilledButtonStyle: ButtonStyle {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(ColorManager.secondary, lineWidth: 2)
             )
-            .foregroundColor(configuration.isPressed ? ColorManager.background : ColorManager.text)
+            .foregroundStyle(configuration.isPressed ? ColorManager.background : ColorManager.text)
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
     }
 }
 
+struct DisabledBorderedToFilledButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(10)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(ColorManager.secondary)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(ColorManager.secondary, lineWidth: 2)
+            )
+            .foregroundStyle(ColorManager.background.opacity(0.6))
+    }
+}
+
 struct FilledToBorderedButtonStyle: ButtonStyle {
+    var color: Color
+    
+    init(color: Color = ColorManager.text) {
+        self.color = color
+    }
+    
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .padding(10)
@@ -285,53 +307,38 @@ struct FilledToBorderedButtonStyle: ButtonStyle {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(ColorManager.secondary, lineWidth: 2)
             )
-            .foregroundColor(configuration.isPressed ? ColorManager.text : ColorManager.background)
+            .foregroundStyle(configuration.isPressed ? ColorManager.text : ColorManager.background)
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
     }
 }
 
-struct RoundedBorderButtonStyle: ButtonStyle {
+struct DisabledFilledToBorderedButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .padding(15)
-            .foregroundColor(ColorManager.text)
+            .padding(10)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(ColorManager.secondary)
+            )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(ColorManager.secondary, lineWidth: 2)
             )
-            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
-            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
-    }
-}
-
-struct RoundedFilledButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .padding(15)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(ColorManager.text)
-            )
-            .foregroundColor(ColorManager.background)
-            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
-            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
+            .foregroundStyle(ColorManager.background.opacity(0.6))
     }
 }
 
 // MARK: Classes
 final class ColorManager {
     static let background = Color("BackgroundColor")
+    
     static let text = Color("TextColor")
     static let secondary = Color("SecondaryTextColor")
-    static let lightShadow = Color("LightShadow")
-    static let darkShadow = Color("DarkShadow")
 }
 
 final class UnitsManager {
-    static var selection: String {
-        UserDefaults.standard.object(forKey: UserKeys.units.rawValue) as? String ?? "Imperial"
-    }
+    static var selection: String { CloudSettings.shared.units }
     
     static var weight: String {
         switch selection {
@@ -424,16 +431,16 @@ extension String {
     }
 }
 
-extension UserDefaults {
-    func resetUser(){
-        UserKeys.allCases.forEach {
-            removeObject(forKey: $0.rawValue)
+extension Array where Element: Hashable {
+    func removingDuplicates() -> [Element] {
+        var addedDict: [Element: Bool] = [:]
+
+        return filter {
+            addedDict.updateValue(true, forKey: $0) == nil
         }
     }
-}
 
-// MARK: Enums
-enum FontWeight: String {
-    case regular = "Regular"
-    case bold = "Bold"
+    mutating func removeDuplicates() {
+        self = self.removingDuplicates()
+    }
 }

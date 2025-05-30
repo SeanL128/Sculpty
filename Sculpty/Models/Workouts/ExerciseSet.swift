@@ -9,14 +9,20 @@ import Foundation
 import SwiftData
 
 @Model
-class ExerciseSet: Identifiable, Codable {
-    @Attribute(.unique) var id = UUID()
+class ExerciseSet: Identifiable {
+    var id = UUID()
     var workoutExercise: WorkoutExercise?
-    var index: Int
+    var index: Int = 0
     
-    var unit: String
-    var type: ExerciseSetType
-    var exerciseType: ExerciseType
+    var unit: String = UnitsManager.weight
+    var type: ExerciseSetType = ExerciseSetType.main
+    var exerciseType: ExerciseType = ExerciseType.weight
+    
+    var _setLogs: [SetLog]?
+    var setLogs: [SetLog] {
+        get { _setLogs ?? [] }
+        set { _setLogs = newValue.isEmpty ? nil : newValue }
+    }
     
     // Weight-specific
     var reps: Int?
@@ -134,41 +140,5 @@ class ExerciseSet: Identifiable, Codable {
         }
         
         return 0
-    }
-    
-    enum CodingKeys: String, CodingKey {
-        case id, index, unit, type, exerciseType, reps, weight, rir, time, distance
-    }
-    
-    required init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        index = try container.decode(Int.self, forKey: .index)
-        unit = try container.decode(String.self, forKey: .unit)
-        type = try container.decode(ExerciseSetType.self, forKey: .type)
-        exerciseType = try container.decode(ExerciseType.self, forKey: .exerciseType)
-        
-        reps = try container.decodeIfPresent(Int.self, forKey: .reps)
-        weight = try container.decodeIfPresent(Double.self, forKey: .weight)
-        rir = try container.decodeIfPresent(String.self, forKey: .rir)
-        
-        time = try container.decodeIfPresent(Double.self, forKey: .time)
-        distance = try container.decodeIfPresent(Double.self, forKey: .distance)
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
-        try container.encode(index, forKey: .index)
-        try container.encode(unit, forKey: .unit)
-        try container.encode(type, forKey: .type)
-        try container.encode(exerciseType, forKey: .exerciseType)
-        
-        try container.encode(reps, forKey: .reps)
-        try container.encode(weight, forKey: .weight)
-        try container.encode(rir, forKey: .rir)
-        
-        try container.encode(time, forKey: .time)
-        try container.encode(distance, forKey: .distance)
     }
 }

@@ -12,7 +12,7 @@ struct ExerciseList: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
         
-    @Query private var exercises: [Exercise]
+    @Query(filter: #Predicate<Exercise> { !$0.hidden }) private var exercises: [Exercise]
     
     @State private var searchText: String = ""
     @FocusState private var isSearchFocused: Bool
@@ -32,7 +32,7 @@ struct ExerciseList: View {
             exercise.muscleGroup ?? MuscleGroup.other
         })
         .mapValues { exercises in
-            exercises.sorted { $0.name.lowercased() < $1.name.lowercased() } // Sorting exercises alphabetically by name
+            exercises.sorted { $0.name.lowercased() < $1.name.lowercased() }
         }
     }
     
@@ -41,7 +41,7 @@ struct ExerciseList: View {
             NavigationLink(destination: UpsertExercise()) {
                 Image(systemName: "plus")
                     .padding(.horizontal, 5)
-                    .font(Font.system(size: 24))
+                    .font(Font.system(size: 20))
             }
             .textColor()
         }) {

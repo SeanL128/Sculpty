@@ -32,7 +32,7 @@ struct MeasurementMenuPopup: CenterPopup {
                     } label: {
                         HStack(alignment: .center) {
                             Text(str)
-                                .bodyText(size: 16, weight: (selection == type) ? .bold : .regular)
+                                .bodyText(size: 16, weight: selection == type ? .bold : .regular)
                             
                             Image(systemName: "chevron.right")
                                 .padding(.leading, -2)

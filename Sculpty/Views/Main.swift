@@ -8,11 +8,11 @@
 import SwiftUI
 
 struct Main: View {
-    @AppStorage(UserKeys.onboarded.rawValue) private var onboarded = false
+    @EnvironmentObject private var settings: CloudSettings
     
     var body: some View {
         ZStack {
-            if !onboarded {
+            if !settings.onboarded {
                 Onboarding()
                     .transition(
                         .asymmetric(
@@ -24,13 +24,11 @@ struct Main: View {
             }
             
             Home()
-                .opacity(onboarded ? 1 : 0)
-                .animation(.easeInOut(duration: 0.5), value: onboarded)
+                .opacity(settings.onboarded ? 1 : 0)
+                .animation(.easeInOut(duration: 0.5), value: settings.onboarded)
         }
-        .onChange(of: onboarded) { oldValue, newValue in
-            if newValue {
-                withAnimation(.easeOut(duration: 0.5)) { }
-            }
+        .onChange(of: settings.onboarded) { oldValue, newValue in
+            withAnimation(.easeOut(duration: 0.5)) { }
         }
     }
 }

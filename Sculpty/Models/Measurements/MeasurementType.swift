@@ -8,10 +8,23 @@
 import Foundation
 
 enum MeasurementType: String, CaseIterable, Codable, Identifiable {
-    case weight = "Weight", height = "Height", bodyFat = "Body Fat Percentage", neck = "Neck", shoulders = "Shoulders", chest = "Chest",
-         upperArmLeft = "Upper Arm (Left)", upperArmRight = "Upper Arm (Right)", forearmLeft = "Forearm (Left)", forearmRight = "Forearm (Right)",
-         waist = "Waist", hips = "Hips", thighLeft = "Thigh (Left)", thighRight = "Thigh (Right)", calfLeft = "Calf (Left)", calfRight = "Calf (Right)",
-         other = "Other"
+    case weight = "Weight"
+    case height = "Height"
+    case bodyFat = "Body Fat Percentage"
+    case neck = "Neck"
+    case shoulders = "Shoulders"
+    case chest = "Chest"
+    case upperArmLeft = "Upper Arm (Left)"
+    case upperArmRight = "Upper Arm (Right)"
+    case forearmLeft = "Forearm (Left)"
+    case forearmRight = "Forearm (Right)"
+    case waist = "Waist"
+    case hips = "Hips"
+    case thighLeft = "Thigh (Left)"
+    case thighRight = "Thigh (Right)"
+    case calfLeft = "Calf (Left)"
+    case calfRight = "Calf (Right)"
+    case other = "Other"
     
     var id: String { self.rawValue }
     

@@ -21,14 +21,11 @@ struct AppDataDTO: Codable {
         measurements: [Measurement],
         caloriesLogs: [CaloriesLog]
     ) {
-        // Create Exercise models and an ID lookup map
         let exerciseModels = exercises.map { $0.toModel() }
         let exerciseMap = Dictionary(uniqueKeysWithValues: exerciseModels.map { ($0.id, $0) })
         
-        // Create workout models
         let workoutModels = workouts.map { $0.toModel(exerciseMap: exerciseMap) }
         
-        // Collect all ExerciseSet models for lookup
         var allSetModels: [ExerciseSet] = []
         for workout in workoutModels {
             for workoutExercise in workout.exercises {
@@ -37,7 +34,6 @@ struct AppDataDTO: Codable {
         }
         let setMap = Dictionary(uniqueKeysWithValues: allSetModels.map { ($0.id, $0) })
         
-        // Create the remaining models
         let workoutLogModels = workoutLogs.map { $0.toModel(exerciseMap: exerciseMap, setMap: setMap) }
         let measurementModels = measurements.map { $0.toModel() }
         let caloriesLogModels = caloriesLogs.map { $0.toModel() }

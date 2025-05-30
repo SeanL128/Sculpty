@@ -11,7 +11,8 @@ import SwiftData
 struct CaloriesHistory: View {
     @Environment(\.modelContext) private var context
     
-    @Query(filter: #Predicate<CaloriesLog> { !$0.entries.isEmpty }, sort: \CaloriesLog.date, order: .reverse) private var caloriesLogs: [CaloriesLog]
+    @Query(sort: \CaloriesLog.date, order: .reverse) private var logs: [CaloriesLog]
+    private var caloriesLogs: [CaloriesLog] { logs.filter { !$0.entries.isEmpty } }
     
     @State private var confirmDelete: Bool = false
     @State private var entryToDelete: FoodEntry? = nil
@@ -123,7 +124,7 @@ struct CaloriesHistory: View {
                 }
             } else {
                 Text("No Data")
-                    .bodyText(size: 20)
+                    .bodyText(size: 18)
                     .textColor()
             }
         }

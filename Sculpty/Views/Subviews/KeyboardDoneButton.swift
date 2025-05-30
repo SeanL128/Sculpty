@@ -10,6 +10,10 @@ import SwiftUI
 struct KeyboardDoneButton: View {
     var focusStates: [FocusState<Bool>]
     
+    var disabled: Bool {
+        focusStates.allSatisfy { !$0.wrappedValue }
+    }
+    
     var body: some View {
         Button {
             for state in focusStates {
@@ -17,9 +21,9 @@ struct KeyboardDoneButton: View {
             }
         } label: {
             Text("Done")
-                .bodyText(size: 18)
+                .bodyText(size: 18, weight: .bold)
         }
-        .textColor()
-        .disabled(focusStates.allSatisfy { !$0.wrappedValue })
+        .foregroundStyle(disabled ? ColorManager.secondary : ColorManager.text)
+        .disabled(disabled)
     }
 }

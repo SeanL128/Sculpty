@@ -50,7 +50,6 @@ struct SetLogDTO: Identifiable, Codable {
                 setLog = SetLog(index: index, set: set, unit: unit)
             }
         } else {
-            // Create a basic SetLog with default unit and measurement to avoid validation errors
             setLog = SetLog(index: index, set: ExerciseSet(), unit: unit.isEmpty ? UnitsManager.weight : unit)
         }
         

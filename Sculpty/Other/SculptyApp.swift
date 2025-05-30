@@ -13,9 +13,10 @@ import MijickPopups
 struct SculptyApp: App {
     @Environment(\.modelContext) private var context
     
-    @AppStorage(UserKeys.appearance.rawValue) private var selectedAppearance: Appearance = .automatic
+    @StateObject private var settings = CloudSettings()
+    
     var colorScheme: ColorScheme? {
-        switch selectedAppearance {
+        switch settings.appearance {
         case .light:
             return .light
         case .dark:
@@ -34,6 +35,7 @@ struct SculptyApp: App {
                 .accentColor(Color("AccentColor"))
                 .dynamicTypeSize(.medium ... .xxxLarge)
                 .modelContainer(for: [Workout.self, Exercise.self, WorkoutLog.self, CaloriesLog.self, Measurement.self])
+                .environmentObject(settings)
                 .registerPopups(id: .shared) { config in config
                     .vertical { $0
                         .enableDragGesture(true)

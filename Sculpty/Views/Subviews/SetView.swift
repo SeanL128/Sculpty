@@ -8,11 +8,10 @@
 import SwiftUI
 
 struct SetView: View {
+    @EnvironmentObject private var settings: CloudSettings
+    
     var set: ExerciseSet
     var setLog: SetLog?
-    
-    @AppStorage(UserKeys.showRir.rawValue) private var showRir: Bool = false
-    @AppStorage(UserKeys.show1RM.rawValue) private var show1RM: Bool = false
     
     var body: some View {
         HStack {
@@ -37,14 +36,14 @@ struct SetView: View {
                let reps = set.reps,
                let weight = set.weight,
                let rir = set.rir {
-                Text("\(reps) x \(String(format: "%0.2f", weight)) \(set.unit) \((showRir && [.main, .dropSet].contains(set.type)) ? "(\(rir)\((rir) == "Failure" ? "" : " RIR"))" : "")")
+                Text("\(reps) x \(String(format: "%0.2f", weight)) \(set.unit) \((settings.showRir && [.main, .dropSet].contains(set.type)) ? "(\(rir)\((rir) == "Failure" ? "" : " RIR"))" : "")")
                     .bodyText(size: 16)
                     .textColor()
                     .strikethrough(setLog?.completed ?? false || setLog?.skipped ?? false)
                 
                 Spacer()
                 
-                if show1RM && set.type == .main && (setLog?.completed ?? false) {
+                if settings.show1RM && set.type == .main && (setLog?.completed ?? false) {
                     Text("1RM: \(String(format: "%0.2f", weight * (1.0 + (Double(reps) / 30.0)))) \(set.unit)")
                         .secondaryColor()
                 }

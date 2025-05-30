@@ -10,12 +10,10 @@ import Foundation
 enum UserKeys: String, CaseIterable {
     case appearance = "APPEARANCE"
     case dailyCalories = "DAILY_CALORIES"
-    case disableAutoLock = "DISABLE_AUTO_LOCK"
     case gender = "GENDER"
     case includeWarmUp = "INCLUDE_WARM_UP"
     case includeDropSet = "INCLUDE_DROP_SET"
     case includeCoolDown = "INCLUDE_COOL_DOWN"
-    case lastCheckedDate = "LAST_CHECKED_DATE"
     case longestWorkoutStreak = "LONGEST_WORKOUT_STREAK"
     case onboarded = "ONBOARDED"
     case show1RM = "SHOW_1RM"

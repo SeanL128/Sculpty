@@ -9,11 +9,9 @@ import SwiftUI
 import MijickPopups
 
 struct WorkoutSummaryPopup: CenterPopup {
-    private var log: WorkoutLog
+    @EnvironmentObject private var settings: CloudSettings
     
-    @AppStorage(UserKeys.includeWarmUp.rawValue) private var includeWarmUp: Bool = true
-    @AppStorage(UserKeys.includeDropSet.rawValue) private var includeDropSet: Bool = true
-    @AppStorage(UserKeys.includeCoolDown.rawValue) private var includeCoolDown: Bool = true
+    private var log: WorkoutLog
     
     init(log: WorkoutLog) {
         self.log = log
@@ -22,7 +20,7 @@ struct WorkoutSummaryPopup: CenterPopup {
     var body: some View {
         VStack(alignment: .center, spacing: 24) {
             VStack (alignment: .center, spacing: 8){
-                Text(log.workout.name)
+                Text(log.workout?.name ?? "")
                     .bodyText(size: 18, weight: .bold)
                     .multilineTextAlignment(.center)
                 
@@ -31,11 +29,11 @@ struct WorkoutSummaryPopup: CenterPopup {
                     .bodyText(size: 16)
                     .textColor()
                 
-                Text("Total Reps: \(log.getTotalReps(includeWarmUp, includeDropSet, includeCoolDown)) reps")
+                Text("Total Reps: \(log.getTotalReps(settings.includeWarmUp, settings.includeDropSet, settings.includeCoolDown)) reps")
                     .bodyText(size: 16)
                     .textColor()
                 
-                Text("Total Weight: \(log.getTotalWeight(includeWarmUp, includeDropSet, includeCoolDown).formatted())\(UnitsManager.weight)")
+                Text("Total Weight: \(log.getTotalWeight(settings.includeWarmUp, settings.includeDropSet, settings.includeCoolDown).formatted())\(UnitsManager.weight)")
                     .bodyText(size: 16)
                     .textColor()
                 

@@ -17,7 +17,7 @@ struct WorkoutLogs: View {
 
     private var validWorkouts: [Workout] {
         workouts.filter { workout in
-            workoutLogs.contains { $0.workout.id == workout.id }
+            workoutLogs.contains { $0.workout?.id == workout.id }
         }
     }
     
@@ -34,7 +34,7 @@ struct WorkoutLogs: View {
                             .textColor()
                             .padding(.bottom, -8)
                         
-                        ForEach(workoutLogs.filter { $0.workout.id == workout.id }.sorted { $0.start > $1.start }, id: \.id) { log in
+                        ForEach(workout.workoutLogs.sorted { $0.start > $1.start }, id: \.id) { log in
                             HStack(alignment: .center) {
                                 NavigationLink(destination: ViewWorkoutLog(log: log)) {
                                     HStack(alignment: .center) {
@@ -81,7 +81,7 @@ struct WorkoutLogs: View {
                 }
             } else {
                 Text("No Data")
-                    .bodyText(size: 20)
+                    .bodyText(size: 18)
                     .textColor()
             }
         }

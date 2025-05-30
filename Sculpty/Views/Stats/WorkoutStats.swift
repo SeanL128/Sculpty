@@ -21,6 +21,9 @@ struct WorkoutStats: View {
     @State private var selectedTab: Int = 0
     @Namespace private var animation
     
+    @State private var selectedWorkout: Workout?
+    @State private var selectedExercise: Exercise?
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -47,7 +50,7 @@ struct WorkoutStats: View {
                         NavigationLink(destination: WorkoutLogs()) {
                             Image(systemName: "list.bullet.clipboard")
                                 .padding(.horizontal, 5)
-                                .font(Font.system(size: 24))
+                                .font(Font.system(size: 20))
                         }
                         .textColor()
                     }
@@ -140,17 +143,17 @@ struct WorkoutStats: View {
                                     .offset(x: CGFloat(0 - selectedTab) * width)
                                 
                                 // Workout View
-                                ByWorkoutStats()
+                                ByWorkoutStats(selectedTab: $selectedTab, workout: $selectedWorkout, exercise: $selectedExercise)
                                     .offset(x: CGFloat(1 - selectedTab) * width)
                                 
                                 // Exercise View
-                                ByExerciseStats()
+                                ByExerciseStats(selectedTab: $selectedTab, exercise: $selectedExercise, workout: $selectedWorkout)
                                     .offset(x: CGFloat(2 - selectedTab) * width)
                             }
                             .animation(.easeInOut, value: selectedTab)
                         } else {
                             Text("No Data")
-                                .bodyText(size: 20)
+                                .bodyText(size: 18)
                                 .textColor()
                         }
                     }
@@ -166,13 +169,13 @@ struct WorkoutStats: View {
 private struct OverallStats: View {
     @Environment(\.modelContext) private var context
     
+    @EnvironmentObject private var settings: CloudSettings
+    
     @Query private var workoutLogs: [WorkoutLog]
     
     @State private var selectedRangeIndex: Int = 0
     
     // Consistency
-    @AppStorage(UserKeys.targetWeeklyWorkouts.rawValue) private var targetWeeklyWorkouts: Int = 3
-    @AppStorage(UserKeys.longestWorkoutStreak.rawValue) private var longestWorkoutStreak: Int = 0
     private var workoutStreak: Int {
         let calendar = Calendar.current
         
@@ -198,7 +201,7 @@ private struct OverallStats: View {
         var weekToCheck = currentWeekStart
         
         let currentWeekWorkouts = weeklyData[currentWeekStart] ?? 0.0
-        if currentWeekWorkouts >= Double(targetWeeklyWorkouts) {
+        if currentWeekWorkouts >= Double(settings.targetWeeklyWorkouts) {
             streak = 1
         }
         
@@ -206,15 +209,15 @@ private struct OverallStats: View {
             weekToCheck = calendar.date(byAdding: .weekOfYear, value: -1, to: weekToCheck)!
             let weekWorkouts = weeklyData[weekToCheck] ?? 0.0
             
-            if weekWorkouts >= Double(targetWeeklyWorkouts) {
+            if weekWorkouts >= Double(settings.targetWeeklyWorkouts) {
                 streak += 1
             } else {
                 break
             }
         }
         
-        if streak > longestWorkoutStreak {
-            longestWorkoutStreak = streak
+        if streak > settings.longestWorkoutStreak {
+            settings.longestWorkoutStreak = streak
         }
         
         return streak
@@ -282,7 +285,7 @@ private struct OverallStats: View {
                 currentWeekStart = calendar.date(byAdding: .weekOfYear, value: 1, to: currentWeekStart)!
             }
             
-            return result
+            return result.sorted { $0.date < $1.date }
             
         } else {
             let monthlyData = Dictionary(grouping: dailyData) { (dateValue) in
@@ -307,13 +310,14 @@ private struct OverallStats: View {
                 currentMonthStart = calendar.date(byAdding: .month, value: 1, to: currentMonthStart)!
             }
             
-            return result
+            return result.sorted { $0.date < $1.date }
         }
     }
+    
     private var labelIndexes: [Int] {
         switch selectedRangeIndex {
         case 0: return [0, 1, 2, 3]
-        case 1: return [1, 3, 5, 7, 9]
+        case 1: return [1, 3, 5, 7, 9, 11]
         case 2: return [1, 3, 5]
         case 3: return [1, 4, 7, 10]
         case 4: return [11, 23, 35, 47]
@@ -332,13 +336,13 @@ private struct OverallStats: View {
                         .padding(.bottom, -16)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Current Streak: \(workoutStreak) week\(workoutStreak != 1 ? "s" : "") in a row with \(targetWeeklyWorkouts)+ workouts")
+                        Text("Current Streak: \(workoutStreak) week\(workoutStreak != 1 ? "s" : "") in a row with \(settings.targetWeeklyWorkouts)+ workouts")
                             .bodyText(size: 16)
                         
                         Spacer()
                             .frame(height: 2)
                         
-                        Text("Longest Streak: \(longestWorkoutStreak) week\(longestWorkoutStreak != 1 ? "s" : "")")
+                        Text("Longest Streak: \(settings.longestWorkoutStreak) week\(settings.longestWorkoutStreak != 1 ? "s" : "")")
                             .bodyText(size: 14)
                         
                         Text("Keep going!")
@@ -403,32 +407,37 @@ private struct OverallStats: View {
                                 }
                             }
                         }
-                        .chartOverlay { proxy in
-                            GeometryReader { geometry in
-                                Rectangle()
-                                    .fill(Color.clear)
-                                    .contentShape(Rectangle())
-                                    .gesture(
-                                        DragGesture(minimumDistance: 0)
-                                            .onChanged { value in
-                                                let xPosition = value.location.x
-                                                
-                                                if let date = findClosestDate(at: xPosition, proxy: proxy, geometry: geometry) {
-                                                    self.selectedDate = date
-                                                    self.selectedValue = data.first { $0.date == date }?.value
-                                                    self.isInteracting = true
-                                                }
-                                            }
-                                            .onEnded { _ in
-                                                 self.selectedDate = nil
-                                                 self.selectedValue = nil
-                                                 self.isInteracting = false
-                                            }
-                                    )
-                            }
+                        .chartGesture { proxy in
+                            DragGesture(minimumDistance: 8)
+                                .onChanged { value in
+                                    if !isInteracting {
+                                        isInteracting = true
+                                    }
+                                    
+                                    if let dateString: String = proxy.value(atX: value.location.x) {
+                                        let newSelectedDate = findClosestDataPointFromString(dateString)
+                                        
+                                        if newSelectedDate != selectedDate {
+                                            selectedDate = newSelectedDate
+                                            
+                                            selectedValue = findClosestDataPointValue(to: newSelectedDate)
+                                        }
+                                    }
+                                }
+                                .onEnded { _ in
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                        isInteracting = false
+                                        selectedDate = nil
+                                        selectedValue = nil
+                                    }
+                                }
                         }
                         
-                        if isInteracting, let date = selectedDate, let value = selectedValue {
+                        if isInteracting,
+                           let date = selectedDate,
+                           let value = selectedValue,
+                           !data.isEmpty {
+                            
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(selectedRangeIndex <= 1 ? "Week of \(formatDateNoYear(date))" : formatMonth(date))
                                     .bodyText(size: 12)
@@ -439,7 +448,6 @@ private struct OverallStats: View {
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
                                     .fill(ColorManager.background)
-                                    .shadow(radius: 2)
                             )
                             .transition(.opacity)
                             .animation(.easeInOut(duration: 0.2), value: isInteracting)
@@ -448,6 +456,7 @@ private struct OverallStats: View {
                     }
                     .padding()
                     .animation(.easeInOut(duration: 0.5), value: selectedRangeIndex)
+                    .drawingGroup()
                     
                     BRHSegmentedControl(
                         selectedIndex: $selectedRangeIndex,
@@ -476,14 +485,45 @@ private struct OverallStats: View {
         }
     }
     
-    private func findClosestDate(at position: CGFloat, proxy: ChartProxy, geometry: GeometryProxy) -> Date? {
-        if let date = proxy.value(atX: position) as String? {
-            return data
-                .map { $0.date }
-                .first(where: { [formatDateNoYear($0), formatMonth($0)].contains(date)})
+    private func findClosestDataPointFromString(_ dateString: String) -> Date? {
+        return data.first { item in
+            let formattedDate = selectedRangeIndex <= 1 ? formatDateNoYear(item.date) : formatMonth(item.date)
+            return formattedDate == dateString
+        }?.date
+    }
+    
+    private func findClosestDataPoint(to date: Date) -> Date? {
+        guard !data.isEmpty else { return nil }
+        
+        let targetTime = date.timeIntervalSince1970
+        var left = 0
+        var right = data.count - 1
+        var closest = data[0].date
+        var minDiff = abs(data[0].date.timeIntervalSince1970 - targetTime)
+        
+        while left <= right {
+            let mid = (left + right) / 2
+            let midTime = data[mid].date.timeIntervalSince1970
+            let diff = abs(midTime - targetTime)
+            
+            if diff < minDiff {
+                minDiff = diff
+                closest = data[mid].date
+            }
+            
+            if midTime < targetTime {
+                left = mid + 1
+            } else {
+                right = mid - 1
+            }
         }
         
-        return nil
+        return closest
+    }
+    
+    private func findClosestDataPointValue(to date: Date?) -> Double? {
+        guard let date = date else { return nil }
+        return data.first { $0.date == date }?.value
     }
 }
 
@@ -491,46 +531,42 @@ private struct OverallStats: View {
 private struct ByWorkoutStats: View {
     @Environment(\.modelContext) private var context
     
+    @EnvironmentObject private var settings: CloudSettings
+    
     @Query(sort: \Workout.index) private var workouts: [Workout]
     @Query private var workoutLogs: [WorkoutLog]
     
     @State private var selectedRangeIndex: Int = 0
+    @Binding var selectedTab: Int
     
-    @AppStorage(UserKeys.includeWarmUp.rawValue) private var includeWarmUp: Bool = true
-    @AppStorage(UserKeys.includeDropSet.rawValue) private var includeDropSet: Bool = true
-    @AppStorage(UserKeys.includeCoolDown.rawValue) private var includeCoolDown: Bool = true
+    @Binding var workout: Workout?
     
-    @State private var workout: Workout?
-    private var workoutOptions: [Workout] {
-        workouts.filter { workout in
-            !workoutLogs.filter { $0.workout == workout}.isEmpty
-        }
-    }
+    @Binding var exercise: Exercise?
     
     private var dataValues: [WorkoutLog] {
-        workoutLogs.filter { $0.workout == workout }
+        workout?.workoutLogs ?? []
     }
     private var weightData: [(date: Date, value: Double)] {
         dataValues
-            .map { (date: $0.start, value: $0.getTotalWeight(includeWarmUp, includeDropSet, includeCoolDown)) }
+            .map { (date: $0.start, value: $0.getTotalWeight(settings.includeWarmUp, settings.includeDropSet, settings.includeCoolDown)) }
             .filter { $0.value > 0 }
             .sorted { $0.date < $1.date }
     }
     private var repsData: [(date: Date, value: Double)] {
         dataValues
-            .map { (date: $0.start, value: Double($0.getTotalReps(includeWarmUp, includeDropSet, includeCoolDown))) }
+            .map { (date: $0.start, value: Double($0.getTotalReps(settings.includeWarmUp, settings.includeDropSet, settings.includeCoolDown))) }
             .filter { $0.value > 0 }
             .sorted { $0.date < $1.date }
     }
     private var distanceData: [(date: Date, value: Double)] {
         dataValues
-            .map { (date: $0.start, value: $0.getTotalDistance(includeWarmUp, includeDropSet, includeCoolDown)) }
+            .map { (date: $0.start, value: $0.getTotalDistance(settings.includeWarmUp, settings.includeDropSet, settings.includeCoolDown)) }
             .filter { $0.value > 0 }
             .sorted { $0.date < $1.date }
     }
     private var timeData: [(date: Date, value: Double)] {
         dataValues
-            .map { (date: $0.start, value: round(($0.getTotalTime(includeWarmUp, includeDropSet, includeCoolDown) / 60) * 100) / 100.0) }
+            .map { (date: $0.start, value: round(($0.getTotalTime(settings.includeWarmUp, settings.includeDropSet, settings.includeCoolDown) / 60) * 100) / 100.0) }
             .filter { $0.value > 0 }
             .sorted { $0.date < $1.date }
     }
@@ -547,29 +583,17 @@ private struct ByWorkoutStats: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            if workoutOptions.count > 1 {
-                Button {
-                    Task {
-                        await WorkoutMenuPopup(options: workoutOptions, selection: $workout).present()
-                    }
-                } label: {
-                    HStack(alignment: .center) {
-                        Text(workout?.name ?? "Select Workout")
-                            .bodyText(size: 24, weight: .bold)
-                        
-                        Image(systemName: "chevron.right")
-                            .padding(.leading, -2)
-                            .font(Font.system(size: 10, weight: .bold))
-                    }
+            NavigationLink(destination: SelectWorkout(selectedWorkout: $workout, forStats: true)) {
+                HStack(alignment: .center) {
+                    Text(workout?.name ?? "Select Workout")
+                        .bodyText(size: 20, weight: .bold)
+                    
+                    Image(systemName: "chevron.right")
+                        .padding(.leading, -2)
+                        .font(Font.system(size: 14, weight: .bold))
                 }
-                .textColor()
-                .padding(.bottom, -8)
-            } else {
-                Text(workout?.name ?? "Workout")
-                    .bodyText(size: 24, weight: .bold)
-                    .textColor()
-                    .padding(.bottom, -8)
             }
+            .textColor()
             
             BRHSegmentedControl(
                 selectedIndex: $selectedRangeIndex,
@@ -602,7 +626,7 @@ private struct ByWorkoutStats: View {
                                 .textColor()
                                 .padding(.bottom, -16)
                             
-                            StatsLineChart(selectedRangeIndex: $selectedRangeIndex, data: weightData, units: UnitsManager.weight)
+                            LineChart(selectedRangeIndex: $selectedRangeIndex, data: weightData, units: UnitsManager.weight)
                             
                             // Reps
                             Text("TOTAL REPS")
@@ -610,7 +634,7 @@ private struct ByWorkoutStats: View {
                                 .textColor()
                                 .padding(.bottom, -16)
                             
-                            StatsLineChart(selectedRangeIndex: $selectedRangeIndex, data: repsData, units: "reps")
+                            LineChart(selectedRangeIndex: $selectedRangeIndex, data: repsData, units: "reps")
                         }
                         
                         if showDistanceData {
@@ -620,7 +644,7 @@ private struct ByWorkoutStats: View {
                                 .textColor()
                                 .padding(.bottom, -16)
                             
-                            StatsLineChart(selectedRangeIndex: $selectedRangeIndex, data: distanceData, units: UnitsManager.longLength)
+                            LineChart(selectedRangeIndex: $selectedRangeIndex, data: distanceData, units: UnitsManager.longLength)
                             
                             // Time (Cardio)
                             Text("TOTAL CARDIO TIME")
@@ -628,7 +652,7 @@ private struct ByWorkoutStats: View {
                                 .textColor()
                                 .padding(.bottom, -16)
                             
-                            StatsLineChart(selectedRangeIndex: $selectedRangeIndex, data: timeData, units: "min")
+                            LineChart(selectedRangeIndex: $selectedRangeIndex, data: timeData, units: "min")
                         }
                         
                         if showDurationData {
@@ -637,7 +661,39 @@ private struct ByWorkoutStats: View {
                                 .textColor()
                                 .padding(.bottom, -16)
                             
-                            StatsLineChart(selectedRangeIndex: $selectedRangeIndex, data: durationData, units: "min")
+                            LineChart(selectedRangeIndex: $selectedRangeIndex, data: durationData, units: "min")
+                        }
+                        
+                        if let workout = workout,
+                           !workout.exercises.isEmpty {
+                            let exercises = workout.exercises.filter { !($0.exercise?.hidden ?? true) }.sorted(by: { $0.index < $1.index }).compactMap({ $0.exercise }).removingDuplicates()
+                            
+                            Text("EXERCISES")
+                                .headingText(size: 24)
+                                .textColor()
+                                .padding(.bottom, -16)
+                            
+                            VStack(alignment: .leading, spacing: 9) {
+                                ForEach(exercises, id: \.id) { exercise in
+                                    Button {
+                                        self.exercise = exercise
+                                        
+                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                            selectedTab = 2
+                                        }
+                                    } label: {
+                                        HStack(alignment: .center) {
+                                            Text(exercise.name)
+                                                .bodyText(size: 18, weight: .bold)
+                                            
+                                            Image(systemName: "chevron.right")
+                                                .padding(.leading, -2)
+                                                .font(Font.system(size: 12))
+                                        }
+                                    }
+                                    .textColor()
+                                }
+                            }
                         }
                     }
                 }
@@ -647,13 +703,8 @@ private struct ByWorkoutStats: View {
                 .frame(maxWidth: .infinity)
             } else {
                 Text("No Data")
-                    .bodyText(size: 20)
+                    .bodyText(size: 18)
                     .textColor()
-            }
-        }
-        .onAppear() {
-            if !workoutOptions.isEmpty {
-                workout = workoutOptions.first!
             }
         }
     }
@@ -663,20 +714,21 @@ private struct ByWorkoutStats: View {
 private struct ByExerciseStats: View {
     @Environment(\.modelContext) private var context
     
+    @EnvironmentObject private var settings: CloudSettings
+    
     @Query(sort: \Workout.index) private var workouts: [Workout]
     @Query private var workoutLogs: [WorkoutLog]
     @Query private var exerciseLogs: [ExerciseLog]
     
     @State private var selectedRangeIndex: Int = 0
+    @Binding var selectedTab: Int
     
-    @AppStorage(UserKeys.includeWarmUp.rawValue) private var includeWarmUp: Bool = true
-    @AppStorage(UserKeys.includeDropSet.rawValue) private var includeDropSet: Bool = true
-    @AppStorage(UserKeys.includeCoolDown.rawValue) private var includeCoolDown: Bool = true
+    @Binding var exercise: Exercise?
     
-    @State private var exercise: Exercise?
+    @Binding var workout: Workout?
     
     private var dataValues: [WorkoutLog] {
-        workoutLogs.filter { $0.exerciseLogs.contains(where: { $0.exercise.exercise?.id == exercise?.id }) }
+        workoutLogs.filter { $0.exerciseLogs.contains(where: { $0.exercise?.exercise?.id == exercise?.id }) }
     }
     private var prData: [(date: Date, value: Double)] {
         guard let exerciseId = exercise?.id else { return [] }
@@ -684,8 +736,8 @@ private struct ByExerciseStats: View {
         var pr: Double = 0
         var prData: [(date: Date, value: Double)] = []
         
-        for log in exerciseLogs.filter({ $0.exercise.exercise?.id == exerciseId }) {
-            let max = log.setLogs.compactMap { if let weight = $0.weight, let reps = $0.reps { return weight / Double(reps) } else { return nil } }.max() ?? 0
+        for log in exerciseLogs.filter({ $0.exercise?.exercise?.id == exerciseId }) {
+            let max = log.setLogs.compactMap { if let weight = $0.weight, let reps = $0.reps { return weight / Double(reps) / Double(reps) } else { return nil } }.max() ?? 0
             
             if max > pr {
                 pr = max
@@ -693,13 +745,15 @@ private struct ByExerciseStats: View {
             }
         }
         
+        prData.append((date: Date(), value: pr))
+        
         return prData
     }
     private var oneRmData: [(date: Date, value: Double)] {
         guard let exerciseId = exercise?.id else { return [] }
         
         return dataValues
-            .map { (date: $0.start, value: $0.exerciseLogs.filter { $0.exercise.exercise?.id == exerciseId }.map { $0.getMaxOneRM() }.max() ?? 0) }
+            .map { (date: $0.start, value: $0.exerciseLogs.filter { $0.exercise?.exercise?.id == exerciseId }.map { $0.getMaxOneRM() }.max() ?? 0) }
             .filter { $0.value > 0 }
             .sorted { $0.date < $1.date }
     }
@@ -707,7 +761,7 @@ private struct ByExerciseStats: View {
         guard let exerciseId = exercise?.id else { return [] }
         
         return dataValues
-            .map { (date: $0.start, value: $0.exerciseLogs.filter { $0.exercise.exercise?.id == exerciseId }.reduce(0) { $0 + $1.getTotalWeight(includeWarmUp, includeDropSet, includeCoolDown) })}
+            .map { (date: $0.start, value: $0.exerciseLogs.filter { $0.exercise?.exercise?.id == exerciseId }.reduce(0) { $0 + $1.getTotalWeight(settings.includeWarmUp, settings.includeDropSet, settings.includeCoolDown) })}
             .filter { $0.value > 0 }
             .sorted { $0.date < $1.date }
     }
@@ -715,7 +769,7 @@ private struct ByExerciseStats: View {
         guard let exerciseId = exercise?.id else { return [] }
         
         return dataValues
-            .map { (date: $0.start, value: Double($0.exerciseLogs.filter { $0.exercise.exercise?.id == exerciseId }.reduce(0) { $0 + $1.getTotalReps(includeWarmUp, includeDropSet, includeCoolDown) }))}
+            .map { (date: $0.start, value: Double($0.exerciseLogs.filter { $0.exercise?.exercise?.id == exerciseId }.reduce(0) { $0 + $1.getTotalReps(settings.includeWarmUp, settings.includeDropSet, settings.includeCoolDown) }))}
             .filter { $0.value > 0 }
             .sorted { $0.date < $1.date }
     }
@@ -723,7 +777,7 @@ private struct ByExerciseStats: View {
         guard let exerciseId = exercise?.id else { return [] }
         
         return dataValues
-            .map { (date: $0.start, value: $0.exerciseLogs.filter { $0.exercise.exercise?.id == exerciseId }.reduce(0) { $0 + $1.getTotalDistance(includeWarmUp, includeDropSet, includeCoolDown) })}
+            .map { (date: $0.start, value: $0.exerciseLogs.filter { $0.exercise?.exercise?.id == exerciseId }.reduce(0) { $0 + $1.getTotalDistance(settings.includeWarmUp, settings.includeDropSet, settings.includeCoolDown) })}
             .filter { $0.value > 0 }
             .sorted { $0.date < $1.date }
     }
@@ -731,14 +785,9 @@ private struct ByExerciseStats: View {
         guard let exerciseId = exercise?.id else { return [] }
         
         return dataValues
-            .map { (date: $0.start, value: Double(round(($0.exerciseLogs.filter { $0.exercise.exercise?.id == exerciseId }.reduce(0) { $0 + $1.getTotalTime(includeWarmUp, includeDropSet, includeCoolDown) }) / 60) * 100) / 100.0) }
+            .map { (date: $0.start, value: Double(round(($0.exerciseLogs.filter { $0.exercise?.exercise?.id == exerciseId }.reduce(0) { $0 + $1.getTotalTime(settings.includeWarmUp, settings.includeDropSet, settings.includeCoolDown) }) / 60) * 100) / 100.0) }
             .filter { $0.value > 0 }
             .sorted { $0.date < $1.date }
-        
-//        dataValues
-//            .map { (date: $0.start, value: round(($0.getTotalTime(includeWarmUp, includeDropSet, includeCoolDown) / 60) * 100) / 100.0) }
-//            .filter { $0.value > 0 }
-//            .sorted { $0.date < $1.date }
     }
     
     private var showPrData: Bool { !prData.isEmpty }
@@ -748,7 +797,7 @@ private struct ByExerciseStats: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            NavigationLink(destination: SelectExercise(selectedExercise: $exercise)) {
+            NavigationLink(destination: SelectExercise(selectedExercise: $exercise, forStats: true)) {
                 HStack(alignment: .center) {
                     Text(exercise?.name ?? "Select Exercise")
                         .bodyText(size: 20, weight: .bold)
@@ -791,16 +840,11 @@ private struct ByExerciseStats: View {
                                 .textColor()
                                 .padding(.bottom, -16)
                             
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Current PR: \(prData.last?.value.formatted() ?? "0")\(UnitsManager.weight) (\(formatDate(prData.last?.date ?? Date()))")
-                                    .bodyText(size: 16)
-                                
-                                Text("Keep going!")
-                                    .bodyText(size: 14)
-                            }
-                            .textColor()
+                            Text("Current PR: \(prData.last?.value.formatted() ?? "0")\(UnitsManager.weight) (\(formatDate(prData.last?.date ?? Date())))")
+                                .bodyText(size: 16)
+                                .textColor()
                             
-                            StatsLineChart(selectedRangeIndex: $selectedRangeIndex, data: prData, units: UnitsManager.weight)
+                            LineChart(selectedRangeIndex: $selectedRangeIndex, data: prData, units: UnitsManager.weight)
                         }
                         
                         if showOneRmData {
@@ -810,7 +854,7 @@ private struct ByExerciseStats: View {
                                 .textColor()
                                 .padding(.bottom, -16)
                             
-                            StatsLineChart(selectedRangeIndex: $selectedRangeIndex, data: oneRmData, units: UnitsManager.weight)
+                            LineChart(selectedRangeIndex: $selectedRangeIndex, data: oneRmData, units: UnitsManager.weight)
                         }
                         
                         if showWeightData {
@@ -820,7 +864,7 @@ private struct ByExerciseStats: View {
                                 .textColor()
                                 .padding(.bottom, -16)
                             
-                            StatsLineChart(selectedRangeIndex: $selectedRangeIndex, data: weightData, units: UnitsManager.weight)
+                            LineChart(selectedRangeIndex: $selectedRangeIndex, data: weightData, units: UnitsManager.weight)
                             
                             // Reps
                             Text("TOTAL REPS")
@@ -828,7 +872,7 @@ private struct ByExerciseStats: View {
                                 .textColor()
                                 .padding(.bottom, -16)
                             
-                            StatsLineChart(selectedRangeIndex: $selectedRangeIndex, data: repsData, units: "reps")
+                            LineChart(selectedRangeIndex: $selectedRangeIndex, data: repsData, units: "reps")
                         }
                         
                         if showDistanceData {
@@ -838,7 +882,7 @@ private struct ByExerciseStats: View {
                                 .textColor()
                                 .padding(.bottom, -16)
                             
-                            StatsLineChart(selectedRangeIndex: $selectedRangeIndex, data: distanceData, units: UnitsManager.longLength)
+                            LineChart(selectedRangeIndex: $selectedRangeIndex, data: distanceData, units: UnitsManager.longLength)
                             
                             // Time (Cardio)
                             Text("TOTAL CARDIO TIME")
@@ -846,7 +890,39 @@ private struct ByExerciseStats: View {
                                 .textColor()
                                 .padding(.bottom, -16)
                             
-                            StatsLineChart(selectedRangeIndex: $selectedRangeIndex, data: timeData, units: "min")
+                            LineChart(selectedRangeIndex: $selectedRangeIndex, data: timeData, units: "min")
+                        }
+                        
+                        if let exercise = exercise,
+                           !exercise.workoutExercises.compactMap({ $0.exerciseLogs }).compactMap({ $0.compactMap { $0.workoutLog } }).isEmpty {
+                            let workouts = exercise.workoutExercises.compactMap { $0.workout }.removingDuplicates()
+                            
+                            Text("WORKOUTS")
+                                .headingText(size: 24)
+                                .textColor()
+                                .padding(.bottom, -16)
+                            
+                            VStack(alignment: .leading, spacing: 9) {
+                                ForEach(workouts, id: \.id) { workout in
+                                    Button {
+                                        self.workout = workout
+                                        
+                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                            selectedTab = 2
+                                        }
+                                    } label: {
+                                        HStack(alignment: .center) {
+                                            Text(workout.name)
+                                                .bodyText(size: 18, weight: .bold)
+                                            
+                                            Image(systemName: "chevron.right")
+                                                .padding(.leading, -2)
+                                                .font(Font.system(size: 12))
+                                        }
+                                    }
+                                    .textColor()
+                                }
+                            }
                         }
                     }
                 }
@@ -856,7 +932,7 @@ private struct ByExerciseStats: View {
                 .frame(maxWidth: .infinity)
             } else {
                 Text("No Data")
-                    .bodyText(size: 20)
+                    .bodyText(size: 18)
                     .textColor()
             }
         }

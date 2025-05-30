@@ -28,14 +28,10 @@ struct FoodEntries: View {
             } label: {
                 Image(systemName: "plus")
                     .padding(.horizontal, 5)
-                    .font(Font.system(size: 24))
+                    .font(Font.system(size: 20))
             }
             .textColor()
         }) {
-            Text(formatDate(log.date))
-                .bodyText(size: 20, weight: .bold)
-                .textColor()
-            
             if !log.entries.isEmpty {
                 ForEach(log.entries.indices, id: \.self) { index in
                     if log.entries.count > index {

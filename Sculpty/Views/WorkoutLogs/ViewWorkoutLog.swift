@@ -11,6 +11,9 @@ import MijickPopups
 
 struct ViewWorkoutLog: View {
     @Environment(\.modelContext) private var context
+    
+    @EnvironmentObject private var settings: CloudSettings
+    
     private var log: WorkoutLog
     
     @State private var confirmDelete: Bool = false
@@ -28,7 +31,7 @@ struct ViewWorkoutLog: View {
     }
     
     var body: some View {
-        ContainerView(title: log.workout.name) {
+        ContainerView(title: log.workout?.name ?? "Workout") {
             Text(formatDate(log.start))
                 .bodyText(size: 20, weight: .bold)
                 .textColor()
@@ -80,7 +83,7 @@ struct ViewWorkoutLog: View {
                 if !setLogs.isEmpty {
                     VStack(alignment: .leading, spacing: 16) {
                         HStack(alignment: .center) {
-                            Text(exerciseLog.exercise.exercise?.name.uppercased() ?? "EXERCISE")
+                            Text(exerciseLog.exercise?.exercise?.name.uppercased() ?? "EXERCISE")
                                 .headingText(size: 14)
                                 .textColor()
                             
@@ -88,7 +91,7 @@ struct ViewWorkoutLog: View {
                                 exerciseLogToDelete = exerciseLog
                                 
                                 Task {
-                                    await ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(exerciseLog.exercise.exercise?.name ?? "exercise") logs?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Delete").present()
+                                    await ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(exerciseLog.exercise?.exercise?.name ?? "exercise") logs?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Delete").present()
                                 }
                             } label: {
                                 Image(systemName: "xmark")
@@ -145,11 +148,11 @@ struct ViewWorkoutLog: View {
             }
         }
         .onAppear() {
-            includeWarmUp = UserDefaults.standard.object(forKey: UserKeys.includeWarmUp.rawValue) as? Bool ?? true
-            includeDropSet = UserDefaults.standard.object(forKey: UserKeys.includeDropSet.rawValue) as? Bool ?? true
-            includeCoolDown = UserDefaults.standard.object(forKey: UserKeys.includeCoolDown.rawValue) as? Bool ?? true
+            includeWarmUp = settings.includeWarmUp
+            includeDropSet = settings.includeDropSet
+            includeCoolDown = settings.includeCoolDown
             
-            showRir = UserDefaults.standard.object(forKey: UserKeys.showRir.rawValue) as? Bool ?? false
+            showRir = settings.showRir
         }
         .onChange(of: confirmDelete) {
             if confirmDelete {

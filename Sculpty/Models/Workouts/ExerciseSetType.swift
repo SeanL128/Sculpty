@@ -18,4 +18,6 @@ enum ExerciseSetType: String, CaseIterable, Codable, Identifiable {
     static let displayOrder: [ExerciseSetType] = [
         .warmUp, .main, .dropSet, .coolDown
     ]
+    
+    static let stringDisplayOrder: [String] = displayOrder.map(\.self.rawValue)
 }

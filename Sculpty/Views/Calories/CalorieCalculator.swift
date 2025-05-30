@@ -9,6 +9,8 @@ import SwiftUI
 import BRHSegmentedControl
 
 struct CalorieCalculator: View {
+    @EnvironmentObject private var settings: CloudSettings
+    
     @State private var age: String = ""
     @State private var weight: String = ""
     @State private var heightFeet: String = ""
@@ -22,7 +24,39 @@ struct CalorieCalculator: View {
     private var goal: Goal {
         Goal(rawValue: goalString ?? "Maintain Weight") ?? .maintain
     }
-    @State private var dailyCalories: Int?
+    
+    private var dailyCalories: Int? {
+        guard let ageInt = Int(age), let weightDouble = Double(weight) else {
+            return 0
+        }
+        
+        let heightCmDouble: Double = settings.units == "Imperial" ? ((Double(heightFeet) ?? 0) * 30.48 + (Double(heightInches) ?? 0) * 2.54) : (Double(heightCm) ?? 0)
+        
+        let weightKg = settings.units == "Imperial" ? weightDouble * 0.453592 : weightDouble
+        
+        let bmr: Double
+        if selectedGender == .male {
+            bmr = 88.36 + (13.4 * weightKg) + (4.8 * heightCmDouble) - (5.7 * Double(ageInt))
+        } else {
+            bmr = 447.6 + (9.2 * weightKg) + (3.1 * heightCmDouble) - (4.3 * Double(ageInt))
+        }
+        
+        let activityMultipliers: [ActivityLevel: Double] = [
+            .sedentary: 1.2,
+            .light: 1.375,
+            .moderate: 1.55,
+            .active: 1.725,
+            .veryActive: 1.9
+        ]
+        
+        let tdee = bmr * (activityMultipliers[activityLevel] ?? 1.55)
+        
+        switch goal {
+        case .lose: return Int(tdee - 500)
+        case .maintain: return Int(tdee)
+        case .gain: return Int(tdee + 500)
+        }
+    }
     
     @FocusState private var isAgeFocused: Bool
     @FocusState private var isWeightFocused: Bool
@@ -30,7 +64,7 @@ struct CalorieCalculator: View {
     @FocusState private var isHeightInchesFocused: Bool
     @FocusState private var isHeightCmFocused: Bool
     
-    @State private var selectedGenderIndex: Int = UserDefaults.standard.object(forKey: UserKeys.gender.rawValue) as? String == "Male" ? 0 : 1
+    @State private var selectedGenderIndex: Int = CloudSettings.shared.gender == "Male" ? 0 : 1
     private let genderOptionsMap: [Int: Gender] = [
         0: .male,
         1: .female
@@ -45,8 +79,6 @@ struct CalorieCalculator: View {
             }
         }
     }
-    
-    @AppStorage(UserKeys.units.rawValue) private var units: String = "Imperial"
     
     var body: some View {
         ContainerView(title: "Calorie Calculator", spacing: 20) {
@@ -82,7 +114,7 @@ struct CalorieCalculator: View {
                 )
                 .onChange(of: selectedGenderIndex) {
                     let genderOption = genderOptionsMap[selectedGenderIndex] ?? .male
-                    UserDefaults.standard.set(genderOption.rawValue, forKey: UserKeys.gender.rawValue)
+                    settings.gender = genderOption.rawValue
                 }
             }
             
@@ -94,33 +126,28 @@ struct CalorieCalculator: View {
                 
                 Button {
                     Task {
-                        await UnitMenuPopup(selection: $units).present()
+                        await UnitMenuPopup(selection: $settings.units).present()
                     }
                 } label: {
-                    HStack {
-                        if units == "Imperial" {
-                            Text("Imperial (mi, ft, in, lbs)")
-                                .bodyText(size: 16)
-                        } else {
-                            Text("Metric (km, m, cm, kg)")
-                                .bodyText(size: 16)
-                        }
+                    HStack(alignment: .center) {
+                        Text(settings.units == "Imperial" ? "Imperial(mi, ft, in, lbs)" : "Metric (km, m, cm, kg)")
+                            .bodyText(size: 18, weight: .bold)
                         
                         Image(systemName: "chevron.up.chevron.down")
-                            .font(Font.system(size: 12))
+                            .font(Font.system(size: 12, weight: .bold))
                     }
                 }
                 .textColor()
             }
             
             // Weight
-            Input(title: "Weight", text: $weight, isFocused: _isWeightFocused, unit: units == "Imperial" ? "lbs" : "kg", type: .decimalPad)
+            Input(title: "Weight", text: $weight, isFocused: _isWeightFocused, unit: settings.units == "Imperial" ? "lbs" : "kg", type: .decimalPad)
                 .onChange(of: weight) {
                     weight = weight.filteredNumeric()
                 }
             
             // Height Input
-            if units == "Imperial" {
+            if settings.units == "Imperial" {
                 HStack(alignment: .bottom) {
                     Input(title: "Height", text: $heightFeet, isFocused: _isHeightFeetFocused, unit: "ft", type: .numberPad)
                         .onChange(of: heightFeet) {
@@ -152,12 +179,12 @@ struct CalorieCalculator: View {
                 } label: {
                     HStack(alignment: .center) {
                         Text(activityLevelString ?? "Moderate (3-5 days/week)")
-                            .bodyText(size: 16)
+                            .bodyText(size: 18, weight: .bold)
                             .multilineTextAlignment(.leading)
                         
-                        Image(systemName: "chevron.right")
+                        Image(systemName: "chevron.up.chevron.down")
                             .padding(.leading, -2)
-                            .font(Font.system(size: 10))
+                            .font(Font.system(size: 12, weight: .bold))
                     }
                 }
                 .textColor()
@@ -175,24 +202,16 @@ struct CalorieCalculator: View {
                     }
                 } label: {
                     HStack(alignment: .center) {
-                        Text("Goal: \(goalString ?? "Maintain Weight")")
-                            .bodyText(size: 16)
+                        Text(goalString ?? "Maintain Weight")
+                            .bodyText(size: 18, weight: .bold)
                             .multilineTextAlignment(.leading)
                         
-                        Image(systemName: "chevron.right")
+                        Image(systemName: "chevron.up.chevron.down")
                             .padding(.leading, -2)
-                            .font(Font.system(size: 10))
+                            .font(Font.system(size: 12, weight: .bold))
                     }
                 }
                 .textColor()
-            }
-            
-            // Calculate Button
-            Button {
-                dailyCalories = calculateCalories()
-            } label: {
-                Text("Calculate Calories")
-                    .bodyText(size: 18)
             }
             
             Spacer()
@@ -200,15 +219,12 @@ struct CalorieCalculator: View {
             
             HStack(spacing: 0) {
                 Text("Daily Calories: ")
-                    .bodyText(size: 14)
+                    .bodyText(size: 16)
                 
                 Text(dailyCalories != nil ? "\(dailyCalories ?? 0)cal" : "N/A")
-                    .statsText(size: 14)
+                    .statsText(size: 16)
             }
             .textColor()
-            
-            Spacer()
-                .frame(height: 5)
 
             Text("⚠️ The calorie estimates provided by this app are for reference purposes only and should not be considered medical advice. Consult a healthcare professional before making any significant changes to your diet or exercise routine.")
                 .bodyText(size: 14)
@@ -220,39 +236,6 @@ struct CalorieCalculator: View {
                 
                 KeyboardDoneButton(focusStates: [_isAgeFocused, _isWeightFocused, _isHeightFeetFocused, _isHeightInchesFocused, _isHeightCmFocused])
             }
-        }
-    }
-    
-    func calculateCalories() -> Int {
-        guard let ageInt = Int(age), let weightDouble = Double(weight) else {
-            return 0
-        }
-        
-        let heightCmDouble: Double = units == "Imperial" ? ((Double(heightFeet) ?? 0) * 30.48 + (Double(heightInches) ?? 0) * 2.54) : (Double(heightCm) ?? 0)
-        
-        let weightKg = units == "Imperial" ? weightDouble * 0.453592 : weightDouble
-        
-        let bmr: Double
-        if selectedGender == .male {
-            bmr = 88.36 + (13.4 * weightKg) + (4.8 * heightCmDouble) - (5.7 * Double(ageInt))
-        } else {
-            bmr = 447.6 + (9.2 * weightKg) + (3.1 * heightCmDouble) - (4.3 * Double(ageInt))
-        }
-        
-        let activityMultipliers: [ActivityLevel: Double] = [
-            .sedentary: 1.2,
-            .light: 1.375,
-            .moderate: 1.55,
-            .active: 1.725,
-            .veryActive: 1.9
-        ]
-        
-        let tdee = bmr * (activityMultipliers[activityLevel] ?? 1.55)
-        
-        switch goal {
-        case .lose: return Int(tdee - 500)
-        case .maintain: return Int(tdee)
-        case .gain: return Int(tdee + 500)
         }
     }
 }

@@ -13,8 +13,17 @@ struct SelectExercise: View {
     @Environment(\.dismiss) private var dismiss
         
     @Query private var exercises: [Exercise]
+    private var exerciseOptions: [Exercise] {
+        if forStats {
+            return exercises.filter { !$0.workoutExercises.compactMap { $0.exerciseLogs }.isEmpty }
+        } else {
+            return exercises.filter { !$0.hidden }
+        }
+    }
     
     @Binding var selectedExercise: Exercise?
+    
+    var forStats: Bool = false
     
     @State private var searchText: String = ""
     @FocusState private var isSearchFocused: Bool
@@ -34,18 +43,20 @@ struct SelectExercise: View {
             exercise.muscleGroup ?? MuscleGroup.other
         })
         .mapValues { exercises in
-            exercises.sorted { $0.name.lowercased() < $1.name.lowercased() } // Sorting exercises alphabetically by name
+            exercises.sorted { $0.name.lowercased() < $1.name.lowercased() }
         }
     }
     
     var body: some View {
         ContainerView(title: "Select Exercise", spacing: 16, showScrollBar: true, trailingItems: {
-            NavigationLink(destination: UpsertExercise(selectedExercise: $selectedExercise)) {
-                Image(systemName: "plus")
-                    .padding(.horizontal, 5)
-                    .font(Font.system(size: 24))
+            if !forStats {
+                NavigationLink(destination: UpsertExercise(selectedExercise: $selectedExercise)) {
+                    Image(systemName: "plus")
+                        .padding(.horizontal, 5)
+                        .font(Font.system(size: 20))
+                }
+                .textColor()
             }
-            .textColor()
         }) {
             TextField("Search Exercises", text: $searchText)
                 .focused($isSearchFocused)
@@ -66,7 +77,7 @@ struct SelectExercise: View {
                             } label: {
                                 HStack(alignment: .center) {
                                     Text(exercise.name)
-                                        .bodyText(size: 16)
+                                        .bodyText(size: 16, weight: selectedExercise == exercise ? .bold : .regular)
                                         .multilineTextAlignment(.leading)
                                     
                                     if selectedExercise == exercise {
@@ -78,7 +89,8 @@ struct SelectExercise: View {
                                     }
                                 }
                             }
-                            .textColor()
+                            .foregroundStyle(forStats && !exerciseOptions.contains(where: { $0.id == exercise.id }) ? ColorManager.secondary : ColorManager.text)
+                            .disabled(forStats && !exerciseOptions.contains(where: { $0.id == exercise.id }))
                         }
                     }
                 }

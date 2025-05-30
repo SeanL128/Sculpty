@@ -7,24 +7,13 @@
 
 import Foundation
 import SwiftData
+import UniformTypeIdentifiers
 
-/**
- This file provides a data import/export manager to transfer data between SwiftData and external formats
- using the DTO structures.
- 
- Usage examples:
- 
- // Export data
- if let exportData = DataTransferManager.shared.exportAllData() {
-     // Save exportData to a file or share it
-     // Example: saveToFile(exportData, filename: "sculpty_backup.json")
- }
- 
- // Import data
- if let importData = loadFromFile("sculpty_backup.json") {
-     try await DataTransferManager.shared.importAllData(from: importData)
- }
- */
+extension UTType {
+    static var sculptyData: UTType {
+        UTType(exportedAs: "app.sculpty.SculptyApp.sculptydata")
+    }
+}
 
 class DataTransferManager {
     static let shared = DataTransferManager()

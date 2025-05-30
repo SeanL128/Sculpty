@@ -2,6 +2,19 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Sculpty Data</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>app.sculpty.SculptyApp.sculptydata</string>
+			</array>
+		</dict>
+	</array>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Oswald-Bold.ttf</string>
@@ -9,17 +22,29 @@
 		<string>PublicSans-Regular.ttf</string>
 		<string>PublicSans-Bold.ttf</string>
 	</array>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-		<string>processing</string>
-		<string>remote-notification</string>
-	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
-		<dict/>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+				<string>public.content</string>
+				<string>public.json</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Sculpty Data</string>
+			<key>UTTypeIdentifier</key>
+			<string>app.sculpty.SculptyApp.sculptydata</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>sculptydata</string>
+				</array>
+			</dict>
+		</dict>
 	</array>
 </dict>
 </plist>

@@ -9,14 +9,18 @@ import Foundation
 import SwiftData
 
 @Model
-class CaloriesLog: Identifiable, Codable {
-    @Attribute(.unique) var id: UUID
+class CaloriesLog: Identifiable {
+    var id: UUID = UUID()
     
-    var date: Date
-    @Relationship(deleteRule: .cascade, inverse: \FoodEntry.caloriesLog) var entries: [FoodEntry] = []
+    var date: Date = Date()
+    @Relationship(deleteRule: .cascade, inverse: \FoodEntry.caloriesLog) private var _entries: [FoodEntry]? = []
+    
+    var entries: [FoodEntry] {
+        get { _entries ?? [] }
+        set { _entries = newValue.isEmpty ? nil : newValue }
+    }
     
     init(date: Date = Date(), entries: [FoodEntry] = []) {
-        id = UUID()
         self.date = date
         self.entries = entries
     }
@@ -35,23 +39,5 @@ class CaloriesLog: Identifiable, Codable {
     
     func getTotalFat() -> Double {
         return entries.reduce(0) { $0 + $1.fat }
-    }
-    
-    enum CodingKeys: String, CodingKey {
-        case id, entries, date
-    }
-    
-    required init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        entries = try container.decode([FoodEntry].self, forKey: .entries)
-        date = try container.decode(Date.self, forKey: .date)
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
-        try container.encode(entries, forKey: .entries)
-        try container.encode(date, forKey: .date)
     }
 }

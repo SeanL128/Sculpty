@@ -11,6 +11,8 @@ import SwiftData
 struct Onboarding: View {
     @Environment(\.modelContext) private var context
     
+    @EnvironmentObject private var settings: CloudSettings
+    
     @State private var restoring: Bool = false
     
     var body: some View {
@@ -130,7 +132,7 @@ struct Onboarding: View {
                                 preloadData()
                                 
                                 withAnimation {
-                                    UserDefaults.standard.set(true, forKey: UserKeys.onboarded.rawValue)
+                                    settings.onboarded = true
                                 }
                             } label: {
                                 Text("GET STARTED")
@@ -157,7 +159,7 @@ struct Onboarding: View {
                 .padding(.horizontal)
                 .fileImporter(
                     isPresented: $restoring,
-                    allowedContentTypes: [.json],
+                    allowedContentTypes: [.sculptyData],
                     allowsMultipleSelection: false
                 ) { result in
                     switch result {
@@ -168,17 +170,14 @@ struct Onboarding: View {
                             Task {
                                 await restoreFailAlert()
                             }
-                            
                             return
                         }
                         
                         guard let importedData = try? Data(contentsOf: url) else {
                             url.stopAccessingSecurityScopedResource()
-                            
                             Task {
                                 await restoreFailAlert()
                             }
-                            
                             return
                         }
                         
@@ -186,13 +185,11 @@ struct Onboarding: View {
                         
                         Task {
                             do {
-                                // Use the DataTransferManager to import the data
                                 try DataTransferManager.shared.importAllData(from: importedData, into: context)
                                 
-                                // Update user defaults
                                 await MainActor.run {
                                     withAnimation {
-                                        UserDefaults.standard.set(true, forKey: UserKeys.onboarded.rawValue)
+                                        settings.onboarded = true
                                     }
                                 }
                             } catch {
@@ -209,9 +206,12 @@ struct Onboarding: View {
                         }
                         
                         restoring = false
+                        
+                        withAnimation {
+                            settings.onboarded = true
+                        }
                     case .failure(let error):
                         debugLog(error.localizedDescription)
-                        
                         Task {
                             await restoreFailAlert()
                         }
@@ -238,8 +238,4 @@ struct Onboarding: View {
             }
         }
     }
-}
-
-#Preview {
-    Onboarding()
 }

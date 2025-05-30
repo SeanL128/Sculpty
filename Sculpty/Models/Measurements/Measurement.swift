@@ -9,13 +9,13 @@ import Foundation
 import SwiftData
 
 @Model
-class Measurement: Identifiable, Codable {
-    @Attribute(.unique) var id: UUID = UUID()
+class Measurement: Identifiable {
+    var id: UUID = UUID()
     
-    var date: Date
-    var unit: String
-    var measurement: Double
-    var type: MeasurementType
+    var date: Date = Date()
+    var unit: String = UnitsManager.weight
+    var measurement: Double = 0
+    var type: MeasurementType = MeasurementType.other
     
     init(date: Date = Date(), measurement: Double = 0, unit: String = UnitsManager.weight, type: MeasurementType = .other) {
         self.date = date
@@ -42,27 +42,5 @@ class Measurement: Identifiable, Codable {
     private func ftToFtIn(_ ft: Double) -> String {
         let inches = ft - (ft.truncatingRemainder(dividingBy: 12))
         return "\(Int(ft))\(inches.isZero ? "" : " \(Int(inches))")"
-    }
-    
-    enum CodingKeys: String, CodingKey {
-        case id, date, unit, measurement, type
-    }
-    
-    required init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        date = try container.decode(Date.self, forKey: .date)
-        unit = try container.decode(String.self, forKey: .unit)
-        measurement = try container.decode(Double.self, forKey: .measurement)
-        type = try container.decode(MeasurementType.self, forKey: .type)
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
-        try container.encode(date, forKey: .date)
-        try container.encode(unit, forKey: .unit)
-        try container.encode(measurement, forKey: .measurement)
-        try container.encode(type, forKey: .type)
     }
 }

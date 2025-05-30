@@ -1,5 +1,5 @@
 //
-//  MeasurementStats.swift
+//  CaloriesStats.swift
 //  Sculpty
 //
 //  Created by Sean Lindsay on 5/23/25.
@@ -10,30 +10,46 @@ import SwiftData
 import Charts
 import BRHSegmentedControl
 
-struct MeasurementStats: View {
+struct CaloriesStats: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     
-    @Query private var measurements: [Measurement]
+    @Query private var caloriesLogs: [CaloriesLog]
     
     @State private var selectedRangeIndex: Int = 0
     
-    private var show: Bool { !data.isEmpty }
+    private var show: Bool { !caloriesLogs.isEmpty }
     
-    @State private var type: MeasurementType?
-    
-    private var data: [(date: Date, value: Double)] {
-        measurements
-            .filter { $0.type == type }
-            .map { (date: $0.date, value: $0.getConvertedMeasurement()) }
+    private var caloriesData: [(date: Date, value: Double)] {
+        caloriesLogs
+            .map { (date: Calendar.current.startOfDay(for: $0.date), value: $0.getTotalCalories()) }
+            .filter { $0.value > 0 }
             .sorted { $0.date < $1.date }
     }
-    private var units: String {
-        switch type {
-        case .bodyFat: return "%"
-        case .weight: return UnitsManager.weight
-        default: return UnitsManager.shortLength
-        }
+    private var carbsData: [(date: Date, value: Double)] {
+        caloriesLogs
+            .map { (date: Calendar.current.startOfDay(for: $0.date), value: $0.getTotalCarbs()) }
+            .filter { $0.value > 0 }
+            .sorted { $0.date < $1.date }
+    }
+    private var proteinData: [(date: Date, value: Double)] {
+        caloriesLogs
+            .map { (date: Calendar.current.startOfDay(for: $0.date), value: $0.getTotalProtein()) }
+            .filter { $0.value > 0 }
+            .sorted { $0.date < $1.date }
+    }
+    private var fatData: [(date: Date, value: Double)] {
+        caloriesLogs
+            .map { (date: Calendar.current.startOfDay(for: $0.date), value: $0.getTotalFat()) }
+            .filter { $0.value > 0 }
+            .sorted { $0.date < $1.date }
+    }
+    private var macrosData: [LineData] {
+        return [
+            LineData(data: carbsData, color: .blue, name: "Carbs"),
+            LineData(data: proteinData, color: .red, name: "Protein"),
+            LineData(data: fatData, color: .orange, name: "Fat")
+        ]
     }
     
     var body: some View {
@@ -53,15 +69,15 @@ struct MeasurementStats: View {
                         }
                         .textColor()
                         
-                        Text("MEASUREMENT STATS")
+                        Text("CALORIES STATS")
                             .headingText(size: 32)
                             .textColor()
                         
                         Spacer()
                         
-                        NavigationLink(destination: Measurements()) {
+                        NavigationLink(destination: CaloriesHistory()) {
                             Image(systemName: "list.bullet.clipboard")
-                                .padding(.trailing, 5)
+                                .padding(.horizontal, 5)
                                 .font(Font.system(size: 20))
                         }
                         .textColor()
@@ -69,18 +85,6 @@ struct MeasurementStats: View {
                     .padding(.bottom)
                     
                     VStack(alignment: .leading, spacing: 20) {
-                        NavigationLink(destination: SelectMeasurement(selectedMeasurementType: $type, forStats: true)) {
-                            HStack(alignment: .center) {
-                                Text(type?.rawValue ?? "Select Measurement")
-                                    .bodyText(size: 20, weight: .bold)
-                                
-                                Image(systemName: "chevron.right")
-                                    .padding(.leading, -2)
-                                    .font(Font.system(size: 14, weight: .bold))
-                            }
-                        }
-                        .textColor()
-                        
                         BRHSegmentedControl(
                             selectedIndex: $selectedRangeIndex,
                             labels: ["Last 7 Days", "Last 30 Days", "Last 6 Months", "Last Year", "Last 5 Years"],
@@ -105,13 +109,21 @@ struct MeasurementStats: View {
                         if show {
                             ScrollView {
                                 VStack(alignment: .leading, spacing: 20) {
-                                    // Measurement
-                                    Text("MEASUREMENT")
+                                    // Calories
+                                    Text("CALORIES")
                                         .headingText(size: 24)
                                         .textColor()
                                         .padding(.bottom, -16)
                                     
-                                    LineChart(selectedRangeIndex: $selectedRangeIndex, data: data, units: units)
+                                    LineChart(selectedRangeIndex: $selectedRangeIndex, data: caloriesData, units: "cal", showTime: false)
+                                    
+                                    // Macros
+                                    Text("MACROS")
+                                        .headingText(size: 24)
+                                        .textColor()
+                                        .padding(.bottom, -16)
+                                    
+                                    MultiLineChart(selectedRangeIndex: $selectedRangeIndex, lineDataSets: macrosData, units: "g")
                                 }
                             }
                             .scrollBounceBehavior(.basedOnSize, axes: [.vertical])

@@ -21,14 +21,14 @@ struct WorkoutList: View {
             NavigationLink(destination: PageRenderer(page: .exerciseList)) {
                 Image(systemName: "figure.run")
                     .padding(.horizontal, 5)
-                    .font(Font.system(size: 24))
+                    .font(Font.system(size: 20))
             }
             .textColor()
             
             NavigationLink(destination: PageRenderer(page: .upsertWorkout)) {
                 Image(systemName: "plus")
                     .padding(.horizontal, 5)
-                    .font(Font.system(size: 24))
+                    .font(Font.system(size: 20))
             }
             .textColor()
         }) {

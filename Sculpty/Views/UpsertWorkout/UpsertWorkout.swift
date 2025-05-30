@@ -53,18 +53,18 @@ struct UpsertWorkout: View {
                 } label: {
                     Image(systemName: "document.on.document")
                         .padding(.horizontal, 5)
-                        .font(Font.system(size: 24))
+                        .font(Font.system(size: 20))
                 }
                 .textColor()
                 
                 Button {
                     Task {
-                        await ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(workout.name)?", resultText: "This will also delete all related logs.", cancelText: "Cancel", confirmText: "Delete").present()
+                        await ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(workout.name)?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Delete").present()
                     }
                 } label: {
                     Image(systemName: "trash")
                         .padding(.horizontal, 5)
-                        .font(Font.system(size: 24))
+                        .font(Font.system(size: 20))
                 }
                 .textColor()
                 .onChange(of: confirmDelete) {
@@ -93,19 +93,13 @@ struct UpsertWorkout: View {
                                 workoutExercise: exercise
                             )
                         }) {
-                            if let name = exercise.exercise?.name {
-                                Text(name)
-                                    .bodyText(size: 16)
-                                    .multilineTextAlignment(.leading)
-                            } else {
-                                Text("Select Exercise")
-                                    .bodyText(size: 16)
-                                    .multilineTextAlignment(.leading)
-                            }
+                            Text(exercise.exercise?.name ?? "Select Exercise")
+                                .bodyText(size: 18, weight: .bold)
+                                .multilineTextAlignment(.leading)
                                 
                             Image(systemName: "chevron.right")
                                 .padding(.leading, -2)
-                                .font(Font.system(size: 10))
+                                .font(Font.system(size: 12, weight: .bold))
                         }
                         .textColor()
                         
@@ -136,10 +130,10 @@ struct UpsertWorkout: View {
             } label: {
                 HStack(alignment: .center) {
                     Image(systemName: "plus")
-                        .font(Font.system(size: 16))
+                        .font(Font.system(size: 12, weight: .bold))
                     
                     Text("Add Exercise")
-                        .bodyText(size: 16)
+                        .bodyText(size: 16, weight: .bold)
                 }
             }
             .textColor()
@@ -160,9 +154,9 @@ struct UpsertWorkout: View {
                 save()
             } label: {
                 Text("Save")
-                    .bodyText(size: 18)
+                    .bodyText(size: 20, weight: .bold)
             }
-            .textColor()
+            .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
             .disabled(!isValid)
         }
         .toolbar {
@@ -268,7 +262,6 @@ struct UpsertWorkout: View {
             }
             
             context.insert(workoutCopy)
-            context.insert(WorkoutLog(workout: workoutCopy))
             
             do {
                 try context.save()

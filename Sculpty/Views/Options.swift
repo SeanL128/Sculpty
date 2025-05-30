@@ -13,6 +13,8 @@ struct Options: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     
+    @EnvironmentObject private var settings: CloudSettings
+    
     @Query private var workouts: [Workout]
     @Query private var workoutLogs: [WorkoutLog]
     @Query private var caloriesLogs: [CaloriesLog]
@@ -21,24 +23,8 @@ struct Options: View {
     @State private var resetConfirmation2: Bool = false
     @State private var resetConfirmation3: Bool = false
     
-    @AppStorage(UserKeys.units.rawValue) private var units: String = "Imperial"
-    
-    @AppStorage(UserKeys.appearance.rawValue) private var selectedAppearance: Appearance = .automatic
-    
-    @AppStorage(UserKeys.disableAutoLock.rawValue) private var disableAutoLock: Bool = false
-    @AppStorage(UserKeys.show1RM.rawValue) private var show1RM: Bool = false
-    @AppStorage(UserKeys.showRir.rawValue) private var showRir: Bool = false
-    @AppStorage(UserKeys.showSetTimer.rawValue) private var showSetTimer: Bool = false
-    @AppStorage(UserKeys.showTempo.rawValue) private var showTempo: Bool = false
-    @AppStorage(UserKeys.targetWeeklyWorkouts.rawValue) private var targetWeeklyWorkouts: String = "3"
     @FocusState private var isTargetWeeklyWorkoutsFocused: Bool
-    
-    @AppStorage(UserKeys.dailyCalories.rawValue) private var dailyCalories: String = "0"
     @FocusState private var isDailyCaloriesFocused: Bool
-    
-    @AppStorage(UserKeys.includeWarmUp.rawValue) private var includeWarmUp: Bool = true
-    @AppStorage(UserKeys.includeDropSet.rawValue) private var includeDropSet: Bool = true
-    @AppStorage(UserKeys.includeCoolDown.rawValue) private var includeCoolDown: Bool = true
     
     var body: some View {
         ContainerView(title: "Options", spacing: 24) {
@@ -57,8 +43,6 @@ struct Options: View {
                     
                     Text("DEFAULTS")
                         .headingText(size: 24)
-                    
-                    Spacer()
                 }
                 .textColor()
                 
@@ -70,20 +54,15 @@ struct Options: View {
                     
                     Button {
                         Task {
-                            await UnitMenuPopup(selection: $units).present()
+                            await UnitMenuPopup(selection: $settings.units).present()
                         }
                     } label: {
-                        HStack {
-                            if units == "Imperial" {
-                                Text("Imperial (mi, ft, in, lbs)")
-                                    .bodyText(size: 18)
-                            } else {
-                                Text("Metric (km, m, cm, kg)")
-                                    .bodyText(size: 18)
-                            }
+                        HStack(alignment: .center) {
+                            Text(settings.units == "Imperial" ? "Imperial (mi, ft, in, lbs)" : "Metric (km, m, cm, kg)")
+                                .bodyText(size: 18, weight: .bold)
                             
                             Image(systemName: "chevron.up.chevron.down")
-                                .font(Font.system(size: 14))
+                                .font(Font.system(size: 12, weight: .bold))
                         }
                     }
                     .textColor()
@@ -95,49 +74,49 @@ struct Options: View {
                 .frame(height: 5)
             
             // MARK: Customization
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    HStack(alignment: .center) {
-                        Spacer()
-                        
-                        Image(systemName: "paintbrush.pointed")
-                            .font(Font.system(size: 18))
-                        
-                        Spacer()
-                    }
-                    .frame(width: 25)
-                    
-                    Text("CUSTOMIZATION")
-                        .headingText(size: 24)
-                }
-                .textColor()
-                
-                HStack {
-                    Text("Dark Mode")
-                        .bodyText(size: 18)
-                    
-                    Spacer()
-                    
-                    Button {
-                        Task {
-                            await AppearanceMenuPopup(selection: $selectedAppearance).present()
-                        }
-                    } label: {
-                        HStack {
-                            Text(selectedAppearance.rawValue)
-                                .bodyText(size: 18)
-                            
-                            Image(systemName: "chevron.up.chevron.down")
-                                .font(Font.system(size: 14))
-                        }
-                    }
-                    .textColor()
-                }
-            }
-            .frame(maxWidth: .infinity)
-            
-            Spacer()
-                .frame(height: 5)
+//            VStack(alignment: .leading, spacing: 12) {
+//                HStack {
+//                    HStack(alignment: .center) {
+//                        Spacer()
+//                        
+//                        Image(systemName: "paintbrush.pointed")
+//                            .font(Font.system(size: 18))
+//                        
+//                        Spacer()
+//                    }
+//                    .frame(width: 25)
+//                    
+//                    Text("CUSTOMIZATION")
+//                        .headingText(size: 24)
+//                }
+//                .textColor()
+//                
+//                HStack {
+//                    Text("Dark Mode")
+//                        .bodyText(size: 18)
+//                    
+//                    Spacer()
+//                    
+//                    Button {
+//                        Task {
+//                            await AppearanceMenuPopup(selection: $settings.appearance).present()
+//                        }
+//                    } label: {
+//                        HStack {
+//                            Text(settings.appearance.rawValue)
+//                                .bodyText(size: 18, weight: .bold)
+//                            
+//                            Image(systemName: "chevron.up.chevron.down")
+//                                .font(Font.system(size: 12, weight: .bold))
+//                        }
+//                    }
+//                    .textColor()
+//                }
+//            }
+//            .frame(maxWidth: .infinity)
+//            
+//            Spacer()
+//                .frame(height: 5)
             
             // MARK: Workouts
             VStack(alignment: .leading, spacing: 12) {
@@ -164,46 +143,44 @@ struct Options: View {
                     
                     Spacer()
                     
-                    Input(title: "", text: $targetWeeklyWorkouts, isFocused: _isTargetWeeklyWorkoutsFocused, type: .numberPad)
+                    Input(title: "", text: $settings.targetWeeklyWorkoutsString, isFocused: _isTargetWeeklyWorkoutsFocused, type: .numberPad)
                         .frame(maxWidth: 100)
-                        .onChange(of: targetWeeklyWorkouts) {
-                            targetWeeklyWorkouts = targetWeeklyWorkouts.filteredNumericWithoutDecimalPoint()
+                        .onChange(of: settings.targetWeeklyWorkoutsString) {
+                            settings.targetWeeklyWorkoutsString = settings.targetWeeklyWorkoutsString.filteredNumericWithoutDecimalPoint()
                             
-                            if targetWeeklyWorkouts.isEmpty {
-                                targetWeeklyWorkouts = "0"
+                            if settings.targetWeeklyWorkoutsString.isEmpty {
+                                settings.targetWeeklyWorkoutsString = "0"
                             }
                         }
                 }
                 
-                Toggle(isOn: $disableAutoLock) {
-                    Text("Disable Auto Lock")
-                        .bodyText(size: 18)
-                        .textColor()
-                }
-                
-                Toggle(isOn: $showRir) {
+                Toggle(isOn: $settings.showRir) {
                     Text("Enable RIR")
                         .bodyText(size: 18)
                         .textColor()
                 }
+                .padding(.trailing, 2)
                 
-                Toggle(isOn: $show1RM) {
+                Toggle(isOn: $settings.show1RM) {
                     Text("Enable 1RM")
                         .bodyText(size: 18)
                         .textColor()
                 }
+                .padding(.trailing, 2)
                 
-                Toggle(isOn: $showTempo) {
+                Toggle(isOn: $settings.showTempo) {
                     Text("Enable Tempo")
                         .bodyText(size: 18)
                         .textColor()
                 }
+                .padding(.trailing, 2)
                 
-                Toggle(isOn: $showSetTimer) {
+                Toggle(isOn: $settings.showSetTimer) {
                     Text("Enable Set Timers")
                         .bodyText(size: 18)
                         .textColor()
                 }
+                .padding(.trailing, 2)
             }
             .frame(maxWidth: .infinity)
             
@@ -236,13 +213,13 @@ struct Options: View {
                         
                         Spacer()
                         
-                        Input(title: "", text: $dailyCalories, isFocused: _isDailyCaloriesFocused, unit: "cal", type: .numberPad)
+                        Input(title: "", text: $settings.dailyCaloriesString, isFocused: _isDailyCaloriesFocused, unit: "cal", type: .numberPad)
                             .frame(maxWidth: 100)
-                            .onChange(of: dailyCalories) {
-                                dailyCalories = dailyCalories.filteredNumericWithoutDecimalPoint()
+                            .onChange(of: settings.dailyCaloriesString) {
+                                settings.dailyCaloriesString = settings.dailyCaloriesString.filteredNumericWithoutDecimalPoint()
                                 
-                                if dailyCalories.isEmpty {
-                                    dailyCalories = "0"
+                                if settings.dailyCaloriesString.isEmpty {
+                                    settings.dailyCaloriesString = "0"
                                 }
                             }
                     }
@@ -250,13 +227,13 @@ struct Options: View {
                     NavigationLink(destination: CalorieCalculator()) {
                         HStack(alignment: .center) {
                             Text("Not sure? Calculate it here")
+                                .bodyText(size: 14, weight: .bold)
                             
                             Image(systemName: "chevron.right")
                                 .padding(.leading, -2)
-                                .font(Font.system(size: 10))
+                                .font(Font.system(size: 10, weight: .bold))
                         }
                     }
-                    .bodyText(size: 14)
                     .textColor()
                 }
             }
@@ -283,23 +260,26 @@ struct Options: View {
                 }
                 .textColor()
                 
-                Toggle(isOn: $includeWarmUp) {
+                Toggle(isOn: $settings.includeWarmUp) {
                     Text("Include Warm Up Sets")
                         .bodyText(size: 18)
                         .textColor()
                 }
+                .padding(.trailing, 2)
                 
-                Toggle(isOn: $includeDropSet) {
+                Toggle(isOn: $settings.includeDropSet) {
                     Text("Include Drop Sets")
                         .bodyText(size: 18)
                         .textColor()
                 }
+                .padding(.trailing, 2)
                 
-                Toggle(isOn: $includeCoolDown) {
+                Toggle(isOn: $settings.includeCoolDown) {
                     Text("Include Cool Down Sets")
                         .bodyText(size: 18)
                         .textColor()
                 }
+                .padding(.trailing, 2)
             }
             .frame(maxWidth: .infinity)
             
@@ -321,6 +301,8 @@ struct Options: View {
                     
                     Text("DATA MANAGEMENT")
                         .headingText(size: 24)
+                    
+                    Spacer()
                 }
                 .textColor()
                 
@@ -331,8 +313,6 @@ struct Options: View {
                         HStack(alignment: .center) {
                             Text("Back Up All Data")
                                 .bodyText(size: 18)
-                            
-                            Spacer()
                             
                             Image(systemName: "chevron.right")
                                 .padding(.leading, -2)
@@ -349,8 +329,6 @@ struct Options: View {
                         Text("Export Workout Logs to CSV")
                             .bodyText(size: 18)
                         
-                        Spacer()
-                        
                         Image(systemName: "chevron.right")
                             .padding(.leading, -2)
                             .font(Font.system(size: 12))
@@ -364,8 +342,6 @@ struct Options: View {
                     HStack(alignment: .center) {
                         Text("Export Calories Data to CSV")
                             .bodyText(size: 18)
-                        
-                        Spacer()
                         
                         Image(systemName: "chevron.right")
                             .padding(.leading, -2)
@@ -383,8 +359,6 @@ struct Options: View {
                         Text("Reset Data")
                             .bodyText(size: 18)
                         
-                        Spacer()
-                        
                         Image(systemName: "chevron.right")
                             .padding(.leading, -2)
                             .font(Font.system(size: 12))
@@ -396,7 +370,7 @@ struct Options: View {
                         Task {
                             await dismissAllPopups()
                             
-                            await ConfirmationPopup(selection: $resetConfirmation2, promptText: "Are you 100% sure?", resultText: "This action cannot be undone.", cancelText: "Cancel", confirmText: "Reset").present()
+                            await ConfirmationPopup(selection: $resetConfirmation2, promptText: "Are you 100% sure?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Reset").present()
                         }
                         
                         resetConfirmation1 = false
@@ -475,7 +449,7 @@ struct Options: View {
                 return
             }
             
-            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("SculptyBackup.json")
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("SculptyBackup.sculptydata")
             try data.write(to: tempURL)
             
             let activityVC = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
@@ -503,9 +477,9 @@ struct Options: View {
                     if setLog.end.timeIntervalSince1970 > 0 {
                         let date = formatDate(setLog.end)
                         let time = formatTime(setLog.end)
-                        let workoutName = workoutLog.workout.name
-                        let exerciseName = exerciseLog.exercise.exercise?.name ?? "N/A"
-                        let muscleGroup = exerciseLog.exercise.exercise?.muscleGroup?.rawValue ?? "N/A"
+                        let workoutName = workoutLog.workout?.name ?? "N/A"
+                        let exerciseName = exerciseLog.exercise?.exercise?.name ?? "N/A"
+                        let muscleGroup = exerciseLog.exercise?.exercise?.muscleGroup?.rawValue ?? "N/A"
                         let setType = setLog.set?.type.rawValue ?? "N/A"
                         let skipped = setLog.skipped ? "Yes" : "No"
                         
@@ -581,7 +555,7 @@ struct Options: View {
             try DataTransferManager.shared.clearAllData(in: context)
             
             withAnimation {
-                UserDefaults.standard.resetUser()
+                settings.resetAllSettings()
                 
                 dismiss()
             }

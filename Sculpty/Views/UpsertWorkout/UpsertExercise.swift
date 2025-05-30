@@ -19,11 +19,13 @@ struct UpsertExercise: View {
     
     @State var new: Bool
     
-    @FocusState private var isNameFocused: Bool
-    @FocusState private var isNotesFocused: Bool
-    
     @State private var selectedMuscleGroup: String?
     @State private var selectedExerciseType: Int = 0
+    
+    @State private var confirmDelete: Bool = false
+    
+    @FocusState private var isNameFocused: Bool
+    @FocusState private var isNotesFocused: Bool
     
     private var isValid: Bool {
         !exercise.name.trimmingCharacters(in: .whitespaces).isEmpty && selectedMuscleGroup != nil
@@ -38,7 +40,40 @@ struct UpsertExercise: View {
     }
     
     var body: some View {
-        ContainerView(title: "\(new ? "Add" : "Edit") Exercise", spacing: 20) {
+        ContainerView(title: "\(new ? "Add" : "Edit") Exercise", spacing: 20, trailingItems: {
+            if !new {
+                Button {
+                    copyExercise()
+                    
+                    dismiss()
+                } label: {
+                    Image(systemName: "document.on.document")
+                        .padding(.horizontal, 5)
+                        .font(Font.system(size: 20))
+                }
+                .textColor()
+                
+                Button {
+                    Task {
+                        await ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(exercise.name)?", resultText: "This will also remove it from all workouts.", cancelText: "Cancel", confirmText: "Delete").present()
+                    }
+                } label: {
+                    Image(systemName: "trash")
+                        .padding(.horizontal, 5)
+                        .font(Font.system(size: 20))
+                }
+                .textColor()
+                .onChange(of: confirmDelete) {
+                    if confirmDelete {
+                        deleteExercise()
+                        
+                        try? context.save()
+                        
+                        dismiss()
+                    }
+                }
+            }
+        }) {
             Input(title: "Name", text: $exercise.name, isFocused: _isNameFocused, autoCapitalization: .words)
                 .frame(maxWidth: 250)
             
@@ -55,11 +90,11 @@ struct UpsertExercise: View {
                 } label: {
                     HStack(alignment: .center) {
                         Text(selectedMuscleGroup ?? "Select")
-                            .bodyText(size: 16)
+                            .bodyText(size: 18, weight: .bold)
                         
                         Image(systemName: "chevron.right")
                             .padding(.leading, -2)
-                            .font(Font.system(size: 10))
+                            .font(Font.system(size: 12, weight: .bold))
                     }
                 }
                 .textColor()
@@ -112,9 +147,9 @@ struct UpsertExercise: View {
                 save()
             } label: {
                 Text("Save")
-                    .bodyText(size: 18)
+                    .bodyText(size: 20, weight: .bold)
             }
-            .textColor()
+            .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
             .disabled(!isValid)
         }
         .toolbar {
@@ -142,5 +177,37 @@ struct UpsertExercise: View {
         selectedExercise = exercise
         
         dismiss()
+    }
+    
+    private func copyExercise() {
+        if !new {
+            let exerciseCopy = Exercise(name: "Copy of \(exercise.name)", notes: exercise.notes, muscleGroup: exercise.muscleGroup ?? .other, type: exercise.type)
+            
+            context.insert(exerciseCopy)
+            
+            do {
+                try context.save()
+            } catch {
+                debugLog("Failed to save workout copy: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    private func deleteExercise() {
+        if !new {
+            exercise.hide()
+            
+            do {
+                let workouts = (try context.fetch(FetchDescriptor<Workout>())).filter { $0.exercises.contains(where: { $0.exercise?.id == exercise.id }) }
+                
+                for workout in workouts {
+                    workout.exercises.removeAll { $0.exercise?.id == exercise.id }
+                }
+                
+                try context.save()
+            } catch {
+                debugLog("Error: \(error.localizedDescription)")
+            }
+        }
     }
 }

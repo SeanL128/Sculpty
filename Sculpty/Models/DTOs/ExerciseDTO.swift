@@ -13,6 +13,7 @@ struct ExerciseDTO: Identifiable, Codable {
     var notes: String
     var muscleGroup: MuscleGroup?
     var type: ExerciseType
+    var hidden: Bool
     
     init(from model: Exercise) {
         self.id = model.id
@@ -20,10 +21,11 @@ struct ExerciseDTO: Identifiable, Codable {
         self.notes = model.notes
         self.muscleGroup = model.muscleGroup
         self.type = model.type
+        self.hidden = model.hidden
     }
     
     func toModel() -> Exercise {
-        let exercise = Exercise(name: name, notes: notes, muscleGroup: muscleGroup ?? .other, type: type)
+        let exercise = Exercise(name: name, notes: notes, muscleGroup: muscleGroup ?? .other, type: type, hidden: hidden)
         exercise.id = id
         return exercise
     }

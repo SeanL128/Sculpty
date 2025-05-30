@@ -10,6 +10,8 @@ import MijickPopups
 import MijickTimer
 
 struct EditDistanceSetPopup: CenterPopup {
+    @EnvironmentObject private var settings: CloudSettings
+    
     var set: ExerciseSet
     @Binding var log: SetLog
     
@@ -31,8 +33,6 @@ struct EditDistanceSetPopup: CenterPopup {
     @State private var distanceString: String
     
     @FocusState private var isDistanceFocused: Bool
-    
-    @AppStorage(UserKeys.showSetTimer.rawValue) private var showSetTimer: Bool = false
     
     init (set: ExerciseSet,
           log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet(), unit: UnitsManager.longLength)),
@@ -164,20 +164,21 @@ struct EditDistanceSetPopup: CenterPopup {
                         }
                         .frame(maxWidth: 150)
                     
-                    Picker("Unit", selection: $updatedSet.unit) {
-                        Text("mi")
-                            .bodyText(size: 16)
-                            .textColor()
-                            .tag("mi")
-                        
-                        Text("km")
-                            .bodyText(size: 16)
-                            .textColor()
-                            .tag("km")
+                    Button {
+                        Task {
+                            await SmallMenuPopup(title: "Units", options: ["mi", "km"], selection: $updatedSet.unit).present()
+                        }
+                    } label: {
+                        HStack(alignment: .center) {
+                            Text(updatedSet.unit)
+                                .bodyText(size: 18, weight: .bold)
+                            
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(Font.system(size: 12, weight: .bold))
+                        }
                     }
-                    .pickerStyle(.wheel)
-                    .frame(maxWidth: 65, maxHeight: 100)
-                    .clipped()
+                    .textColor()
+                    .frame(maxWidth: 65)
                     .padding(.leading, 5)
                 }
                 .frame(maxWidth: 190)
@@ -197,7 +198,7 @@ struct EditDistanceSetPopup: CenterPopup {
                 .clipped()
             }
             
-            if log.index != -1 && showSetTimer {
+            if log.index > -1 && settings.showSetTimer {
                 HStack {
                     Text("\(setTime.toString())")
                     
@@ -218,7 +219,7 @@ struct EditDistanceSetPopup: CenterPopup {
                             .font(Font.system(size: 16))
                     }
                     .textColor()
-                    .buttonStyle(RoundedFilledButtonStyle())
+                    .buttonStyle(FilledToBorderedButtonStyle())
                     
                     Button {
                         setTimer.cancel()
@@ -228,7 +229,7 @@ struct EditDistanceSetPopup: CenterPopup {
                             .padding(.vertical, -4)
                             .font(Font.system(size: 16))
                     }
-                    .buttonStyle(RoundedFilledButtonStyle())
+                    .buttonStyle(FilledToBorderedButtonStyle())
                     .disabled(setTimer.timerStatus != .running && setTimer.timerStatus != .paused)
                 }
                 .font(.title2)

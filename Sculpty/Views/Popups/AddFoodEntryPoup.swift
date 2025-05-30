@@ -98,9 +98,9 @@ struct AddFoodEntryPoup: CenterPopup {
                 save()
             } label: {
                 Text("Save")
-                    .bodyText(size: 18)
+                    .bodyText(size: 18, weight: .bold)
             }
-            .textColor()
+            .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
             .disabled(!isValid)
         }
         .padding(.vertical, 20)

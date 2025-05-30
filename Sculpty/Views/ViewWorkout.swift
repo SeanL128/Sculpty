@@ -14,6 +14,8 @@ struct ViewWorkout: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     
+    @EnvironmentObject private var settings: CloudSettings
+    
     @State private var log: WorkoutLog
     @State private var exercises: [WorkoutExercise]
     @State private var exerciseLogs: [ExerciseLog]
@@ -38,13 +40,10 @@ struct ViewWorkout: View {
         return true
     }
     
-    @AppStorage(UserKeys.disableAutoLock.rawValue) private var disableAutoLock: Bool = false
-    @AppStorage(UserKeys.showTempo.rawValue) private var showTempo: Bool = false
-    
     init(log: WorkoutLog) {
         self.log = log
         
-        exercises = log.exerciseLogs.sorted { $0.index < $1.index }.map { $0.exercise }
+        exercises = log.exerciseLogs.sorted { $0.index < $1.index }.compactMap { $0.exercise }
         exerciseLogs = log.exerciseLogs.sorted { $0.index < $1.index }
         
         restTimer = MTimer(MTimerID(rawValue: "Rest Timer \(log.id)"))
@@ -69,7 +68,7 @@ struct ViewWorkout: View {
                         }
                         .textColor()
                         
-                        Text(log.workout.name)
+                        Text(log.workout?.name ?? "Workout")
                             .headingText(size: 32)
                             .textColor()
                         
@@ -78,17 +77,19 @@ struct ViewWorkout: View {
                         Button {
                             if log.completed {
                                 Task {
-                                    await WorkoutSummaryPopup(log: log).present()
+                                    await WorkoutSummaryPopup(log: log)
+                                        .setEnvironmentObject(settings)
+                                        .present()
                                 }
                             } else {
                                 Task {
-                                    await ConfirmationPopup(selection: $finishWorkoutSelection, promptText: "Finish \(log.workout.name)?", resultText: "This will skip all remaining sets.", cancelText: "Cancel", confirmText: "Finish").present()
+                                    await ConfirmationPopup(selection: $finishWorkoutSelection, promptText: "Finish \(log.workout?.name ?? "Workout")?", resultText: "This will skip all remaining sets.", cancelText: "Cancel", confirmText: "Finish").present()
                                 }
                             }
                         } label: {
                             Image(systemName: log.completed ? "checkmark.circle.fill" : "checkmark.circle")
                                 .padding(.horizontal, 3)
-                                .font(Font.system(size: 24))
+                                .font(Font.system(size: 20))
                         }
                         .textColor()
                     }
@@ -96,104 +97,108 @@ struct ViewWorkout: View {
                     
                     TabView {
                         ForEach(log.exerciseLogs.sorted { $0.index < $1.index }, id: \.self) { exerciseLog in
-                            let exercise = exerciseLog.exercise
-                            
-                            ScrollView {
-                                VStack(alignment: .leading, spacing: 12) {
-                                    VStack(alignment: .leading) {
-                                        Text(exercise.exercise?.name ?? "Exercise \(exercise.index + 1)")
-                                            .bodyText(size: 18, weight: .bold)
-                                            .textColor()
-                                        
-                                        if showTempo {
-                                            let tempoArr = Array(exercise.tempo)
+                            if let exercise = exerciseLog.exercise {
+                                ScrollView {
+                                    VStack(alignment: .leading, spacing: 12) {
+                                        VStack(alignment: .leading) {
+                                            Text(exercise.exercise?.name ?? "Exercise \(exercise.index + 1)")
+                                                .bodyText(size: 18, weight: .bold)
+                                                .textColor()
                                             
-                                            Button {
-                                                Task {
-                                                    await TempoPopup(tempo: exercise.tempo).present()
-                                                }
-                                            } label: {
-                                                HStack(alignment: .center) {
-                                                    Text("Tempo: \(tempoArr[0])\(tempoArr[1])\(tempoArr[2])\(tempoArr[3])")
-                                                        .bodyText(size: 14)
-                                                    
-                                                    Image(systemName: "chevron.right")
-                                                        .padding(.leading, -2)
-                                                        .font(Font.system(size: 8))
-                                                }
-                                            }
-                                            .textColor()
-                                        }
-                                        
-                                        if !exercise.specNotes.isEmpty {
-                                            Button {
-                                                Task {
-                                                    await InfoPopup(title: "\(exercise.exercise?.name ?? "Exercise") Notes", text: exercise.specNotes).present()
-                                                }
-                                            } label: {
-                                                HStack(alignment: .center) {
-                                                    Text("Notes")
-                                                        .bodyText(size: 14)
-                                                    
-                                                    Image(systemName: "chevron.right")
-                                                        .padding(.leading, -2)
-                                                        .font(Font.system(size: 8))
-                                                }
-                                            }
-                                            .textColor()
-                                        }
-                                    }
-                                    .padding(.bottom, 6)
-                                    
-                                    let maxIndex = exerciseLog.setLogs.sorted(by: { $0.index < $1.index }).last?.index ?? 0
-                                    
-                                    ForEach(exerciseLog.setLogs.sorted { $0.index < $1.index }, id: \.self) { setLog in
-                                        if let eSet = setLog.set {
-                                            Button {
-                                                let exerciseIndex = exercise.index
-                                                let exerciseLogIndex = exerciseLog.index
+                                            if settings.showTempo {
+                                                let tempoArr = Array(exercise.tempo)
                                                 
-                                                Task {
-                                                    if let setIndex = exercises[exerciseIndex].sets.firstIndex(where: { $0.id == eSet.id }),
-                                                       let setLogIndex = exerciseLog.setLogs.firstIndex(where: { $0.id == setLog.id }),
-                                                       let type = exercises[exerciseLogIndex].exercise?.type {
-                                                        if type == .weight {
-                                                            await EditWeightSetPopup(set: exercises[exerciseLogIndex].sets[setIndex], log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer).present()
-                                                        } else if type == .distance {
-                                                            await EditDistanceSetPopup(set: exercises[exerciseLogIndex].sets[setIndex], log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer).present()
+                                                Button {
+                                                    Task {
+                                                        await TempoPopup(tempo: exercise.tempo).present()
+                                                    }
+                                                } label: {
+                                                    HStack(alignment: .center) {
+                                                        Text("Tempo: \(tempoArr[0])\(tempoArr[1])\(tempoArr[2])\(tempoArr[3])")
+                                                            .bodyText(size: 14)
+                                                        
+                                                        Image(systemName: "chevron.right")
+                                                            .padding(.leading, -2)
+                                                            .font(Font.system(size: 8))
+                                                    }
+                                                }
+                                                .textColor()
+                                            }
+                                            
+                                            if !exercise.specNotes.isEmpty {
+                                                Button {
+                                                    Task {
+                                                        await InfoPopup(title: "\(exercise.exercise?.name ?? "Exercise") Notes", text: exercise.specNotes).present()
+                                                    }
+                                                } label: {
+                                                    HStack(alignment: .center) {
+                                                        Text("Notes")
+                                                            .bodyText(size: 14)
+                                                        
+                                                        Image(systemName: "chevron.right")
+                                                            .padding(.leading, -2)
+                                                            .font(Font.system(size: 8))
+                                                    }
+                                                }
+                                                .textColor()
+                                            }
+                                        }
+                                        .padding(.bottom, 6)
+                                        
+                                        let maxIndex = exerciseLog.setLogs.sorted(by: { $0.index < $1.index }).last?.index ?? 0
+                                        
+                                        ForEach(exerciseLog.setLogs.sorted { $0.index < $1.index }, id: \.self) { setLog in
+                                            if let eSet = setLog.set {
+                                                Button {
+                                                    let exerciseIndex = exercise.index
+                                                    let exerciseLogIndex = exerciseLog.index
+                                                    
+                                                    Task {
+                                                        if let setIndex = exercises[exerciseIndex].sets.firstIndex(where: { $0.id == eSet.id }),
+                                                           let setLogIndex = exerciseLog.setLogs.firstIndex(where: { $0.id == setLog.id }),
+                                                           let type = exercises[exerciseLogIndex].exercise?.type {
+                                                            if type == .weight {
+                                                                await EditWeightSetPopup(set: exercises[exerciseLogIndex].sets[setIndex], log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer)
+                                                                    .setEnvironmentObject(settings)
+                                                                    .present()
+                                                            } else if type == .distance {
+                                                                await EditDistanceSetPopup(set: exercises[exerciseLogIndex].sets[setIndex], log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer)
+                                                                    .setEnvironmentObject(settings)
+                                                                    .present()
+                                                            }
+                                                        }
+                                                    }
+                                                } label: {
+                                                    HStack {
+                                                        SetView(set: eSet, setLog: setLog)
+                                                        
+                                                        Spacer()
+                                                        
+                                                        if setLog.skipped {
+                                                            Image(systemName: "arrowshape.turn.up.right.fill")
+                                                                .padding(.horizontal, 8)
+                                                                .font(Font.system(size: 16))
                                                         }
                                                     }
                                                 }
-                                            } label: {
-                                                HStack {
-                                                    SetView(set: eSet, setLog: setLog)
-                                                    
-                                                    Spacer()
-                                                    
-                                                    if setLog.skipped {
-                                                        Image(systemName: "arrowshape.turn.up.right.fill")
-                                                            .padding(.horizontal, 8)
-                                                            .font(Font.system(size: 16))
-                                                    }
+                                                .foregroundStyle(exerciseLog.setLogs.filter { $0.completed || $0.skipped }.count < setLog.index ? ColorManager.secondary : ColorManager.text)
+                                                .disabled(exerciseLog.setLogs.filter { $0.completed || $0.skipped }.count < setLog.index)
+                                                
+                                                if setLog.index < maxIndex {
+                                                    Divider()
+                                                        .background(ColorManager.text)
                                                 }
                                             }
-                                            .disabled(exerciseLog.setLogs.filter { $0.completed || $0.skipped }.count < setLog.index)
-                                            .foregroundStyle(exerciseLog.setLogs.filter { $0.completed || $0.skipped }.count < setLog.index ? ColorManager.secondary : ColorManager.text)
-                                            
-                                            if setLog.index < maxIndex {
-                                                Divider()
-                                                    .background(ColorManager.text)
-                                            }
                                         }
+                                        
+                                        Spacer()
                                     }
-                                    
-                                    Spacer()
                                 }
+                                .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
+                                .scrollIndicators(.hidden)
+                                .scrollClipDisabled()
+                                .scrollContentBackground(.hidden)
                             }
-                            .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
-                            .scrollIndicators(.hidden)
-                            .scrollClipDisabled()
-                            .scrollContentBackground(.hidden)
                         }
                     }
                     .tabViewStyle(.page(indexDisplayMode: .always))
@@ -217,14 +222,8 @@ struct ViewWorkout: View {
                 totalTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
                     totalTime = log.getLength()
                 }
-                
-                if disableAutoLock {
-                    UIApplication.shared.isIdleTimerDisabled = true
-                }
             }
             .onDisappear() {
-                UIApplication.shared.isIdleTimerDisabled = false
-                
                 totalTimer?.invalidate()
                 totalTimer = nil
             }
@@ -233,7 +232,7 @@ struct ViewWorkout: View {
                     Task {
                         try? await Task.sleep(for: .seconds(0.7))
                         
-                        await ConfirmationPopup(selection: $finishWorkoutSelection, promptText: "Finish \(log.workout.name)?", cancelText: "Continue", confirmText: "Finish").present()
+                        await ConfirmationPopup(selection: $finishWorkoutSelection, promptText: "Finish \(log.workout?.name ?? "Workout")?", cancelText: "Continue", confirmText: "Finish").present()
                     }
                 }
             }
@@ -244,7 +243,11 @@ struct ViewWorkout: View {
                     try? context.save()
                     
                     Task {
-                        await WorkoutSummaryPopup(log: log).present()
+                        await dismissLastPopup()
+                        
+                        await WorkoutSummaryPopup(log: log)
+                            .setEnvironmentObject(settings)
+                            .present()
                     }
                 }
             }

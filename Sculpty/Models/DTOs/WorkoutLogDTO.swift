@@ -18,7 +18,7 @@ struct WorkoutLogDTO: Identifiable, Codable {
     
     init(from model: WorkoutLog) {
         self.id = model.id
-        self.workout = WorkoutDTO(from: model.workout)
+        self.workout = WorkoutDTO(from: model.workout ?? Workout())
         self.started = model.started
         self.completed = model.completed
         self.start = model.start

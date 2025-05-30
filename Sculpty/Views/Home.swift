@@ -13,6 +13,8 @@ import MijickPopups
 struct Home: View {
     @Environment(\.modelContext) private var context
     
+    @EnvironmentObject private var settings: CloudSettings
+    
     @Query private var workouts: [Workout]
     @Query private var workoutLogs: [WorkoutLog]
     @Query(sort: \CaloriesLog.date) private var caloriesLogs: [CaloriesLog]
@@ -40,8 +42,6 @@ struct Home: View {
     @State private var workoutToStart: WorkoutLog? = nil
     @State private var measurementToAdd: Measurement? = nil
     
-    @AppStorage(UserKeys.dailyCalories.rawValue) private var dailyCalories: String = "0"
-    
     var caloriesBreakdown: (Double, Double, Double, Double) {
         guard let log = log else { return (0, 0, 0, 0) }
         
@@ -58,7 +58,7 @@ struct Home: View {
             NavigationLink(destination: Options()) {
                 Image(systemName: "gear")
                     .padding(.horizontal, 5)
-                    .font(Font.system(size: 24))
+                    .font(Font.system(size: 20))
             }
             .textColor()
         }) {
@@ -106,37 +106,37 @@ struct Home: View {
                 
                 if !startedWorkoutLogs.isEmpty {
                     ForEach(startedWorkoutLogs, id: \.self) { log in
-                        let workout = log.workout
-                        
-                        NavigationLink(destination: ViewWorkout(log: log)) {
-                            HStack(alignment: .center) {
-                                Text(workout.name)
-                                    .bodyText(size: 18, weight: .bold)
-                                    .truncationMode(.tail)
-                                
-                                Spacer()
-                                
-                                HStack {
-                                    ProgressView(value: log.getProgress())
-                                        .frame(height: 6)
-                                        .frame(width: 100)
-                                        .progressViewStyle(.linear)
-                                        .accentColor(ColorManager.text)
-                                        .scaleEffect(x: 1, y: 1.5, anchor: .center)
-                                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                        if let workout = log.workout {
+                            NavigationLink(destination: ViewWorkout(log: log)) {
+                                HStack(alignment: .center) {
+                                    Text(workout.name)
+                                        .bodyText(size: 18, weight: .bold)
+                                        .truncationMode(.tail)
                                     
-                                    Text("\((log.getProgress() * 100).rounded().formatted())%")
-                                        .statsText(size: 16)
-                                        .frame(width: 40)
+                                    Spacer()
+                                    
+                                    HStack {
+                                        ProgressView(value: log.getProgress())
+                                            .frame(height: 6)
+                                            .frame(width: 100)
+                                            .progressViewStyle(.linear)
+                                            .accentColor(ColorManager.text)
+                                            .scaleEffect(x: 1, y: 1.5, anchor: .center)
+                                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                                        
+                                        Text("\((log.getProgress() * 100).rounded().formatted())%")
+                                            .statsText(size: 16)
+                                            .frame(width: 40)
+                                    }
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .padding(.leading, -2)
+                                        .font(Font.system(size: 12))
                                 }
-                                
-                                Image(systemName: "chevron.right")
-                                    .padding(.leading, -2)
-                                    .font(Font.system(size: 12))
                             }
+                            .textColor()
+                            .padding(.trailing, 6)
                         }
-                        .textColor()
-                        .padding(.trailing, 6)
                     }
                 } else {
                     VStack(alignment: .leading) {
@@ -180,9 +180,9 @@ struct Home: View {
                     
                     Spacer()
                     
-                    NavigationLink(destination: CaloriesHistory()) {
-                        Image(systemName: "list.bullet.clipboard")
-                            .padding(.horizontal, 3)
+                    NavigationLink(destination: CaloriesStats()) {
+                        Image(systemName: "chart.xyaxis.line")
+                            .padding(.horizontal, 5)
                             .font(Font.system(size: 18))
                     }
                     
@@ -192,7 +192,7 @@ struct Home: View {
                         }
                     } label: {
                         Image(systemName: "plus")
-                            .padding(.horizontal, 3)
+                            .padding(.horizontal, 5)
                             .font(Font.system(size: 18))
                     }
                 }
@@ -215,7 +215,7 @@ struct Home: View {
                     Text("Remaining: ")
                         .bodyText(size: 14)
                     
-                    Text("\(((Double(dailyCalories) ?? 0) - caloriesBreakdown.0).formatted())cal")
+                    Text("\((Double(settings.dailyCalories) - caloriesBreakdown.0).formatted())cal")
                         .statsText(size: 14)
                 }
                 .secondaryColor()
@@ -274,17 +274,19 @@ struct Home: View {
                     
                     NavigationLink(destination: MeasurementStats()) {
                         Image(systemName: "chart.xyaxis.line")
-                            .padding(.horizontal, 3)
+                            .padding(.horizontal, 5)
                             .font(Font.system(size: 18))
                     }
                     
                     Button {
                         Task {
-                            await AddMeasurementPopup(measurementToAdd: $measurementToAdd).present()
+                            await AddMeasurementPopup(measurementToAdd: $measurementToAdd)
+                                .setEnvironmentObject(settings)
+                                .present()
                         }
                     } label: {
                         Image(systemName: "plus")
-                            .padding(.horizontal, 3)
+                            .padding(.horizontal, 5)
                             .font(Font.system(size: 18))
                     }
                 }
@@ -416,16 +418,16 @@ struct Home: View {
     }
     
     private func setCaloriesLog() {
-        var todaysLog = caloriesLogs.first { log in
+        let todaysLog = caloriesLogs.first { log in
             Calendar.current.isDate(log.date, inSameDayAs: Date())
         }
         
         if todaysLog == nil {
-            todaysLog = CaloriesLog()
-            context.insert(todaysLog!)
+            let todaysLog = CaloriesLog()
+            context.insert(todaysLog)
             try? context.save()
         }
         
-        log = todaysLog!
+        log = todaysLog
     }
 }

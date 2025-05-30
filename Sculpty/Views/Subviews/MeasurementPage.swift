@@ -12,10 +12,15 @@ import SwiftUICharts
 struct MeasurementPage: View {
     @Environment(\.modelContext) private var context
     
-    var title: String
     var type: MeasurementType
     
-    @Binding var unit: String
+    private var unit: String {
+        switch type {
+        case .bodyFat: return "%"
+        case .weight: return UnitsManager.weight
+        default: return UnitsManager.shortLength
+        }
+    }
     
     @State private var data: [Measurement] = []
     
@@ -23,9 +28,9 @@ struct MeasurementPage: View {
     @State private var measurementToDelete: Measurement? = nil
     
     var body: some View {
-        ContainerView(title: title) {
+        ContainerView(title: type.rawValue) {
             if data.isEmpty {
-                Text("No measurements yet.")
+                Text("No Data")
                     .bodyText(size: 18)
                     .textColor()
             } else {
@@ -81,8 +86,4 @@ struct MeasurementPage: View {
             data = []
         }
     }
-}
-
-#Preview {
-    MeasurementPage(title: "Weight", type: .weight, unit: .constant("lbs"))
 }

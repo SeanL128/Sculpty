@@ -19,7 +19,7 @@ struct ExerciseLogDTO: Identifiable, Codable {
     init(from model: ExerciseLog) {
         self.id = model.id
         self.index = model.index
-        self.exercise = WorkoutExerciseDTO(from: model.exercise)
+        self.exercise = WorkoutExerciseDTO(from: model.exercise ?? WorkoutExercise())
         self.completed = model.completed
         self.start = model.start
         self.end = model.end

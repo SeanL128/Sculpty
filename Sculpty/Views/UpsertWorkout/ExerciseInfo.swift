@@ -13,6 +13,8 @@ struct ExerciseInfo: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     
+    @EnvironmentObject private var settings: CloudSettings
+    
     private var workout: Workout
     
     @Query private var exercises: [Exercise]
@@ -28,8 +30,6 @@ struct ExerciseInfo: View {
     
     @FocusState private var isNotesFocused: Bool
     @FocusState private var isTempoFocused: Bool
-    
-    @AppStorage(UserKeys.showTempo.rawValue) private var showTempo: Bool = false
     
     private var isValid: Bool {
         !workoutExercise.sets.isEmpty && exercise != nil
@@ -100,9 +100,13 @@ struct ExerciseInfo: View {
                             Task {
                                 switch type {
                                 case .weight:
-                                    await EditWeightSetPopup(set: set).present()
+                                    await EditWeightSetPopup(set: set)
+                                        .setEnvironmentObject(settings)
+                                        .present()
                                 case .distance:
-                                    await EditDistanceSetPopup(set: set).present()
+                                    await EditDistanceSetPopup(set: set)
+                                        .setEnvironmentObject(settings)
+                                        .present()
                                 }
                             }
                         } label: {
@@ -138,10 +142,10 @@ struct ExerciseInfo: View {
             } label: {
                 HStack(alignment: .center) {
                     Image(systemName: "plus")
-                        .font(Font.system(size: 16))
+                        .font(Font.system(size: 12, weight: .bold))
                     
                     Text("Add Set")
-                        .bodyText(size: 16)
+                        .bodyText(size: 16, weight: .bold)
                 }
             }
             .textColor()
@@ -184,7 +188,7 @@ struct ExerciseInfo: View {
                 .frame(height: 65)
             }
             
-            if showTempo {
+            if settings.showTempo {
                 VStack(alignment: .leading) {
                     Button {
                         Task {
@@ -233,9 +237,9 @@ struct ExerciseInfo: View {
                 save()
             } label: {
                 Text("Save")
-                    .bodyText(size: 18)
+                    .bodyText(size: 20, weight: .bold)
             }
-            .textColor()
+            .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
             .disabled(!isValid)
         }
         .toolbar {

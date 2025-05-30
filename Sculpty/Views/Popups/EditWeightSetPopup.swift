@@ -10,6 +10,8 @@ import MijickPopups
 import MijickTimer
 
 struct EditWeightSetPopup: CenterPopup {
+    @EnvironmentObject private var settings: CloudSettings
+    
     var set: ExerciseSet
     @Binding var log: SetLog
     
@@ -29,8 +31,6 @@ struct EditWeightSetPopup: CenterPopup {
     
     @FocusState private var isRepsFocused: Bool
     @FocusState private var isWeightFocused: Bool
-    
-    @AppStorage(UserKeys.showRir.rawValue) private var showRir: Bool = false
     
     init (set: ExerciseSet,
           log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet(), unit: UnitsManager.weight)),
@@ -153,20 +153,21 @@ struct EditWeightSetPopup: CenterPopup {
                         }
                         .frame(maxWidth: 145)
                     
-                    Picker("Unit", selection: $updatedSet.unit) {
-                        Text("lbs")
-                            .bodyText(size: 16)
-                            .textColor()
-                            .tag("lbs")
-                        
-                        Text("kg")
-                            .bodyText(size: 16)
-                            .textColor()
-                            .tag("kg")
+                    Button {
+                        Task {
+                            await SmallMenuPopup(title: "Units", options: ["lbs", "kg"], selection: $updatedSet.unit).present()
+                        }
+                    } label: {
+                        HStack(alignment: .center) {
+                            Text(updatedSet.unit)
+                                .bodyText(size: 18, weight: .bold)
+                            
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(Font.system(size: 12, weight: .bold))
+                        }
                     }
-                    .pickerStyle(.wheel)
-                    .frame(maxWidth: 55, maxHeight: 100)
-                    .clipped()
+                    .textColor()
+                    .frame(maxWidth: 55)
                 }
                 .frame(maxWidth: 230)
             }
@@ -186,7 +187,7 @@ struct EditWeightSetPopup: CenterPopup {
             }
             
             // RIR
-            if showRir && [.main, .dropSet].contains(updatedSet.type) {
+            if settings.showRir && [.main, .dropSet].contains(updatedSet.type) {
                 HStack {
                     Text("RIR")
                         .padding(.horizontal, 5)

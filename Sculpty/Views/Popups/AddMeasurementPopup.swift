@@ -13,6 +13,8 @@ import BRHSegmentedControl
 struct AddMeasurementPopup: CenterPopup {
     @Environment(\.modelContext) private var context
     
+    @EnvironmentObject private var settings: CloudSettings
+    
     @Binding var measurementToAdd: Measurement?
     
     @State private var type: MeasurementType = .weight
@@ -24,13 +26,13 @@ struct AddMeasurementPopup: CenterPopup {
             
             if type == .bodyFat {
                 output += " (%)"
-            } else if selectedUnits == "Metric" {
+            } else if settings.units == "Metric" {
                 if type == .weight {
                     output += " (kg)"
                 } else if type != .other {
                     output += " (cm)"
                 }
-            } else if selectedUnits == "Imperial" {
+            } else if settings.units == "Imperial" {
                 if type == .weight {
                     output += " (lbs)"
                 } else if type == .height {
@@ -50,8 +52,6 @@ struct AddMeasurementPopup: CenterPopup {
     @State private var heightFeet: String = ""
     @State private var heightInches: String = ""
     
-    @AppStorage(UserKeys.units.rawValue) private var selectedUnits: String = "Imperial"
-    
     @FocusState var isTextFocused: Bool
     @FocusState var isHeightFeetFocused: Bool
     @FocusState var isHeightInchesFocused: Bool
@@ -59,13 +59,13 @@ struct AddMeasurementPopup: CenterPopup {
     var units: String {
         if type == .bodyFat {
             return "%"
-        } else if selectedUnits == "Metric" {
+        } else if settings.units == "Metric" {
             if type == .weight {
                 return "kg"
             } else {
                 return "cm"
             }
-        } else if selectedUnits == "Imperial" {
+        } else if settings.units == "Imperial" {
             if type == .weight {
                 return "lbs"
             } else {
@@ -96,13 +96,13 @@ struct AddMeasurementPopup: CenterPopup {
                     
                     if type == .bodyFat {
                         output += " (%)"
-                    } else if selectedUnits == "Metric" {
+                    } else if settings.units == "Metric" {
                         if type == .weight {
                             output += " (kg)"
                         } else if type != .other {
                             output += " (cm)"
                         }
-                    } else if selectedUnits == "Imperial" {
+                    } else if settings.units == "Imperial" {
                         if type == .weight {
                             output += " (lbs)"
                         } else if type == .height {
@@ -117,11 +117,11 @@ struct AddMeasurementPopup: CenterPopup {
                 
                 HStack(alignment: .center) {
                     Text(selection)
-                        .bodyText(size: 16)
+                        .bodyText(size: 16, weight: .bold)
                     
                     Image(systemName: "chevron.right")
                         .padding(.leading, -2)
-                        .font(Font.system(size: 10))
+                        .font(Font.system(size: 10, weight: .bold))
                 }
             }
             .textColor()
@@ -136,20 +136,15 @@ struct AddMeasurementPopup: CenterPopup {
             if type != .bodyFat {
                 Button {
                     Task {
-                        await UnitMenuPopup(selection: $selectedUnits).present()
+                        await UnitMenuPopup(selection: $settings.units).present()
                     }
                 } label: {
-                    HStack {
-                        if selectedUnits == "Imperial" {
-                            Text("Imperial (mi, ft, in, lbs)")
-                                .bodyText(size: 16)
-                        } else {
-                            Text("Metric (km, m, cm, kg)")
-                                .bodyText(size: 16)
-                        }
+                    HStack(alignment: .center) {
+                        Text(settings.units == "Imperial" ? "Imperial (mi, ft, in, lbs)" : "Metric (km, m, cm, kg)")
+                            .bodyText(size: 16, weight: .bold)
                         
                         Image(systemName: "chevron.up.chevron.down")
-                            .font(Font.system(size: 12))
+                            .font(Font.system(size: 10, weight: .bold))
                     }
                 }
                 .textColor()
@@ -161,7 +156,7 @@ struct AddMeasurementPopup: CenterPopup {
                     .bodyText(size: 12)
                     .textColor()
                 
-                if type == .height && selectedUnits == "Imperial" {
+                if type == .height && settings.units == "Imperial" {
                     HStack(alignment: .bottom) {
                         Input(title: "", text: $heightFeet, isFocused: _isHeightFeetFocused, unit: "ft", type: .numberPad)
                             .onChange(of: heightFeet) {
@@ -187,9 +182,9 @@ struct AddMeasurementPopup: CenterPopup {
                 save()
             } label: {
                 Text("Save")
-                    .bodyText(size: 18)
+                    .bodyText(size: 18, weight: .bold)
             }
-            .textColor()
+            .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
             .disabled(!isValid)
         }
         .padding(.vertical, 20)
@@ -204,7 +199,7 @@ struct AddMeasurementPopup: CenterPopup {
     }
     
     private func save() {
-        if selectedUnits == "Imperial" && type == .height {
+        if settings.units == "Imperial" && type == .height {
             text = "\(((Double(heightFeet) ?? 0) * 12) + (Double(heightInches) ?? 0))"
         }
         
@@ -215,7 +210,7 @@ struct AddMeasurementPopup: CenterPopup {
         
         var unit: String = "%"
         if type != .bodyFat {
-            if selectedUnits == "Imperial" {
+            if settings.units == "Imperial" {
                 if type == .weight {
                     unit = "lbs"
                 } else {

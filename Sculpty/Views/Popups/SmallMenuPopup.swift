@@ -1,27 +1,41 @@
 //
-//  WorkoutMenuPopup.swift
+//  SmallMenuPopup.swift
 //  Sculpty
 //
-//  Created by Sean Lindsay on 5/24/25.
+//  Created by Sean Lindsay on 5/28/25.
 //
 
 import SwiftUI
 import MijickPopups
 
-struct WorkoutMenuPopup: CenterPopup {
-    private var options: [Workout]
+struct SmallMenuPopup: CenterPopup {
+    private var title: String
+    private var options: [String]
     
-    @Binding var selection: Workout?
+    @Binding var selection: String
     
-    init(options: [Workout], selection: Binding<Workout?>) {
+    init(title: String, options: [String], selection: Binding<String>) {
+        self.title = title
         self.options = options
         self._selection = selection
     }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Spacer()
+                
+                Text(title)
+                    .bodyText(size: 18, weight: .bold)
+                    .multilineTextAlignment(.center)
+                
+                Spacer()
+            }
+            
             ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
+                HStack (alignment: .center) {
+                    Spacer()
+                    
                     ForEach(options, id: \.self) { option in
                         Button {
                             selection = option
@@ -31,22 +45,28 @@ struct WorkoutMenuPopup: CenterPopup {
                             }
                         } label: {
                             HStack(alignment: .center) {
-                                Text(option.name)
+                                Text(option)
                                     .bodyText(size: 16, weight: selection == option ? .bold : .regular)
                                     .textColor()
                                     .multilineTextAlignment(.leading)
                                 
                                 if selection == option {
-                                    Spacer()
-                                    
                                     Image(systemName: "checkmark")
-                                        .padding(.horizontal, 8)
+                                        .padding(.leading, 6)
                                         .font(Font.system(size: 16))
                                 }
                             }
                         }
                         .textColor()
+                        
+                        if option != options.last {
+                            Divider()
+                                .frame(width: 1)
+                                .padding(.horizontal, 4)
+                        }
                     }
+                    
+                    Spacer()
                 }
             }
             .scrollBounceBehavior(.basedOnSize, axes: [.vertical])

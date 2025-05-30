@@ -9,16 +9,26 @@ import Foundation
 import SwiftData
 
 @Model
-class WorkoutExercise: Identifiable, Codable {
-    @Attribute(.unique) var id = UUID()
+class WorkoutExercise: Identifiable {
+    var id = UUID()
     var workout: Workout?
     
-    var index: Int
-    @Relationship(deleteRule: .deny) var exercise: Exercise?
-    var sets: [ExerciseSet]
-    var restTime: TimeInterval
-    var specNotes: String
-    var tempo: String
+    var index: Int = 0
+    @Relationship(deleteRule: .nullify, inverse: \Exercise._workoutExercises) var exercise: Exercise?
+    private var _sets: [ExerciseSet]?
+    var sets: [ExerciseSet] {
+        get { _sets ?? [] }
+        set { _sets = newValue.isEmpty ? nil : newValue }
+    }
+    var restTime: TimeInterval = 180
+    var specNotes: String = ""
+    var tempo: String = "0000"
+    
+    var _exerciseLogs: [ExerciseLog]?
+    var exerciseLogs: [ExerciseLog] {
+        get { _exerciseLogs ?? [] }
+        set { _exerciseLogs = newValue.isEmpty ? nil : newValue }
+    }
     
     init(index: Int = 0, exercise: Exercise? = nil, sets: [ExerciseSet] = [], restTime: TimeInterval = 180, specNotes: String = "", tempo: String = "0000") {
         self.index = index
@@ -89,31 +99,5 @@ class WorkoutExercise: Identifiable, Codable {
         for s in e.sets.sorted(by: { $0.index < $1.index }) {
             sets.append(s.copy())
         }
-    }
-    
-    enum CodingKeys: String, CodingKey {
-        case id, index, exercise, sets, restTime, specNotes, tempo
-    }
-    
-    required init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        index = try container.decode(Int.self, forKey: .index)
-        exercise = try container.decode(Exercise.self, forKey: .exercise)
-        sets = try container.decode([ExerciseSet].self, forKey: .sets)
-        restTime = try container.decode(TimeInterval.self, forKey: .restTime)
-        specNotes = try container.decode(String.self, forKey: .specNotes)
-        tempo = try container.decode(String.self, forKey: .tempo)
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
-        try container.encode(index, forKey: .index)
-        try container.encode(exercise, forKey: .exercise)
-        try container.encode(sets, forKey: .sets)
-        try container.encode(restTime, forKey: .restTime)
-        try container.encode(specNotes, forKey: .specNotes)
-        try container.encode(tempo, forKey: .tempo)
     }
 }

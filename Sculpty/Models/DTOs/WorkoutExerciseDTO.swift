@@ -37,13 +37,8 @@ struct WorkoutExerciseDTO: Identifiable, Codable {
         )
         workoutExercise.id = id
         
-        // Ensure all required fields have values to avoid validation errors
-        if workoutExercise.index == 0 {
-            workoutExercise.index = 1
-        }
-        
-        if workoutExercise.restTime == 0 {
-            workoutExercise.restTime = 180 // Default rest time in seconds
+        if workoutExercise.index < 0 {
+            workoutExercise.index = 0
         }
         
         return workoutExercise
