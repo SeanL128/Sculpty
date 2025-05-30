@@ -38,6 +38,12 @@ struct SelectMeasurement: View {
                             .bodyText(size: 16, weight: selectedMeasurementType == type ? .bold : .regular)
                             .multilineTextAlignment(.leading)
                         
+                        if measurementOptions.contains(where: { $0 == type }) {
+                            Image(systemName: "chevron.right")
+                                .padding(.leading, -2)
+                                .font(Font.system(size: 10, weight: selectedMeasurementType == type ? .bold : .regular))
+                        }
+                        
                         if selectedMeasurementType == type {
                             Spacer()
                             

@@ -33,7 +33,7 @@ struct WorkoutList: View {
             .textColor()
         }) {
             VStack(alignment: .leading, spacing: 8) {
-                ForEach(workouts, id: \.self) { workout in
+                ForEach(workouts, id: \.id) { workout in
                     VStack {
                         HStack {
                             Text(workout.name)

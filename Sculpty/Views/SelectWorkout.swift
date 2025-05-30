@@ -12,7 +12,7 @@ struct SelectWorkout: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     
-    @Query private var workouts: [Workout]
+    @Query(filter: #Predicate<Workout> { !$0.hidden }) private var workouts: [Workout]
     private var workoutOptions: [Workout] {
         if forStats {
             return workouts.filter { !$0.workoutLogs.isEmpty }
@@ -62,6 +62,12 @@ struct SelectWorkout: View {
                         Text(workout.name)
                             .bodyText(size: 16, weight: selectedWorkout == workout ? .bold : .regular)
                             .multilineTextAlignment(.leading)
+                        
+                        if workoutOptions.contains(where: { $0 == workout }) {
+                            Image(systemName: "chevron.right")
+                                .padding(.leading, -2)
+                                .font(Font.system(size: 10, weight: selectedWorkout == workout ? .bold : .regular))
+                        }
                         
                         if selectedWorkout == workout {
                             Spacer()

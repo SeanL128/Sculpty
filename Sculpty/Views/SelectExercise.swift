@@ -12,12 +12,12 @@ struct SelectExercise: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
         
-    @Query private var exercises: [Exercise]
+    @Query(filter: #Predicate<Exercise> { !$0.hidden }) private var exercises: [Exercise]
     private var exerciseOptions: [Exercise] {
         if forStats {
             return exercises.filter { !$0.workoutExercises.compactMap { $0.exerciseLogs }.isEmpty }
         } else {
-            return exercises.filter { !$0.hidden }
+            return exercises
         }
     }
     
@@ -63,7 +63,7 @@ struct SelectExercise: View {
                 .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isSearchFocused }, set: { isSearchFocused = $0 }), text: $searchText))
                 .padding(.bottom, 5)
             
-            ForEach(MuscleGroup.displayOrder, id: \.self) { muscleGroup in
+            ForEach(MuscleGroup.displayOrder, id: \.id) { muscleGroup in
                 VStack(alignment: .leading, spacing: 9) {
                     if let exercisesForGroup = groupedExercises[muscleGroup], !exercisesForGroup.isEmpty {
                         Text(muscleGroup.rawValue.uppercased())
@@ -79,6 +79,12 @@ struct SelectExercise: View {
                                     Text(exercise.name)
                                         .bodyText(size: 16, weight: selectedExercise == exercise ? .bold : .regular)
                                         .multilineTextAlignment(.leading)
+                                    
+                                    if exerciseOptions.contains(where: { $0 == exercise }) {
+                                        Image(systemName: "chevron.right")
+                                            .padding(.leading, -2)
+                                            .font(Font.system(size: 10, weight: selectedExercise == exercise ? .bold : .regular))
+                                    }
                                     
                                     if selectedExercise == exercise {
                                         Spacer()

@@ -96,7 +96,7 @@ struct ViewWorkout: View {
                     .padding(.bottom)
                     
                     TabView {
-                        ForEach(log.exerciseLogs.sorted { $0.index < $1.index }, id: \.self) { exerciseLog in
+                        ForEach(log.exerciseLogs.sorted { $0.index < $1.index }, id: \.id) { exerciseLog in
                             if let exercise = exerciseLog.exercise {
                                 ScrollView {
                                     VStack(alignment: .leading, spacing: 12) {
@@ -147,7 +147,7 @@ struct ViewWorkout: View {
                                         
                                         let maxIndex = exerciseLog.setLogs.sorted(by: { $0.index < $1.index }).last?.index ?? 0
                                         
-                                        ForEach(exerciseLog.setLogs.sorted { $0.index < $1.index }, id: \.self) { setLog in
+                                        ForEach(exerciseLog.setLogs.sorted { $0.index < $1.index }, id: \.id) { setLog in
                                             if let eSet = setLog.set {
                                                 Button {
                                                     let exerciseIndex = exercise.index

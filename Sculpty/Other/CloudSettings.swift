@@ -98,28 +98,41 @@ class CloudSettings: ObservableObject {
             let rawValue = userDefaults.string(forKey: UserKeys.appearance.rawValue) ?? Appearance.automatic.rawValue
             return Appearance(rawValue: rawValue) ?? .automatic
         }
-        set { setValue(newValue.rawValue, for: .appearance) }
+        set {
+            objectWillChange.send()
+            setValue(newValue.rawValue, for: .appearance)
+        }
     }
     
     var gender: String {
         get { userDefaults.string(forKey: UserKeys.gender.rawValue) ?? "notSpecified" }
-        set { setValue(newValue, for: .gender) }
+        set {
+            objectWillChange.send()
+            setValue(newValue, for: .gender)
+        }
     }
     
     var units: String {
         get { userDefaults.string(forKey: UserKeys.units.rawValue) ?? "metric" }
-        set { setValue(newValue, for: .units) }
+        set {
+            objectWillChange.send()
+            setValue(newValue, for: .units)
+        }
     }
     
     var dailyCalories: Int {
         get { userDefaults.integer(forKey: UserKeys.dailyCalories.rawValue) }
-        set { setValue(newValue, for: .dailyCalories) }
+        set {
+            objectWillChange.send()
+            setValue(newValue, for: .dailyCalories)
+        }
     }
     
     var dailyCaloriesString: String {
         get { String(dailyCalories) }
         set {
             if let intValue = Int(newValue) {
+                objectWillChange.send()
                 dailyCalories = intValue
             }
         }
@@ -127,13 +140,17 @@ class CloudSettings: ObservableObject {
     
     var targetWeeklyWorkouts: Int {
         get { userDefaults.integer(forKey: UserKeys.targetWeeklyWorkouts.rawValue) }
-        set { setValue(newValue, for: .targetWeeklyWorkouts) }
+        set {
+            objectWillChange.send()
+            setValue(newValue, for: .targetWeeklyWorkouts)
+        }
     }
     
     var targetWeeklyWorkoutsString: String {
         get { String(targetWeeklyWorkouts) }
         set {
             if let intValue = Int(newValue) {
+                objectWillChange.send()
                 targetWeeklyWorkouts = intValue
             }
         }
@@ -146,17 +163,26 @@ class CloudSettings: ObservableObject {
     
     var includeWarmUp: Bool {
         get { userDefaults.bool(forKey: UserKeys.includeWarmUp.rawValue) }
-        set { setValue(newValue, for: .includeWarmUp) }
+        set {
+            objectWillChange.send()
+            setValue(newValue, for: .includeWarmUp)
+        }
     }
     
     var includeDropSet: Bool {
         get { userDefaults.bool(forKey: UserKeys.includeDropSet.rawValue) }
-        set { setValue(newValue, for: .includeDropSet) }
+        set {
+            objectWillChange.send()
+            setValue(newValue, for: .includeDropSet)
+        }
     }
     
     var includeCoolDown: Bool {
         get { userDefaults.bool(forKey: UserKeys.includeCoolDown.rawValue) }
-        set { setValue(newValue, for: .includeCoolDown) }
+        set {
+            objectWillChange.send()
+            setValue(newValue, for: .includeCoolDown)
+        }
     }
     
     var onboarded: Bool {
@@ -169,21 +195,33 @@ class CloudSettings: ObservableObject {
     
     var show1RM: Bool {
         get { userDefaults.bool(forKey: UserKeys.show1RM.rawValue) }
-        set { setValue(newValue, for: .show1RM) }
+        set {
+            objectWillChange.send()
+            setValue(newValue, for: .show1RM)
+        }
     }
     
     var showRir: Bool {
         get { userDefaults.bool(forKey: UserKeys.showRir.rawValue) }
-        set { setValue(newValue, for: .showRir) }
+        set {
+            objectWillChange.send()
+            setValue(newValue, for: .showRir)
+        }
     }
     
     var showSetTimer: Bool {
         get { userDefaults.bool(forKey: UserKeys.showSetTimer.rawValue) }
-        set { setValue(newValue, for: .showSetTimer) }
+        set {
+            objectWillChange.send()
+            setValue(newValue, for: .showSetTimer)
+        }
     }
     
     var showTempo: Bool {
         get { userDefaults.bool(forKey: UserKeys.showTempo.rawValue) }
-        set { setValue(newValue, for: .showTempo) }
+        set {
+            objectWillChange.send()
+            setValue(newValue, for: .showTempo)
+        }
     }
 }

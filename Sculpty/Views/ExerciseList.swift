@@ -50,7 +50,7 @@ struct ExerciseList: View {
                 .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isSearchFocused }, set: { isSearchFocused = $0 }), text: $searchText))
                 .padding(.bottom, 5)
             
-            ForEach(MuscleGroup.displayOrder, id: \.self) { muscleGroup in
+            ForEach(MuscleGroup.displayOrder, id: \.id) { muscleGroup in
                 if let exercisesForGroup = groupedExercises[muscleGroup], !exercisesForGroup.isEmpty {
                     VStack(alignment: .leading, spacing: 16) {
                         Text(muscleGroup.rawValue.uppercased())

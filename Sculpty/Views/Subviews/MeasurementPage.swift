@@ -34,7 +34,7 @@ struct MeasurementPage: View {
                     .bodyText(size: 18)
                     .textColor()
             } else {
-                ForEach(data, id: \.self) { measurement in
+                ForEach(data, id: \.id) { measurement in
                     HStack(alignment: .center) {
                         Text("\(formatDateWithTime(measurement.date))  -  \(measurement.measurement.formatted())\(measurement.unit)")
                             .bodyText(size: 16)

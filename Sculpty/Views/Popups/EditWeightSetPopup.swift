@@ -175,7 +175,7 @@ struct EditWeightSetPopup: CenterPopup {
             
             if !disableType {
                 Picker("Type", selection: $updatedSet.type) {
-                    ForEach(ExerciseSetType.displayOrder, id: \.self) { type in
+                    ForEach(ExerciseSetType.displayOrder, id: \.id) { type in
                         Text("\(type.rawValue)")
                             .bodyText(size: 16)
                             .textColor()

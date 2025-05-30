@@ -105,7 +105,7 @@ struct Home: View {
                 .textColor()
                 
                 if !startedWorkoutLogs.isEmpty {
-                    ForEach(startedWorkoutLogs, id: \.self) { log in
+                    ForEach(startedWorkoutLogs, id: \.id) { log in
                         if let workout = log.workout {
                             NavigationLink(destination: ViewWorkout(log: log)) {
                                 HStack(alignment: .center) {
