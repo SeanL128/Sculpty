@@ -235,10 +235,4 @@ struct AddMeasurementPopup: CenterPopup {
             await dismissLastPopup()
         }
     }
-    
-    func configurePopup(config: CenterPopupConfig) -> CenterPopupConfig {
-        config
-            .backgroundColor(ColorManager.background)
-            .popupHorizontalPadding(24)
-    }
 }

@@ -22,6 +22,7 @@ struct ExerciseInfo: View {
     @State private var workoutExercise: WorkoutExercise
     @State private var exercise: Exercise?
     @State private var type: ExerciseType?
+    private var sortedSets: [ExerciseSet] { workoutExercise.sets.sorted { $0.index < $1.index } }
     
     @State private var restMinutes: Int
     @State private var restSeconds: Int
@@ -30,6 +31,8 @@ struct ExerciseInfo: View {
     
     @FocusState private var isNotesFocused: Bool
     @FocusState private var isTempoFocused: Bool
+    
+    @State private var editing: Bool = false
     
     private var isValid: Bool {
         !workoutExercise.sets.isEmpty && exercise != nil
@@ -88,47 +91,95 @@ struct ExerciseInfo: View {
                         .textColor()
                 }
             }
-            .padding(.bottom, 20)
             
+            if sortedSets.count > 0 {
+                HStack(alignment: .center) {
+                    Spacer()
+                    
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            editing.toggle()
+                        }
+                    } label: {
+                        Image(systemName: "chevron.up.chevron.down")
+                            .padding(.horizontal, 8)
+                            .font(Font.system(size: 18))
+                    }
+                    .foregroundStyle(editing ? Color.accentColor : ColorManager.text)
+                }
+            }
             
-            ForEach(workoutExercise.sets.sorted { $0.index < $1.index }, id: \.id) { set in
-                if let index = workoutExercise.sets.firstIndex(of: set) {
-                    HStack(alignment: .center) {
-                        Button {
-                            let type = type ?? .weight
-                            
-                            Task {
-                                switch type {
-                                case .weight:
-                                    await EditWeightSetPopup(set: set)
-                                        .setEnvironmentObject(settings)
-                                        .present()
-                                case .distance:
-                                    await EditDistanceSetPopup(set: set)
-                                        .setEnvironmentObject(settings)
-                                        .present()
+            VStack(alignment: .leading, spacing: 20) {
+                ForEach(workoutExercise.sets.sorted { $0.index < $1.index }, id: \.id) { set in
+                    if let index = workoutExercise.sets.firstIndex(of: set) {
+                        HStack(alignment: .center) {
+                            if editing {
+                                VStack(alignment: .center, spacing: 10) {
+                                    Button {
+                                        if let above = sortedSets.last(where: { $0.index < set.index }) {
+                                            let index = set.index
+                                            set.index = above.index
+                                            above.index = index
+                                        }
+                                    } label: {
+                                        Image(systemName: "chevron.up")
+                                            .font(Font.system(size: 14))
+                                    }
+                                    .foregroundStyle(sortedSets.last(where: { $0.index < set.index }) == nil ? ColorManager.secondary : ColorManager.text)
+                                    .disabled(sortedSets.last(where: { $0.index < set.index }) == nil)
+                                    
+                                    Button {
+                                        if let below = sortedSets.first(where: { $0.index > set.index }) {
+                                            let index = set.index
+                                            set.index = below.index
+                                            below.index = index
+                                        }
+                                    } label: {
+                                        Image(systemName: "chevron.down")
+                                            .font(Font.system(size: 14))
+                                    }
+                                    .foregroundStyle(sortedSets.first(where: { $0.index > set.index }) == nil ? ColorManager.secondary : ColorManager.text)
+                                    .disabled(sortedSets.first(where: { $0.index > set.index }) == nil)
                                 }
                             }
-                        } label: {
-                            SetView(set: set)
+                            
+                            Button {
+                                let type = type ?? .weight
+                                
+                                Task {
+                                    switch type {
+                                    case .weight:
+                                        await EditWeightSetPopup(set: set)
+                                            .setEnvironmentObject(settings)
+                                            .present()
+                                    case .distance:
+                                        await EditDistanceSetPopup(set: set)
+                                            .setEnvironmentObject(settings)
+                                            .present()
+                                    }
+                                }
+                            } label: {
+                                SetView(set: set)
+                            }
+                            .textColor()
+                            
+                            Spacer()
+                            
+                            Button {
+                                var updatedSets = workoutExercise.sets
+                                updatedSets.remove(at: index)
+                                workoutExercise.sets = updatedSets
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .padding(.horizontal, 8)
+                                    .font(Font.system(size: 16))
+                            }
+                            .textColor()
                         }
-                        .textColor()
-                        
-                        Spacer()
-                        
-                        Button {
-                            var updatedSets = workoutExercise.sets
-                            updatedSets.remove(at: index)
-                            workoutExercise.sets = updatedSets
-                        } label: {
-                            Image(systemName: "xmark")
-                                .padding(.horizontal, 8)
-                                .font(Font.system(size: 16))
-                        }
-                        .textColor()
                     }
                 }
             }
+            .animation(.easeInOut(duration: 0.3), value: sortedSets.map { $0.id })
             
             Button {
                 var updatedSets = workoutExercise.sets

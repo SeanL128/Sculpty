@@ -32,7 +32,3 @@ struct Main: View {
         }
     }
 }
-
-#Preview {
-    Main()
-}

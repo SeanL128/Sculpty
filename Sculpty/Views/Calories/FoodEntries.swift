@@ -23,7 +23,7 @@ struct FoodEntries: View {
         ContainerView(title: "Food Entries", spacing: 20, showScrollBar: true, trailingItems: {
             Button {
                 Task {
-                    await AddFoodEntryPoup(log: log).present()
+                    await AddFoodEntryPopup(log: log).present()
                 }
             } label: {
                 Image(systemName: "plus")
@@ -54,7 +54,7 @@ struct FoodEntries: View {
                                 HStack {
                                     Button {
                                         Task {
-                                            await AddFoodEntryPoup(entry: entry, log: log).present()
+                                            await AddFoodEntryPopup(entry: entry, log: log).present()
                                         }
                                     } label: {
                                         Image(systemName: "pencil")

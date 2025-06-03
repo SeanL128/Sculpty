@@ -38,7 +38,7 @@ struct ExerciseList: View {
     
     var body: some View {
         ContainerView(title: "Exercises", spacing: 16, showScrollBar: true, trailingItems: {
-            NavigationLink(destination: UpsertExercise()) {
+            NavigationLink(destination: PageRenderer(page: .upsertExercise)) {
                 Image(systemName: "plus")
                     .padding(.horizontal, 5)
                     .font(Font.system(size: 20))

@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import UIKit
+import MijickPopups
 
 struct Options: View {
     @Environment(\.modelContext) private var context
@@ -72,51 +73,6 @@ struct Options: View {
             
             Spacer()
                 .frame(height: 5)
-            
-            // MARK: Customization
-//            VStack(alignment: .leading, spacing: 12) {
-//                HStack {
-//                    HStack(alignment: .center) {
-//                        Spacer()
-//                        
-//                        Image(systemName: "paintbrush.pointed")
-//                            .font(Font.system(size: 18))
-//                        
-//                        Spacer()
-//                    }
-//                    .frame(width: 25)
-//                    
-//                    Text("CUSTOMIZATION")
-//                        .headingText(size: 24)
-//                }
-//                .textColor()
-//                
-//                HStack {
-//                    Text("Dark Mode")
-//                        .bodyText(size: 18)
-//                    
-//                    Spacer()
-//                    
-//                    Button {
-//                        Task {
-//                            await AppearanceMenuPopup(selection: $settings.appearance).present()
-//                        }
-//                    } label: {
-//                        HStack {
-//                            Text(settings.appearance.rawValue)
-//                                .bodyText(size: 18, weight: .bold)
-//                            
-//                            Image(systemName: "chevron.up.chevron.down")
-//                                .font(Font.system(size: 12, weight: .bold))
-//                        }
-//                    }
-//                    .textColor()
-//                }
-//            }
-//            .frame(maxWidth: .infinity)
-//            
-//            Spacer()
-//                .frame(height: 5)
             
             // MARK: Workouts
             VStack(alignment: .leading, spacing: 12) {
@@ -433,7 +389,7 @@ struct Options: View {
             let measurements = try context.fetch(FetchDescriptor<Measurement>())
             let caloriesLogs = try context.fetch(FetchDescriptor<CaloriesLog>())
 
-            let defaultExerciseIDs = Set(defaultExercises.map(\.id))
+            let defaultExerciseIDs = Set(defaultExercises.map { $0.id })
             let filteredExercises = fetchedExercises.filter { !defaultExerciseIDs.contains($0.id) }
             
             let data = AppDataDTO.export(
@@ -441,7 +397,8 @@ struct Options: View {
                 workouts: workouts,
                 workoutLogs: workoutLogs,
                 measurements: measurements,
-                caloriesLogs: caloriesLogs
+                caloriesLogs: caloriesLogs,
+                includeSettings: true
             )
             
             guard let data = data else {

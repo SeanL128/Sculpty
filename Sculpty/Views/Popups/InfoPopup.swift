@@ -43,10 +43,4 @@ struct InfoPopup: CenterPopup {
         .padding(.vertical, 20)
         .padding(.horizontal, 8)
     }
-    
-    func configurePopup(config: CenterPopupConfig) -> CenterPopupConfig {
-        config
-            .backgroundColor(ColorManager.background)
-            .popupHorizontalPadding(24)
-    }
 }

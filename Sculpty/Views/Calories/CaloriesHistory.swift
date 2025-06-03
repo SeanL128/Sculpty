@@ -49,7 +49,7 @@ struct CaloriesHistory: View {
                                     HStack {
                                         Button {
                                             Task {
-                                                await AddFoodEntryPoup(entry: entry, log: log).present()
+                                                await AddFoodEntryPopup(entry: entry, log: log).present()
                                             }
                                         } label: {
                                             Image(systemName: "pencil")
@@ -130,8 +130,4 @@ struct CaloriesHistory: View {
         }
                         
     }
-}
-
-#Preview {
-    CaloriesHistory()
 }

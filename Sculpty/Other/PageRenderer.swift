@@ -17,6 +17,8 @@ struct PageRenderer: View {
             ExerciseList()
         case .upsertWorkout:
             UpsertWorkout()
+        case .upsertExercise:
+            UpsertExercise()
         }
     }
 }
@@ -24,4 +26,5 @@ struct PageRenderer: View {
 enum PageRendererType {
     case exerciseList
     case upsertWorkout
+    case upsertExercise
 }

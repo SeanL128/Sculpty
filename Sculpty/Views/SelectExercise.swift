@@ -50,7 +50,7 @@ struct SelectExercise: View {
     var body: some View {
         ContainerView(title: "Select Exercise", spacing: 16, showScrollBar: true, trailingItems: {
             if !forStats {
-                NavigationLink(destination: UpsertExercise(selectedExercise: $selectedExercise)) {
+                NavigationLink(destination: PageRenderer(page: .upsertExercise)) {
                     Image(systemName: "plus")
                         .padding(.horizontal, 5)
                         .font(Font.system(size: 20))

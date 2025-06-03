@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import Charts
 import MijickPopups
 
 struct Home: View {
@@ -188,7 +187,7 @@ struct Home: View {
                     
                     Button {
                         Task {
-                            await AddFoodEntryPoup(log: log ?? CaloriesLog()).present()
+                            await AddFoodEntryPopup(log: log ?? CaloriesLog()).present()
                         }
                     } label: {
                         Image(systemName: "plus")

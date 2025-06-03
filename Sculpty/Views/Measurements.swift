@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import SwiftUICharts
 
 struct Measurements: View {
     @Query private var measurements: [Measurement]
@@ -33,8 +32,4 @@ struct Measurements: View {
             }
         }
     }
-}
-
-#Preview {
-    Measurements()
 }

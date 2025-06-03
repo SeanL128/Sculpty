@@ -93,17 +93,6 @@ class CloudSettings: ObservableObject {
     }
     
     
-    var appearance: Appearance {
-        get {
-            let rawValue = userDefaults.string(forKey: UserKeys.appearance.rawValue) ?? Appearance.automatic.rawValue
-            return Appearance(rawValue: rawValue) ?? .automatic
-        }
-        set {
-            objectWillChange.send()
-            setValue(newValue.rawValue, for: .appearance)
-        }
-    }
-    
     var gender: String {
         get { userDefaults.string(forKey: UserKeys.gender.rawValue) ?? "notSpecified" }
         set {

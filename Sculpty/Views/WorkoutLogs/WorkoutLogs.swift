@@ -77,8 +77,11 @@ struct WorkoutLogs: View {
                             }
                             .padding(.trailing, 1)
                         }
+                        .animation(.easeInOut(duration: 0.3), value: workout.workoutLogs)
                     }
                 }
+                .animation(.easeInOut(duration: 0.3), value: validWorkouts)
+                .animation(.easeInOut(duration: 0.3), value: validWorkouts.map { $0.workoutLogs })
             } else {
                 Text("No Data")
                     .bodyText(size: 18)

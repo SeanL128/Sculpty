@@ -15,39 +15,21 @@ struct SculptyApp: App {
     
     @StateObject private var settings = CloudSettings()
     
-    var colorScheme: ColorScheme? {
-        switch settings.appearance {
-        case .light:
-            return .light
-        case .dark:
-            return .dark
-        case .automatic:
-            return nil
-        }
-    }
-    
     static var hasLaunched: Bool = false
     
     var body: some Scene {
         WindowGroup {
             Main()
-                .preferredColorScheme(colorScheme)
                 .accentColor(Color("AccentColor"))
                 .dynamicTypeSize(.medium ... .xxxLarge)
                 .modelContainer(for: [Workout.self, Exercise.self, WorkoutLog.self, CaloriesLog.self, Measurement.self])
                 .environmentObject(settings)
                 .registerPopups(id: .shared) { config in config
-                    .vertical { $0
-                        .enableDragGesture(true)
-                        .tapOutsideToDismissPopup(true)
-                        .cornerRadius(15)
-                        .popupTopPadding(10)
-                    }
                     .center { $0
                         .tapOutsideToDismissPopup(true)
                         .backgroundColor(ColorManager.background)
                         .cornerRadius(15)
-                        .popupHorizontalPadding(5)
+                        .popupHorizontalPadding(24)
                     }
                 }
                 .task {

@@ -185,7 +185,7 @@ struct Onboarding: View {
                         
                         Task {
                             do {
-                                try DataTransferManager.shared.importAllData(from: importedData, into: context)
+                                try DataTransferManager.shared.importAllData(from: importedData, into: context, importSettings: true)
                                 
                                 await MainActor.run {
                                     withAnimation {

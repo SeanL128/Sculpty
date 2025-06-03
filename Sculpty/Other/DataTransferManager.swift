@@ -21,7 +21,7 @@ class DataTransferManager {
     private init() {}
     
     // MARK: - Export Methods
-    func exportAllData(from context: ModelContext, excludingExercisesWithIDs defaultExerciseIDs: Set<UUID> = []) -> Data? {
+    func exportAllData(from context: ModelContext, excludingExercisesWithIDs defaultExerciseIDs: Set<UUID> = [], includeSettings: Bool = true) -> Data? {
         do {
             let exercises = try context.fetch(FetchDescriptor<Exercise>())
             let workouts = try context.fetch(FetchDescriptor<Workout>())
@@ -36,7 +36,8 @@ class DataTransferManager {
                 workouts: workouts,
                 workoutLogs: workoutLogs,
                 measurements: measurements,
-                caloriesLogs: caloriesLogs
+                caloriesLogs: caloriesLogs,
+                includeSettings: includeSettings
             )
         } catch {
             debugLog("Error exporting data: \(error.localizedDescription)")
@@ -72,9 +73,23 @@ class DataTransferManager {
         }
     }
     
+    func exportSettings() -> Data? {
+        let userSettingsDTO = UserSettingsDTO(from: CloudSettings.shared)
+        
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        
+        do {
+            return try encoder.encode(userSettingsDTO)
+        } catch {
+            debugLog("Error exporting settings: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
     // MARK: - Import Methods
     @MainActor
-    func importAllData(from data: Data, into context: ModelContext, preserveDefaultExercises: Bool = true, defaultExerciseIDs: Set<UUID> = []) throws {
+    func importAllData(from data: Data, into context: ModelContext, preserveDefaultExercises: Bool = true, defaultExerciseIDs: Set<UUID> = [], importSettings: Bool = true) throws {
         guard let appData = AppDataDTO.import(from: data) else {
             throw ImportError.invalidData
         }
@@ -194,6 +209,10 @@ class DataTransferManager {
             context.insert(caloriesLog)
         }
         
+        if importSettings, let userSettings = appData.userSettings {
+            userSettings.applyTo(settings: CloudSettings.shared)
+        }
+        
         try context.save()
     }
     
@@ -228,6 +247,15 @@ class DataTransferManager {
         }
         
         try context.save()
+    }
+    
+    @MainActor
+    func importSettings(from data: Data) throws {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        
+        let userSettingsDTO = try decoder.decode(UserSettingsDTO.self, from: data)
+        userSettingsDTO.applyTo(settings: CloudSettings.shared)
     }
     
     // MARK: - Helper Methods

@@ -17,11 +17,14 @@ struct UpsertWorkout: View {
     @State private var workoutName: String
     @State private var workoutNotes: String
     @State private var exercises: [WorkoutExercise]
+    private var sortedExercises: [WorkoutExercise] { exercises.sorted { $0.index < $1.index } }
     
     @State private var confirmDelete: Bool = false
     
     @FocusState private var isNameFocused: Bool
     @FocusState private var isNotesFocused: Bool
+    
+    @State private var editing: Bool = false
     
     private var isValid: Bool {
         !workoutName.isEmpty && exercises.filter { $0.exercise != nil }.count > 0
@@ -80,42 +83,91 @@ struct UpsertWorkout: View {
         }) {
             Input(title: "Name", text: $workoutName, isFocused: _isNameFocused, autoCapitalization: .words)
                 .frame(maxWidth: 250)
-                .padding(.bottom, 20)
             
             
-            ForEach(exercises.sorted { $0.index < $1.index }, id: \.id) { exercise in
-                if let index = exercises.firstIndex(of: exercise) {
-                    HStack(alignment: .center) {
-                        NavigationLink(destination: {
-                            ExerciseInfo(
-                                workout: workout ?? Workout(name: workoutName, exercises: exercises, notes: workoutNotes),
-                                exercise: exercise.exercise,
-                                workoutExercise: exercise
-                            )
-                        }) {
-                            Text(exercise.exercise?.name ?? "Select Exercise")
-                                .bodyText(size: 18, weight: .bold)
-                                .multilineTextAlignment(.leading)
-                                
-                            Image(systemName: "chevron.right")
-                                .padding(.leading, -2)
-                                .font(Font.system(size: 12, weight: .bold))
+            if sortedExercises.count > 0 {
+                HStack(alignment: .center) {
+                    Spacer()
+                    
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            editing.toggle()
                         }
-                        .textColor()
-                        
-                        Spacer()
-                        
-                        Button {
-                            exercises.remove(at: index)
-                        } label: {
-                            Image(systemName: "xmark")
-                                .padding(.horizontal, 8)
-                                .font(Font.system(size: 16))
+                    } label: {
+                        Image(systemName: "chevron.up.chevron.down")
+                            .padding(.horizontal, 8)
+                            .font(Font.system(size: 18))
+                    }
+                    .foregroundStyle(editing ? Color.accentColor : ColorManager.text)
+                }
+            }
+            
+            VStack(alignment: .leading, spacing: 20) {
+                ForEach(exercises.sorted { $0.index < $1.index }, id: \.id) { exercise in
+                    if let index = exercises.firstIndex(of: exercise) {
+                        HStack(alignment: .center) {
+                            if editing {
+                                VStack(alignment: .center, spacing: 10) {
+                                    Button {
+                                        if let above = sortedExercises.last(where: { $0.index < exercise.index }) {
+                                            let index = exercise.index
+                                            exercise.index = above.index
+                                            above.index = index
+                                        }
+                                    } label: {
+                                        Image(systemName: "chevron.up")
+                                            .font(Font.system(size: 14))
+                                    }
+                                    .foregroundStyle(sortedExercises.last(where: { $0.index < exercise.index }) == nil ? ColorManager.secondary : ColorManager.text)
+                                    .disabled(sortedExercises.last(where: { $0.index < exercise.index }) == nil)
+                                    
+                                    Button {
+                                        if let below = sortedExercises.first(where: { $0.index > exercise.index }) {
+                                            let index = exercise.index
+                                            exercise.index = below.index
+                                            below.index = index
+                                        }
+                                    } label: {
+                                        Image(systemName: "chevron.down")
+                                            .font(Font.system(size: 14))
+                                    }
+                                    .foregroundStyle(sortedExercises.first(where: { $0.index > exercise.index }) == nil ? ColorManager.secondary : ColorManager.text)
+                                    .disabled(sortedExercises.first(where: { $0.index > exercise.index }) == nil)
+                                }
+                            }
+                            
+                            NavigationLink(destination: {
+                                ExerciseInfo(
+                                    workout: workout ?? Workout(name: workoutName, exercises: exercises, notes: workoutNotes),
+                                    exercise: exercise.exercise,
+                                    workoutExercise: exercise
+                                )
+                            }) {
+                                Text(exercise.exercise?.name ?? "Select Exercise")
+                                    .bodyText(size: 18, weight: .bold)
+                                    .multilineTextAlignment(.leading)
+                                    
+                                Image(systemName: "chevron.right")
+                                    .padding(.leading, -2)
+                                    .font(Font.system(size: 12, weight: .bold))
+                            }
+                            .textColor()
+                            
+                            Spacer()
+                            
+                            Button {
+                                exercises.remove(at: index)
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .padding(.horizontal, 8)
+                                    .font(Font.system(size: 16))
+                            }
+                            .textColor()
                         }
-                        .textColor()
                     }
                 }
             }
+            .animation(.easeInOut(duration: 0.3), value: sortedExercises.map { $0.id })
             
             Button {
                 let nextIndex = (exercises.map { $0.index }.max() ?? -1) + 1

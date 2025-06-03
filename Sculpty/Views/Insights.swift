@@ -15,7 +15,3 @@ struct Insights: View {
         // For example, weight decreased when exercising consistently
     }
 }
-
-#Preview {
-    Insights()
-}

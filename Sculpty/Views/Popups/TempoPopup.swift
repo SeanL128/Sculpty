@@ -39,10 +39,4 @@ struct TempoPopup: CenterPopup {
         .padding(.top, 20)
         .padding(.bottom, 18)
     }
-    
-    func configurePopup(config: CenterPopupConfig) -> CenterPopupConfig {
-        config
-            .backgroundColor(ColorManager.background)
-            .popupHorizontalPadding(24)
-    }
 }

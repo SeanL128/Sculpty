@@ -27,6 +27,7 @@ struct ViewWorkout: View {
     @State private var totalTime: Double
     
     @State private var finishWorkoutSelection: Bool = false
+    @State private var confirmDelete: Bool = false
     
     private var allLogsDone: Bool {
         for exerciseLog in log.exerciseLogs {
@@ -75,6 +76,38 @@ struct ViewWorkout: View {
                         Spacer()
                         
                         Button {
+                            Task {
+                                await ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(log.workout?.name ?? "Workout") Log?", resultText: "This cannot be undone. This log will not be included in your stats.", cancelText: "Cancel", confirmText: "Delete").present()
+                            }
+                        } label: {
+                            Image(systemName: "xmark")
+                                .padding(.horizontal, 5)
+                                .font(Font.system(size: 20))
+                        }
+                        .textColor()
+                        .onChange(of: confirmDelete) {
+                            if confirmDelete {
+                                do {
+                                    for exerciseLog in log.exerciseLogs {
+                                        for setLog in exerciseLog.setLogs {
+                                            context.delete(setLog)
+                                        }
+                                        
+                                        context.delete(exerciseLog)
+                                    }
+                                    
+                                    context.delete(log)
+                                    
+                                    try context.save()
+                                    
+                                    dismiss()
+                                } catch {
+                                    debugLog("Error: \(error.localizedDescription)")
+                                }
+                            }
+                        }
+                        
+                        Button {
                             if log.completed {
                                 Task {
                                     await WorkoutSummaryPopup(log: log)
@@ -88,7 +121,7 @@ struct ViewWorkout: View {
                             }
                         } label: {
                             Image(systemName: log.completed ? "checkmark.circle.fill" : "checkmark.circle")
-                                .padding(.horizontal, 3)
+                                .padding(.horizontal, 5)
                                 .font(Font.system(size: 20))
                         }
                         .textColor()

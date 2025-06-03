@@ -1,5 +1,5 @@
 //
-//  AddFoodEntryPoup.swift
+//  AddFoodEntryPopup.swift
 //  Sculpty
 //
 //  Created by Sean Lindsay on 5/4/25.
@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 import MijickPopups
 
-struct AddFoodEntryPoup: CenterPopup {
+struct AddFoodEntryPopup: CenterPopup {
     @Environment(\.modelContext) private var context
     
     @State var log: CaloriesLog
@@ -138,11 +138,5 @@ struct AddFoodEntryPoup: CenterPopup {
         Task {
             await dismissLastPopup()
         }
-    }
-    
-    func configurePopup(config: CenterPopupConfig) -> CenterPopupConfig {
-        config
-            .backgroundColor(ColorManager.background)
-            .popupHorizontalPadding(24)
     }
 }

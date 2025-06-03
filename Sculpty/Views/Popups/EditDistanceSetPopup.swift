@@ -259,9 +259,4 @@ struct EditDistanceSetPopup: CenterPopup {
             .bindTimerStatus(timerStatus: $setTimerStatus)
             .start()
     }
-    
-    func configurePopup(config: CenterPopupConfig) -> CenterPopupConfig {
-        config
-            .backgroundColor(ColorManager.background)
-    }
 }
