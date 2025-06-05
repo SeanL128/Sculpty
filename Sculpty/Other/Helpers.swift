@@ -219,19 +219,6 @@ struct UnderlinedTextFieldStyle: TextFieldStyle {
     
     func _body(configuration: TextField<Self._Label>) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-//            ZStack(alignment: .leading) {
-//                let showBackground: Bool = text != nil && text!.wrappedValue.isEmpty && !(isFocused?.wrappedValue ?? false)
-//                
-//                emptyBackgroundColor
-//                    .ignoresSafeArea(.container, edges: .horizontal)
-//                    .frame(height: nil)
-//                    .padding(.bottom, -2.5)
-//                    .opacity(showBackground ? 0.05 : 0)
-//                    .animation(.easeOut(duration: animationDuration), value: showBackground)
-//                
-//                configuration
-//            }
-            
             configuration
             
             Group {
