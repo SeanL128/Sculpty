@@ -7,7 +7,6 @@
 
 import SwiftUI
 import Charts
-import BRHSegmentedControl
 
 struct LineData {
     let data: [(date: Date, value: Double)]

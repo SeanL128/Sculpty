@@ -8,7 +8,6 @@
 import SwiftUI
 import SwiftData
 import MijickPopups
-import BRHSegmentedControl
 
 struct AddMeasurementPopup: CenterPopup {
     @Environment(\.modelContext) private var context

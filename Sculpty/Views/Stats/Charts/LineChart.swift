@@ -7,7 +7,6 @@
 
 import SwiftUI
 import Charts
-import BRHSegmentedControl
 
 struct LineChart: View {
     @Binding var selectedRangeIndex: Int

@@ -31,7 +31,6 @@ class CloudSettings: ObservableObject {
     
     private func registerDefaults() {
         let defaults: [String: Any] = [
-            UserKeys.appearance.rawValue: "Automatic",
             UserKeys.dailyCalories.rawValue: 2000,
             UserKeys.gender.rawValue: "Male",
             UserKeys.includeWarmUp.rawValue: true,

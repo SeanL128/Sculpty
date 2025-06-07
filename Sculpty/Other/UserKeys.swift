@@ -8,7 +8,6 @@
 import Foundation
 
 enum UserKeys: String, CaseIterable {
-    case appearance = "APPEARANCE"
     case dailyCalories = "DAILY_CALORIES"
     case gender = "GENDER"
     case includeWarmUp = "INCLUDE_WARM_UP"

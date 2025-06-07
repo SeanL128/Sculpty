@@ -64,7 +64,7 @@ struct ExerciseInfo: View {
     }
 
     var body: some View {
-        ContainerView(title: "Exercise Info", spacing: 20) {
+        ContainerView(title: "Exercise Info", spacing: 20, onDismiss: { save() }) {
             VStack(alignment: .leading, spacing: 20) {
                 NavigationLink(destination: SelectExercise(selectedExercise: $exercise)) {
                     HStack(alignment: .center) {
@@ -206,38 +206,31 @@ struct ExerciseInfo: View {
                 .frame(height: 5)
             
             
-            VStack(alignment: .leading) {
-                Text("Rest Time")
-                    .bodyText(size: 12)
-                    .textColor()
-                
-                HStack(spacing: 20) {
-                    // Minutes Picker
-                    Picker("Minutes", selection: $restMinutes) {
-                        ForEach(Array(0...59), id: \.self) { minute in
-                            Text("\(minute) min")
-                                .tag(minute)
-                        }
-                    }
-                    .pickerStyle(WheelPickerStyle())
-                    .frame(maxWidth: 150)
-                    .clipped()
-                    
-                    // Seconds Picker
-                    Picker("Seconds", selection: $restSeconds) {
-                        ForEach([0, 15, 30, 45], id: \.self) { second in
-                            Text("\(second) sec")
-                                .tag(second)
-                        }
-                    }
-                    .pickerStyle(WheelPickerStyle())
-                    .frame(maxWidth: 150)
-                    .clipped()
+            Button {
+                Task {
+                    await DurationSelectionPopup(title: "Rest Time", minutes: $restMinutes, seconds: $restSeconds).present()
                 }
-                .padding(.top)
-                .padding(.horizontal)
-                .frame(height: 65)
+            } label: {
+                HStack(alignment: .center) {
+                    HStack(alignment: .center, spacing: 0) {
+                        Text("Rest Time:")
+                            .bodyText(size: 18, weight: .bold)
+                        
+                        Text(" \(restMinutes)min \(restSeconds)sec")
+                            .bodyText(size: 18)
+                    }
+                    
+                    Image(systemName: "chevron.right")
+                        .padding(.leading, -2)
+                        .font(Font.system(size: 12, weight: .bold))
+                }
             }
+            .textColor()
+            
+            
+            Spacer()
+                .frame(height: 5)
+            
             
             if settings.showTempo {
                 VStack(alignment: .leading) {

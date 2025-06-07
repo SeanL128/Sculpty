@@ -8,7 +8,6 @@
 import Foundation
 
 struct UserSettingsDTO: Codable {
-    var appearance: String?
     var dailyCalories: Int?
     var gender: String?
     var includeWarmUp: Bool?
@@ -24,7 +23,6 @@ struct UserSettingsDTO: Codable {
     var units: String?
     
     init(from settings: CloudSettings) {
-        self.appearance = UserDefaults.standard.string(forKey: UserKeys.appearance.rawValue)
         self.dailyCalories = UserDefaults.standard.object(forKey: UserKeys.dailyCalories.rawValue) as? Int
         self.gender = settings.gender
         self.includeWarmUp = UserDefaults.standard.object(forKey: UserKeys.includeWarmUp.rawValue) as? Bool
@@ -41,10 +39,6 @@ struct UserSettingsDTO: Codable {
     }
     
     func applyTo(settings: CloudSettings) {
-        if let appearance = appearance {
-            UserDefaults.standard.set(appearance, forKey: UserKeys.appearance.rawValue)
-        }
-        
         if let dailyCalories = dailyCalories {
             settings.dailyCalories = dailyCalories
         }

@@ -8,6 +8,7 @@
 import SwiftUI
 import MijickPopups
 import MijickTimer
+import BRHSegmentedControl
 
 struct EditDistanceSetPopup: CenterPopup {
     @EnvironmentObject private var settings: CloudSettings
@@ -23,6 +24,8 @@ struct EditDistanceSetPopup: CenterPopup {
     @State private var setTimerStatus: MTimerStatus = .notStarted
     
     @State private var disableType: Bool = false
+    
+    @State private var selectedTypeIndex: Int = 1
     
     @State private var updatedSet: ExerciseSet
     
@@ -48,6 +51,7 @@ struct EditDistanceSetPopup: CenterPopup {
         setTimer = MTimer(MTimerID(rawValue: "Set Timer \(log.id)"))
         
         self.disableType = disableType
+        self.selectedTypeIndex = ExerciseSetType.displayOrder.firstIndex(of: set.type) ?? 1
         
         _updatedSet = State(initialValue: set)
         
@@ -114,40 +118,35 @@ struct EditDistanceSetPopup: CenterPopup {
                 .textColor()
             }
             .padding(.top, 30)
-            .padding(.bottom, -20)
             
             HStack {
-                HStack {
-                    Picker("Hours", selection: $hours) {
-                        ForEach(0..<24, id: \.self) { hour in
-                            Text("\(hour)h").tag(hour)
+                VStack(alignment: .leading) {
+                    Text("Duration")
+                        .bodyText(size: 12)
+                        .textColor()
+                    
+                    Spacer()
+                    
+                    Button {
+                        Task {
+                            await DurationSelectionPopup(title: "Duration", hours: $hours, minutes: $minutes, seconds: $seconds).present()
+                        }
+                    } label: {
+                        HStack(alignment: .center) {
+                            Text("\(hours)hr \(minutes)min \(seconds)sec")
+                                .bodyText(size: 18)
+                            
+                            Image(systemName: "chevron.right")
+                                .padding(.leading, -2)
+                                .font(Font.system(size: 12))
                         }
                     }
-                    .pickerStyle(.wheel)
-                    .frame(width: 65, height: 100)
-                    .clipped()
-
-                    Picker("Minutes", selection: $minutes) {
-                        ForEach(0..<60, id: \.self) { minute in
-                            Text("\(minute)m").tag(minute)
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    .frame(width: 65, height: 100)
-                    .clipped()
-
-                    Picker("Seconds", selection: $seconds) {
-                        ForEach(0..<60, id: \.self) { second in
-                            Text("\(second)s").tag(second)
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    .frame(width: 65, height: 100)
-                    .clipped()
+                    .textColor()
+                    .onChange(of: hours) { updateTime() }
+                    .onChange(of: minutes) { updateTime() }
+                    .onChange(of: seconds) { updateTime() }
                 }
-                .onChange(of: hours) { updateTime() }
-                .onChange(of: minutes) { updateTime() }
-                .onChange(of: seconds) { updateTime() }
+                .frame(maxWidth: 200)
                 
                 HStack {
                     Input(title: "Distance", text: $distanceString, isFocused: _isDistanceFocused, type: .decimalPad)
@@ -186,16 +185,28 @@ struct EditDistanceSetPopup: CenterPopup {
             .padding(.bottom, 10)
             
             if !disableType {
-                Picker("Type", selection: $updatedSet.type) {
-                    ForEach(ExerciseSetType.displayOrder, id: \.id) { type in
-                        Text("\(type.rawValue)")
-                            .bodyText(size: 16)
-                            .textColor()
-                            .tag(type)
+                BRHSegmentedControl(
+                    selectedIndex: $selectedTypeIndex,
+                    labels: ExerciseSetType.stringDisplayOrder,
+                    builder: { _, label in
+                        Text(label)
+                            .bodyText(size: 12, weight: .bold)
+                            .multilineTextAlignment(.center)
+                    },
+                    styler: { state in
+                        switch state {
+                        case .none:
+                            return ColorManager.secondary
+                        case .touched:
+                            return ColorManager.secondary.opacity(0.7)
+                        case .selected:
+                            return ColorManager.text
+                        }
                     }
+                )
+                .onChange(of: selectedTypeIndex) {
+                    updatedSet.type = ExerciseSetType.displayOrder[selectedTypeIndex]
                 }
-                .pickerStyle(.segmented)
-                .clipped()
             }
             
             if log.index > -1 && settings.showSetTimer {

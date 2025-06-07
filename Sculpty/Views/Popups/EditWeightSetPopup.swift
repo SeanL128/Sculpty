@@ -8,6 +8,7 @@
 import SwiftUI
 import MijickPopups
 import MijickTimer
+import BRHSegmentedControl
 
 struct EditWeightSetPopup: CenterPopup {
     @EnvironmentObject private var settings: CloudSettings
@@ -23,6 +24,11 @@ struct EditWeightSetPopup: CenterPopup {
     @State private var setTimerStatus: MTimerStatus = .notStarted
     
     @State private var disableType: Bool = false
+    
+    @State private var selectedTypeIndex: Int = 1
+    
+    @State private var selectedRirIndex: Int = 1
+    private let rirLabels: [String] = ["Failure", "0", "1", "2", "3+"]
     
     @State private var updatedSet: ExerciseSet
     
@@ -46,6 +52,10 @@ struct EditWeightSetPopup: CenterPopup {
         setTimer = MTimer(MTimerID(rawValue: "Set Timer \(log.id)"))
         
         self.disableType = disableType
+        
+        self.selectedTypeIndex = ExerciseSetType.displayOrder.firstIndex(of: set.type) ?? 1
+        
+        self.selectedRirIndex = rirLabels.firstIndex(of: set.rir ?? "0") ?? 1
         
         _updatedSet = State(initialValue: set)
         
@@ -174,16 +184,28 @@ struct EditWeightSetPopup: CenterPopup {
             .padding(.bottom, 10)
             
             if !disableType {
-                Picker("Type", selection: $updatedSet.type) {
-                    ForEach(ExerciseSetType.displayOrder, id: \.id) { type in
-                        Text("\(type.rawValue)")
-                            .bodyText(size: 16)
-                            .textColor()
-                            .tag(type)
+                BRHSegmentedControl(
+                    selectedIndex: $selectedTypeIndex,
+                    labels: ExerciseSetType.stringDisplayOrder,
+                    builder: { _, label in
+                        Text(label)
+                            .bodyText(size: 12, weight: .bold)
+                            .multilineTextAlignment(.center)
+                    },
+                    styler: { state in
+                        switch state {
+                        case .none:
+                            return ColorManager.secondary
+                        case .touched:
+                            return ColorManager.secondary.opacity(0.7)
+                        case .selected:
+                            return ColorManager.text
+                        }
                     }
+                )
+                .onChange(of: selectedTypeIndex) {
+                    updatedSet.type = ExerciseSetType.displayOrder[selectedTypeIndex]
                 }
-                .pickerStyle(.segmented)
-                .clipped()
             }
             
             // RIR
@@ -192,16 +214,28 @@ struct EditWeightSetPopup: CenterPopup {
                     Text("RIR")
                         .padding(.horizontal, 5)
                     
-                    Picker("RIR", selection: $updatedSet.rir) {
-                        ForEach(["Failure", "0", "1", "2", "3+"], id: \.self) { rir in
-                            Text("\(rir)")
-                                .bodyText(size: 16)
-                                .textColor()
-                                .tag(rir)
+                    BRHSegmentedControl(
+                        selectedIndex: $selectedRirIndex,
+                        labels: rirLabels,
+                        builder: { _, label in
+                            Text(label)
+                                .bodyText(size: 12, weight: .bold)
+                                .multilineTextAlignment(.center)
+                        },
+                        styler: { state in
+                            switch state {
+                            case .none:
+                                return ColorManager.secondary
+                            case .touched:
+                                return ColorManager.secondary.opacity(0.7)
+                            case .selected:
+                                return ColorManager.text
+                            }
                         }
+                    )
+                    .onChange(of: selectedRirIndex) {
+                        updatedSet.rir = rirLabels[selectedRirIndex]
                     }
-                    .pickerStyle(.segmented)
-                    .clipped()
                 }
                 .padding(.top, 10)
             }
