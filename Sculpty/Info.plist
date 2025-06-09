@@ -24,6 +24,10 @@
 		<string>PublicSans-Regular.ttf</string>
 		<string>PublicSans-Bold.ttf</string>
 	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIImageName</key>

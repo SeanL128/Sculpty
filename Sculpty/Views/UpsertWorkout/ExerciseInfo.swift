@@ -179,7 +179,6 @@ struct ExerciseInfo: View {
                     }
                 }
             }
-            .animation(.easeInOut(duration: 0.3), value: sortedSets.map { $0.id })
             
             Button {
                 var updatedSets = workoutExercise.sets

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import UserNotifications
 import MijickPopups
 
 @main
@@ -42,6 +43,12 @@ struct SculptyApp: App {
     }
     
     private func performAppLaunchTasks() {
+        requestNotificationPermission()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            NotificationManager.shared.scheduleAllNotifications()
+        }
+        
         do {
             let workouts = try context.fetch(FetchDescriptor<Workout>())
             
@@ -68,6 +75,20 @@ struct SculptyApp: App {
             try context.save()
         } catch {
             debugLog("Error: \(error.localizedDescription)")
+        }
+    }
+    
+    private func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+            if granted {
+                debugLog("Notification permission granted")
+                
+                DispatchQueue.main.async {
+                    UIApplication.shared.registerForRemoteNotifications()
+                }
+            } else {
+                debugLog("Notification permission denied")
+            }
         }
     }
 }

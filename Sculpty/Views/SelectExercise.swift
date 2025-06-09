@@ -64,8 +64,8 @@ struct SelectExercise: View {
                 .padding(.bottom, 5)
             
             ForEach(MuscleGroup.displayOrder, id: \.id) { muscleGroup in
-                VStack(alignment: .leading, spacing: 9) {
-                    if let exercisesForGroup = groupedExercises[muscleGroup], !exercisesForGroup.isEmpty {
+                if let exercisesForGroup = groupedExercises[muscleGroup], !exercisesForGroup.isEmpty {
+                    VStack(alignment: .leading, spacing: 9) {
                         Text(muscleGroup.rawValue.uppercased())
                             .headingText(size: 14)
                             .textColor()

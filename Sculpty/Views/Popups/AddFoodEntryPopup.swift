@@ -125,6 +125,8 @@ struct AddFoodEntryPopup: CenterPopup {
             entry.caloriesLog = log
             
             context.insert(entry)
+            
+            NotificationManager.shared.cancelTodaysCalorieReminder()
         }
         
         try? context.save()

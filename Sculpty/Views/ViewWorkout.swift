@@ -178,24 +178,24 @@ struct ViewWorkout: View {
                                         }
                                         .padding(.bottom, 6)
                                         
-                                        let maxIndex = exerciseLog.setLogs.sorted(by: { $0.index < $1.index }).last?.index ?? 0
+                                        let maxIndex = exerciseLog.setLogs.map { $0.index }.max() ?? 0
                                         
                                         ForEach(exerciseLog.setLogs.sorted { $0.index < $1.index }, id: \.id) { setLog in
                                             if let eSet = setLog.set {
                                                 Button {
-                                                    let exerciseIndex = exercise.index
                                                     let exerciseLogIndex = exerciseLog.index
                                                     
                                                     Task {
-                                                        if let setIndex = exercises[exerciseIndex].sets.firstIndex(where: { $0.id == eSet.id }),
-                                                           let setLogIndex = exerciseLog.setLogs.firstIndex(where: { $0.id == setLog.id }),
+                                                        if let setLogIndex = exerciseLog.setLogs.firstIndex(where: { $0.id == setLog.id }),
+                                                           let eSet = exerciseLogs[exerciseLogIndex].setLogs[setLogIndex].set,
                                                            let type = exercises[exerciseLogIndex].exercise?.type {
+                                                            
                                                             if type == .weight {
-                                                                await EditWeightSetPopup(set: exercises[exerciseLogIndex].sets[setIndex], log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer)
+                                                                await EditWeightSetPopup(set: eSet, log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer)
                                                                     .setEnvironmentObject(settings)
                                                                     .present()
                                                             } else if type == .distance {
-                                                                await EditDistanceSetPopup(set: exercises[exerciseLogIndex].sets[setIndex], log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer)
+                                                                await EditDistanceSetPopup(set: eSet, log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer)
                                                                     .setEnvironmentObject(settings)
                                                                     .present()
                                                             }
@@ -222,6 +222,26 @@ struct ViewWorkout: View {
                                                         .background(ColorManager.text)
                                                 }
                                             }
+                                        }
+                                        
+                                        if exerciseLog.setLogs.allSatisfy({ $0.completed || $0.skipped }) && !log.completed {
+                                            Button {
+                                                let nextIndex = exercise.sets.isEmpty ? 0 : (exercise.sets.map { $0.index }.max() ?? -1) + 1
+                                                
+                                                let newSet = exerciseLog.setLogs.sorted { $0.index < $1.index }.compactMap { $0.set }.last?.copy() ?? ExerciseSet(index: 0, type: exercise.exercise?.type ?? .weight)
+                                                newSet.index = nextIndex
+                                                
+                                                exerciseLog.setLogs.append(SetLog(from: newSet))
+                                            } label: {
+                                                HStack(alignment: .center) {
+                                                    Image(systemName: "plus")
+                                                        .font(Font.system(size: 12, weight: .bold))
+                                                    
+                                                    Text("Add Set")
+                                                        .bodyText(size: 16, weight: .bold)
+                                                }
+                                            }
+                                            .textColor()
                                         }
                                         
                                         Spacer()
