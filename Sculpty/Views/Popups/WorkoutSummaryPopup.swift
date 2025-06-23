@@ -6,9 +6,8 @@
 //
 
 import SwiftUI
-import MijickPopups
 
-struct WorkoutSummaryPopup: CenterPopup {
+struct WorkoutSummaryPopup: View {
     @EnvironmentObject private var settings: CloudSettings
     
     private var log: WorkoutLog
@@ -63,16 +62,12 @@ struct WorkoutSummaryPopup: CenterPopup {
             }
             
             Button {
-                Task {
-                    await dismissLastPopup()
-                }
+                Popup.dismissLast()
             } label: {
                 Text("OK")
                     .bodyText(size: 18, weight: .bold)
             }
             .textColor()
         }
-        .padding(.vertical, 20)
-        .padding(.horizontal, 8)
     }
 }

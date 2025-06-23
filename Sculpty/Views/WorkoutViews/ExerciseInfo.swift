@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import MijickPopups
 
 struct ExerciseInfo: View {
     @Environment(\.modelContext) private var context
@@ -24,6 +23,13 @@ struct ExerciseInfo: View {
     @State private var type: ExerciseType?
     private var sortedSets: [ExerciseSet] { workoutExercise.sets.sorted { $0.index < $1.index } }
     
+    // Store original values for change tracking
+    private let originalExercise: Exercise?
+    private let originalRestTime: TimeInterval
+    private let originalSpecNotes: String
+    private let originalTempo: String
+    private let originalSets: [ExerciseSet]
+    
     @State private var restMinutes: Int
     @State private var restSeconds: Int
     @State private var specNotes: String
@@ -36,6 +42,64 @@ struct ExerciseInfo: View {
     
     private var isValid: Bool {
         !workoutExercise.sets.isEmpty && exercise != nil
+    }
+    
+    @State private var stayOnPage: Bool = true
+    
+    private var hasChanges: Bool {
+        if exercise?.id != originalExercise?.id {
+            return true
+        }
+        
+        let currentRestTime = (Double(restMinutes) * 60) + Double(restSeconds)
+        if currentRestTime != originalRestTime {
+            return true
+        }
+        
+        if specNotes != originalSpecNotes {
+            return true
+        }
+        
+        var currentTempo = tempo
+        while currentTempo.count < 4 {
+            currentTempo.append("0")
+        }
+        if currentTempo != originalTempo {
+            return true
+        }
+        
+        if workoutExercise.sets.count != originalSets.count {
+            return true
+        }
+        
+        let currentSets = workoutExercise.sets.sorted { $0.index < $1.index }
+        let sortedOriginalSets = originalSets.sorted { $0.index < $1.index }
+        
+        for (currentSet, originalSet) in zip(currentSets, sortedOriginalSets) {
+            if currentSet.index != originalSet.index ||
+               currentSet.unit != originalSet.unit ||
+               currentSet.type != originalSet.type ||
+               currentSet.exerciseType != originalSet.exerciseType {
+                return true
+            }
+            
+            if currentSet.exerciseType == .weight {
+                if currentSet.reps != originalSet.reps ||
+                   currentSet.weight != originalSet.weight ||
+                   currentSet.rir != originalSet.rir {
+                    return true
+                }
+            }
+            
+            if currentSet.exerciseType == .distance {
+                if currentSet.time != originalSet.time ||
+                   currentSet.distance != originalSet.distance {
+                    return true
+                }
+            }
+        }
+        
+        return false
     }
     
     init(workout: Workout, exercise: Exercise?, workoutExercise: WorkoutExercise) {
@@ -61,6 +125,12 @@ struct ExerciseInfo: View {
         _restSeconds = State(initialValue: initialRestSeconds)
         _specNotes = State(initialValue: initialSpecNotes)
         _tempo = State(initialValue: initialTempo)
+        
+        originalExercise = exercise
+        originalRestTime = workoutExercise.restTime
+        originalSpecNotes = workoutExercise.specNotes
+        originalTempo = initialTempo
+        originalSets = workoutExercise.sets.map { $0.copy() }
     }
 
     var body: some View {
@@ -146,17 +216,15 @@ struct ExerciseInfo: View {
                             Button {
                                 let type = type ?? .weight
                                 
-                                Task {
-                                    switch type {
-                                    case .weight:
-                                        await EditWeightSetPopup(set: set)
-                                            .setEnvironmentObject(settings)
-                                            .present()
-                                    case .distance:
-                                        await EditDistanceSetPopup(set: set)
-                                            .setEnvironmentObject(settings)
-                                            .present()
-                                    }
+                                switch type {
+                                case .weight:
+                                    Popup.show(content: {
+                                        EditWeightSetPopup(set: set)
+                                    })
+                                case .distance:
+                                    Popup.show(content: {
+                                        EditDistanceSetPopup(set: set)
+                                    })
                                 }
                             } label: {
                                 SetView(set: set)
@@ -206,9 +274,9 @@ struct ExerciseInfo: View {
             
             
             Button {
-                Task {
-                    await DurationSelectionPopup(title: "Rest Time", minutes: $restMinutes, seconds: $restSeconds).present()
-                }
+                Popup.show(content: {
+                    DurationSelectionPopup(title: "Rest Time", minutes: $restMinutes, seconds: $restSeconds)
+                })
             } label: {
                 HStack(alignment: .center) {
                     HStack(alignment: .center, spacing: 0) {
@@ -234,9 +302,9 @@ struct ExerciseInfo: View {
             if settings.showTempo {
                 VStack(alignment: .leading) {
                     Button {
-                        Task {
-                            await TempoPopup(tempo: tempo).present()
-                        }
+                        Popup.show(content: {
+                            TempoPopup(tempo: tempo)
+                        })
                     } label: {
                         HStack {
                             Text("Tempo")
@@ -295,19 +363,20 @@ struct ExerciseInfo: View {
     }
     
     private func save() {
-        workoutExercise.exercise = exercise
-        
-        let restTotalSeconds = (Double(restMinutes) * 60) + Double(restSeconds)
-        workoutExercise.restTime = restTotalSeconds
-        
-        workoutExercise.specNotes = specNotes
-        
-        while tempo.count < 4 {
-            tempo.append("0")
+        if !sortedSets.isEmpty {
+            workoutExercise.exercise = exercise
+            
+            let restTotalSeconds = (Double(restMinutes) * 60) + Double(restSeconds)
+            workoutExercise.restTime = restTotalSeconds
+            
+            workoutExercise.specNotes = specNotes
+            
+            while tempo.count < 4 {
+                tempo.append("0")
+            }
+            workoutExercise.tempo = tempo
         }
-        workoutExercise.tempo = tempo
         
         dismiss()
     }
 }
- 

@@ -8,11 +8,11 @@
 import SwiftUI
 import SwiftData
 import UserNotifications
-import MijickPopups
 
 @main
 struct SculptyApp: App {
     @Environment(\.modelContext) private var context
+    @Environment(\.scenePhase) private var scenePhase
     
     @StateObject private var settings = CloudSettings()
     
@@ -25,18 +25,15 @@ struct SculptyApp: App {
                 .dynamicTypeSize(.medium ... .xxxLarge)
                 .modelContainer(for: [Workout.self, Exercise.self, WorkoutLog.self, CaloriesLog.self, Measurement.self])
                 .environmentObject(settings)
-                .registerPopups(id: .shared) { config in config
-                    .center { $0
-                        .tapOutsideToDismissPopup(true)
-                        .backgroundColor(ColorManager.background)
-                        .cornerRadius(15)
-                        .popupHorizontalPadding(24)
-                    }
-                }
                 .task {
                     if !SculptyApp.hasLaunched {
                         performAppLaunchTasks()
                         SculptyApp.hasLaunched = true
+                    }
+                }
+                .onChange(of: scenePhase) {
+                    if scenePhase == .active {
+                        UNUserNotificationCenter.current().setBadgeCount(0)
                     }
                 }
         }
@@ -81,13 +78,9 @@ struct SculptyApp: App {
     private func requestNotificationPermission() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
             if granted {
-                debugLog("Notification permission granted")
-                
-                DispatchQueue.main.async {
-                    UIApplication.shared.registerForRemoteNotifications()
-                }
+                settings.enableNotifications = true
             } else {
-                debugLog("Notification permission denied")
+                settings.enableNotifications = false
             }
         }
     }

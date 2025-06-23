@@ -43,7 +43,10 @@ class CloudSettings: ObservableObject {
             UserKeys.showSetTimer.rawValue: false,
             UserKeys.showTempo.rawValue: false,
             UserKeys.targetWeeklyWorkouts.rawValue: 3,
-            UserKeys.units.rawValue: "Imperial"
+            UserKeys.units.rawValue: "Imperial",
+            UserKeys.enableNotifications.rawValue: true,
+            UserKeys.enableCaloriesNotifications.rawValue: true,
+            UserKeys.enableMeasurementsNotifications.rawValue: true
         ]
         
         userDefaults.register(defaults: defaults)
@@ -210,6 +213,46 @@ class CloudSettings: ObservableObject {
         set {
             objectWillChange.send()
             setValue(newValue, for: .showTempo)
+        }
+    }
+    
+    
+    var enableNotifications: Bool {
+        get { userDefaults.bool(forKey: UserKeys.enableNotifications.rawValue) }
+        set {
+            setValue(newValue, for: .enableNotifications)
+            
+            if newValue {
+                NotificationManager.shared.enableNotifications()
+            } else {
+                NotificationManager.shared.disableNotifications()
+            }
+        }
+    }
+    
+    var enableCaloriesNotifications: Bool {
+        get { userDefaults.bool(forKey: UserKeys.enableCaloriesNotifications.rawValue) }
+        set {
+            setValue(newValue, for: .enableCaloriesNotifications)
+            
+            if newValue {
+                NotificationManager.shared.enableCaloriesNotifications()
+            } else {
+                NotificationManager.shared.disableCaloriesNotifications()
+            }
+        }
+    }
+    
+    var enableMeasurementsNotifications: Bool {
+        get { userDefaults.bool(forKey: UserKeys.enableMeasurementsNotifications.rawValue) }
+        set {
+            setValue(newValue, for: .enableMeasurementsNotifications)
+            
+            if newValue {
+                NotificationManager.shared.enableMeasurementsNotifications()
+            } else {
+                NotificationManager.shared.disableMeasurementsNotifications()
+            }
         }
     }
 }

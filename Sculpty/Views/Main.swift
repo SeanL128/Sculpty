@@ -9,6 +9,7 @@ import SwiftUI
 
 struct Main: View {
     @EnvironmentObject private var settings: CloudSettings
+    @StateObject private var popupManager = PopupManager.shared
     
     var body: some View {
         ZStack {
@@ -26,8 +27,19 @@ struct Main: View {
             Home()
                 .opacity(settings.onboarded ? 1 : 0)
                 .animation(.easeInOut(duration: 0.5), value: settings.onboarded)
+            
+            ForEach(Array(popupManager.popups.enumerated()), id: \.element.id) { index, popup in
+                PopupOverlay(
+                    popup: popup,
+                    isLast: index == popupManager.popups.count - 1,
+                    onDismiss: {
+                        popupManager.dismiss(popup.id)
+                    }
+                )
+                .zIndex(Double(index + 1000))
+            }
         }
-        .onChange(of: settings.onboarded) { oldValue, newValue in
+        .onChange(of: settings.onboarded) {
             withAnimation(.easeOut(duration: 0.5)) { }
         }
     }

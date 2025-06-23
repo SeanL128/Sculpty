@@ -6,15 +6,16 @@
 //
 
 import SwiftUI
-import MijickPopups
 import MijickTimer
 import BRHSegmentedControl
 
-struct EditDistanceSetPopup: CenterPopup {
+struct EditDistanceSetPopup: View {
     @EnvironmentObject private var settings: CloudSettings
     
     var set: ExerciseSet
     @Binding var log: SetLog
+    
+    @State private var referenceHeight: CGFloat = 0
     
     private let restTime: Double
     private let restTimer: MTimer?
@@ -74,9 +75,7 @@ struct EditDistanceSetPopup: CenterPopup {
                         log.unfinish()
                         log.skip()
                         
-                        Task {
-                            await dismissLastPopup()
-                        }
+                        Popup.dismissLast()
                     } label: {
                         Image(systemName: "arrowshape.turn.up.right.fill")
                             .padding(.horizontal, 3)
@@ -107,9 +106,7 @@ struct EditDistanceSetPopup: CenterPopup {
                         }
                     }
                     
-                    Task {
-                        await dismissLastPopup()
-                    }
+                    Popup.dismissLast()
                 } label: {
                     Image(systemName: "checkmark")
                         .padding(.horizontal, 3)
@@ -117,7 +114,8 @@ struct EditDistanceSetPopup: CenterPopup {
                 }
                 .textColor()
             }
-            .padding(.top, 30)
+            .padding(.top, 25)
+            .padding(.bottom, 1)
             
             HStack {
                 VStack(alignment: .leading) {
@@ -128,9 +126,9 @@ struct EditDistanceSetPopup: CenterPopup {
                     Spacer()
                     
                     Button {
-                        Task {
-                            await DurationSelectionPopup(title: "Duration", hours: $hours, minutes: $minutes, seconds: $seconds).present()
-                        }
+                        Popup.show(content: {
+                            DurationSelectionPopup(title: "Duration", hours: $hours, minutes: $minutes, seconds: $seconds)
+                        })
                     } label: {
                         HStack(alignment: .center) {
                             Text("\(hours)hr \(minutes)min \(seconds)sec")
@@ -146,7 +144,7 @@ struct EditDistanceSetPopup: CenterPopup {
                     .onChange(of: minutes) { updateTime() }
                     .onChange(of: seconds) { updateTime() }
                 }
-                .frame(maxWidth: 200)
+                .frame(maxWidth: 200, maxHeight: referenceHeight)
                 
                 HStack {
                     Input(title: "Distance", text: $distanceString, isFocused: _isDistanceFocused, type: .decimalPad)
@@ -162,11 +160,20 @@ struct EditDistanceSetPopup: CenterPopup {
                             }
                         }
                         .frame(maxWidth: 150)
+                        .background(GeometryReader { geo in
+                            Color.clear
+                                .onAppear {
+                                    referenceHeight = geo.size.height
+                                }
+                                .onChange(of: geo.size.height) {
+                                    referenceHeight = geo.size.height
+                                }
+                        })
                     
                     Button {
-                        Task {
-                            await SmallMenuPopup(title: "Units", options: ["mi", "km"], selection: $updatedSet.unit).present()
-                        }
+                        Popup.show(content: {
+                            SmallMenuPopup(title: "Units", options: ["mi", "km"], selection: $updatedSet.unit)
+                        })
                     } label: {
                         HStack(alignment: .center) {
                             Text(updatedSet.unit)
@@ -248,9 +255,7 @@ struct EditDistanceSetPopup: CenterPopup {
                 .padding(.horizontal, 30)
             }
         }
-        .padding(.horizontal)
-        .padding(.bottom)
-        .padding(.top, -10)
+        .padding(.top, -30)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()

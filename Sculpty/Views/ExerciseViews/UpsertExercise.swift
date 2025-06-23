@@ -54,9 +54,9 @@ struct UpsertExercise: View {
                 .textColor()
                 
                 Button {
-                    Task {
-                        await ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(exercise.name)?", resultText: "This will also remove it from all workouts.", cancelText: "Cancel", confirmText: "Delete").present()
-                    }
+                    Popup.show(content: {
+                        ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(exercise.name)?", resultText: "This will also remove it from all workouts.", cancelText: "Cancel", confirmText: "Delete")
+                    })
                 } label: {
                     Image(systemName: "trash")
                         .padding(.horizontal, 5)
@@ -84,9 +84,9 @@ struct UpsertExercise: View {
                     .textColor()
                 
                 Button {
-                    Task {
-                        await MenuPopup(title: "Muscle Group", options: MuscleGroup.stringDisplayOrder, selection: $selectedMuscleGroup).present()
-                    }
+                    Popup.show(content: {
+                        MenuPopup(title: "Muscle Group", options: MuscleGroup.stringDisplayOrder, selection: $selectedMuscleGroup)
+                    })
                 } label: {
                     HStack(alignment: .center) {
                         Text(selectedMuscleGroup ?? "Select")

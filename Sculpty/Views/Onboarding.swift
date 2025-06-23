@@ -167,17 +167,15 @@ struct Onboarding: View {
                         guard let url = urls.first else { return }
                         
                         guard url.startAccessingSecurityScopedResource() else {
-                            Task {
-                                await restoreFailAlert()
-                            }
+                            restoreFailAlert()
+                            
                             return
                         }
                         
                         guard let importedData = try? Data(contentsOf: url) else {
                             url.stopAccessingSecurityScopedResource()
-                            Task {
-                                await restoreFailAlert()
-                            }
+                            restoreFailAlert()
+                            
                             return
                         }
                         
@@ -197,9 +195,7 @@ struct Onboarding: View {
                                 
                                 await MainActor.run {
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                        Task {
-                                            await restoreFailAlert()
-                                        }
+                                        restoreFailAlert()
                                     }
                                 }
                             }
@@ -212,17 +208,18 @@ struct Onboarding: View {
                         }
                     case .failure(let error):
                         debugLog(error.localizedDescription)
-                        Task {
-                            await restoreFailAlert()
-                        }
+                        
+                        restoreFailAlert()
                     }
                 }
             }
         }
     }
     
-    private func restoreFailAlert() async {
-        await InfoPopup(title: "Error", text: "There was an error when attempting to restore your data. Please make sure that you are uploading the correct file.").present()
+    private func restoreFailAlert() {
+        Popup.show(content: {
+            InfoPopup(title: "Error", text: "There was an error when attempting to restore your data. Please make sure that you are uploading the correct file.")
+        })
     }
     
     private func preloadData() {

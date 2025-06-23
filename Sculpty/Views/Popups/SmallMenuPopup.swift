@@ -6,9 +6,8 @@
 //
 
 import SwiftUI
-import MijickPopups
 
-struct SmallMenuPopup: CenterPopup {
+struct SmallMenuPopup: View {
     private var title: String
     private var options: [String]
     
@@ -22,59 +21,41 @@ struct SmallMenuPopup: CenterPopup {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Spacer()
-                
-                Text(title)
-                    .bodyText(size: 18, weight: .bold)
-                    .multilineTextAlignment(.center)
-                
-                Spacer()
-            }
-            
-            ScrollView {
-                HStack (alignment: .center) {
-                    Spacer()
+            Text(title)
+                .bodyText(size: 18, weight: .bold)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .multilineTextAlignment(.center)
+
+            HStack(spacing: 0) {
+                ForEach(options.indices, id: \.self) { index in
+                    let option = options[index]
                     
-                    ForEach(options, id: \.self) { option in
-                        Button {
-                            selection = option
-                            
-                            Task {
-                                await dismissLastPopup()
-                            }
-                        } label: {
-                            HStack(alignment: .center) {
-                                Text(option)
-                                    .bodyText(size: 16, weight: selection == option ? .bold : .regular)
-                                    .textColor()
-                                    .multilineTextAlignment(.leading)
-                                
-                                if selection == option {
-                                    Image(systemName: "checkmark")
-                                        .padding(.leading, 6)
-                                        .font(Font.system(size: 16))
-                                }
+                    Button(action: {
+                        selection = option
+                        Popup.dismissLast()
+                    }) {
+                        HStack(spacing: 6) {
+                            Text(option)
+                                .bodyText(size: 16, weight: selection == option ? .bold : .regular)
+                                .textColor()
+
+                            if selection == option {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 16, weight: .medium))
                             }
                         }
-                        .textColor()
-                        
-                        if option != options.last {
-                            Divider()
-                                .frame(width: 1)
-                                .padding(.horizontal, 4)
-                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
                     }
+                    .textColor()
                     
-                    Spacer()
+                    if index < options.count - 1 {
+                        Divider()
+                            .frame(height: 24)
+                            .padding(.horizontal, 4)
+                    }
                 }
             }
-            .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
-            .scrollIndicators(.hidden)
-            .scrollContentBackground(.hidden)
-            .padding(.horizontal, 5)
         }
-        .padding(.vertical, 20)
-        .padding(.horizontal, 8)
     }
 }

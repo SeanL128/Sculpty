@@ -125,9 +125,9 @@ struct CalorieCalculator: View {
                     .textColor()
                 
                 Button {
-                    Task {
-                        await UnitMenuPopup(selection: $settings.units).present()
-                    }
+                    Popup.show(content: {
+                        UnitMenuPopup(selection: $settings.units)
+                    })
                 } label: {
                     HStack(alignment: .center) {
                         Text(settings.units == "Imperial" ? "Imperial(mi, ft, in, lbs)" : "Metric (km, m, cm, kg)")
@@ -173,9 +173,9 @@ struct CalorieCalculator: View {
                     .textColor()
                 
                 Button {
-                    Task {
-                        await MenuPopup(title: "Activity Level", options: ActivityLevel.stringDisplayOrder, selection: $activityLevelString).present()
-                    }
+                    Popup.show(content: {
+                        MenuPopup(title: "Activity Level", options: ActivityLevel.stringDisplayOrder, selection: $activityLevelString)
+                    })
                 } label: {
                     HStack(alignment: .center) {
                         Text(activityLevelString ?? "Moderate (3-5 days/week)")
@@ -197,9 +197,9 @@ struct CalorieCalculator: View {
                     .textColor()
                 
                 Button {
-                    Task {
-                        await MenuPopup(title: "Goal", options: Goal.stringDisplayOrder, selection: $goalString).present()
-                    }
+                    Popup.show(content: {
+                        MenuPopup(title: "Goal", options: Goal.stringDisplayOrder, selection: $goalString)
+                    })
                 } label: {
                     HStack(alignment: .center) {
                         Text(goalString ?? "Maintain Weight")

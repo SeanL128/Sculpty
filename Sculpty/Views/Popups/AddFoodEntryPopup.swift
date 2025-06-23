@@ -7,9 +7,8 @@
 
 import SwiftUI
 import SwiftData
-import MijickPopups
 
-struct AddFoodEntryPopup: CenterPopup {
+struct AddFoodEntryPopup: View {
     @Environment(\.modelContext) private var context
     
     @State var log: CaloriesLog
@@ -103,8 +102,6 @@ struct AddFoodEntryPopup: CenterPopup {
             .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
             .disabled(!isValid)
         }
-        .padding(.vertical, 20)
-        .padding(.horizontal, 8)
         .toolbar {
             ToolbarItemGroup (placement: .keyboard) {
                 Spacer()
@@ -137,8 +134,6 @@ struct AddFoodEntryPopup: CenterPopup {
         proteinInput = ""
         fatInput = ""
         
-        Task {
-            await dismissLastPopup()
-        }
+        Popup.dismissLast()
     }
 }

@@ -6,11 +6,10 @@
 //
 
 import SwiftUI
-import MijickPopups
 import MijickTimer
 import BRHSegmentedControl
 
-struct EditWeightSetPopup: CenterPopup {
+struct EditWeightSetPopup: View {
     @EnvironmentObject private var settings: CloudSettings
     
     var set: ExerciseSet
@@ -77,9 +76,7 @@ struct EditWeightSetPopup: CenterPopup {
                         log.unfinish()
                         log.skip()
                         
-                        Task {
-                            await dismissLastPopup()
-                        }
+                        Popup.dismissLast()
                     } label: {
                         Image(systemName: "arrowshape.turn.up.right.fill")
                             .padding(.horizontal, 3)
@@ -112,9 +109,7 @@ struct EditWeightSetPopup: CenterPopup {
                         }
                     }
                     
-                    Task {
-                        await dismissLastPopup()
-                    }
+                    Popup.dismissLast()
                 } label: {
                     Image(systemName: "checkmark")
                         .padding(.horizontal, 3)
@@ -122,7 +117,8 @@ struct EditWeightSetPopup: CenterPopup {
                 }
                 .textColor()
             }
-            .padding(.top, 30)
+            .padding(.top, 25)
+            .padding(.bottom, 1)
             
             HStack {
                 // Reps
@@ -164,9 +160,9 @@ struct EditWeightSetPopup: CenterPopup {
                         .frame(maxWidth: 145)
                     
                     Button {
-                        Task {
-                            await SmallMenuPopup(title: "Units", options: ["lbs", "kg"], selection: $updatedSet.unit).present()
-                        }
+                        Popup.show(content: {
+                            SmallMenuPopup(title: "Units", options: ["lbs", "kg"], selection: $updatedSet.unit)
+                        })
                     } label: {
                         HStack(alignment: .center) {
                             Text(updatedSet.unit)
@@ -240,9 +236,7 @@ struct EditWeightSetPopup: CenterPopup {
                 .padding(.top, 10)
             }
         }
-        .padding(.horizontal)
-        .padding(.bottom)
-        .padding(.top, -10)
+        .padding(.top, -30)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()

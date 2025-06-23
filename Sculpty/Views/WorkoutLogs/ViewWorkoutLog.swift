@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import MijickPopups
 
 struct ViewWorkoutLog: View {
     @Environment(\.modelContext) private var context
@@ -90,9 +89,9 @@ struct ViewWorkoutLog: View {
                             Button {
                                 exerciseLogToDelete = exerciseLog
                                 
-                                Task {
-                                    await ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(exerciseLog.exercise?.exercise?.name ?? "exercise") logs?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Delete").present()
-                                }
+                                Popup.show(content: {
+                                    ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(exerciseLog.exercise?.exercise?.name ?? "exercise") logs?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Delete")
+                                })
                             } label: {
                                 Image(systemName: "xmark")
                                     .padding(.horizontal, 2)
@@ -126,9 +125,9 @@ struct ViewWorkoutLog: View {
                                     Button {
                                         setLogToDelete = (exerciseLog, setLog)
                                         
-                                        Task {
-                                            await ConfirmationPopup(selection: $confirmDelete, promptText: "Delete set log from \(formatDateWithTime(setLog.start)))?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Delete").present()
-                                        }
+                                        Popup.show(content: {
+                                            ConfirmationPopup(selection: $confirmDelete, promptText: "Delete set log from \(formatDateWithTime(setLog.start)))?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Delete")
+                                        })
                                     } label: {
                                         Image(systemName: "xmark")
                                             .padding(.horizontal, 8)

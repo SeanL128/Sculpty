@@ -157,6 +157,8 @@ struct WorkoutStats: View {
                                 .textColor()
                         }
                     }
+                    
+                    Spacer()
                 }
                 .padding()
             }

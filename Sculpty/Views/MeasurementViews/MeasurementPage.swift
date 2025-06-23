@@ -43,9 +43,9 @@ struct MeasurementPage: View {
                         Button {
                             measurementToDelete = measurement
                             
-                            Task {
-                                await ConfirmationPopup(selection: $confirmDelete, promptText: "Delete measurement from \(formatDateWithTime(measurement.date))?", cancelText: "Cancel", confirmText: "Delete").present()
-                            }
+                            Popup.show(content: {
+                                ConfirmationPopup(selection: $confirmDelete, promptText: "Delete measurement from \(formatDateWithTime(measurement.date))?", cancelText: "Cancel", confirmText: "Delete")
+                            })
                         } label: {
                             Image(systemName: "xmark")
                                 .padding(.horizontal, 8)

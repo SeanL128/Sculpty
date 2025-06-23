@@ -6,9 +6,8 @@
 //
 
 import SwiftUI
-import MijickPopups
 
-struct MenuPopup: CenterPopup {
+struct MenuPopup: View {
     private var title: String
     private var options: [String]
     
@@ -32,42 +31,33 @@ struct MenuPopup: CenterPopup {
                 Spacer()
             }
             
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    ForEach(options, id: \.self) { option in
-                        Button {
-                            selection = option
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach(options, id: \.self) { option in
+                    Button {
+                        selection = option
+                        
+                        Popup.dismissLast()
+                    } label: {
+                        HStack(alignment: .center) {
+                            Text(option)
+                                .bodyText(size: 16, weight: selection == option ? .bold : .regular)
+                                .textColor()
+                                .multilineTextAlignment(.leading)
                             
-                            Task {
-                                await dismissLastPopup()
-                            }
-                        } label: {
-                            HStack(alignment: .center) {
-                                Text(option)
-                                    .bodyText(size: 16, weight: selection == option ? .bold : .regular)
-                                    .textColor()
-                                    .multilineTextAlignment(.leading)
+                            if let selection = selection,
+                               selection == option {
+                                Spacer()
                                 
-                                if let selection = selection,
-                                   selection == option {
-                                    Spacer()
-                                    
-                                    Image(systemName: "checkmark")
-                                        .padding(.horizontal, 8)
-                                        .font(Font.system(size: 16))
-                                }
+                                Image(systemName: "checkmark")
+                                    .padding(.horizontal, 8)
+                                    .font(Font.system(size: 16))
                             }
                         }
-                        .textColor()
                     }
+                    .textColor()
                 }
             }
-            .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
-            .scrollIndicators(.hidden)
-            .scrollContentBackground(.hidden)
             .padding(.horizontal, 5)
         }
-        .padding(.vertical, 20)
-        .padding(.horizontal, 8)
     }
 }

@@ -8,7 +8,6 @@
 import SwiftUI
 import SwiftData
 import UIKit
-import MijickPopups
 
 struct Options: View {
     @Environment(\.modelContext) private var context
@@ -54,9 +53,9 @@ struct Options: View {
                     Spacer()
                     
                     Button {
-                        Task {
-                            await UnitMenuPopup(selection: $settings.units).present()
-                        }
+                        Popup.show(content: {
+                            UnitMenuPopup(selection: $settings.units)
+                        })
                     } label: {
                         HStack(alignment: .center) {
                             Text(settings.units == "Imperial" ? "Imperial (mi, ft, in, lbs)" : "Metric (km, m, cm, kg)")
@@ -242,6 +241,57 @@ struct Options: View {
             Spacer()
                 .frame(height: 5)
             
+            // MARK: Notifications
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    HStack(alignment: .center) {
+                        Spacer()
+                        
+                        Image(systemName: "bell")
+                            .font(Font.system(size: 18))
+                        
+                        Spacer()
+                    }
+                    .frame(width: 25)
+                    
+                    Text("NOTIFICATIONS")
+                        .headingText(size: 24)
+                }
+                .textColor()
+                
+                Toggle(isOn: $settings.enableNotifications) {
+                    Text("Enable Notifications")
+                        .bodyText(size: 18)
+                        .textColor()
+                }
+                .padding(.trailing, 2)
+                .onChange(of: settings.enableNotifications) {
+                    if settings.enableNotifications {
+                        handleNotificationToggle()
+                    }
+                }
+                
+                if settings.enableNotifications {
+                    Toggle(isOn: $settings.enableCaloriesNotifications) {
+                        Text("Enable Daily Calories Reminders")
+                            .bodyText(size: 18)
+                            .textColor()
+                    }
+                    .padding(.trailing, 2)
+                    
+                    Toggle(isOn: $settings.enableMeasurementsNotifications) {
+                        Text("Enable Weekly Measurement Reminders")
+                            .bodyText(size: 18)
+                            .textColor()
+                    }
+                    .padding(.trailing, 2)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            
+            Spacer()
+                .frame(height: 5)
+            
             // MARK: Data Management
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
@@ -307,9 +357,9 @@ struct Options: View {
                 .textColor()
                 
                 Button {
-                    Task {
-                        await ConfirmationPopup(selection: $resetConfirmation1, promptText: "Are you sure?", resultText: "This will reset all data.", cancelText: "Cancel", confirmText: "Reset").present()
-                    }
+                    Popup.show(content: {
+                        ConfirmationPopup(selection: $resetConfirmation1, promptText: "Are you sure?", resultText: "This will reset all data.", cancelText: "Cancel", confirmText: "Reset")
+                    })
                 } label: {
                     HStack(alignment: .center) {
                         Text("Reset Data")
@@ -323,31 +373,29 @@ struct Options: View {
                 .textColor()
                 .onChange(of: resetConfirmation1) {
                     if resetConfirmation1 {
-                        Task {
-                            await dismissAllPopups()
-                            
-                            await ConfirmationPopup(selection: $resetConfirmation2, promptText: "Are you 100% sure?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Reset").present()
-                        }
+                        Popup.dismissAll()
+                        
+                        Popup.show(content: {
+                            ConfirmationPopup(selection: $resetConfirmation2, promptText: "Are you 100% sure?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Reset")
+                        })
                         
                         resetConfirmation1 = false
                     }
                 }
                 .onChange(of: resetConfirmation2) {
                     if resetConfirmation2 {
-                        Task {
-                            await dismissAllPopups()
-                            
-                            await ConfirmationPopup(selection: $resetConfirmation3, promptText: "You should consider backing up your data before resetting.", resultText: "If not, all data will be lost.", cancelText: "Cancel", confirmText: "Reset").present()
-                        }
+                        Popup.dismissAll()
+                        
+                        Popup.show(content: {
+                            ConfirmationPopup(selection: $resetConfirmation3, promptText: "You should consider backing up your data before resetting.", resultText: "If not, all data will be lost.", cancelText: "Cancel", confirmText: "Reset")
+                        })
                         
                         resetConfirmation2 = false
                     }
                 }
                 .onChange(of: resetConfirmation3) {
                     if resetConfirmation3 {
-                        Task {
-                            await dismissAllPopups()
-                        }
+                        Popup.dismissAll()
                         
                         clearContext()
                         
@@ -378,6 +426,26 @@ struct Options: View {
                 
                 KeyboardDoneButton(focusStates: [_isDailyCaloriesFocused, _isTargetWeeklyWorkoutsFocused])
             }
+        }
+    }
+    
+    private func handleNotificationToggle() {
+        NotificationManager.shared.requestPermissionIfNeeded { granted in
+            if !granted {
+                settings.enableNotifications = false
+                
+                Popup.show(content: {
+                    InfoPopup(title: "Enable Notifications", text: "To receive reminders, please enable notifications in Settings > Sculpty > Notifications")
+                })
+                
+                openSettings()
+            }
+        }
+    }
+
+    private func openSettings() {
+        if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(settingsUrl)
         }
     }
     
@@ -416,9 +484,9 @@ struct Options: View {
                 rootVC.present(activityVC, animated: true)
             }
             
-            Task {
-                await InfoPopup(title: "Restoring from Backup", text: "To restore data from a backup, reset your data and select \"Returning? Import Backup\" from the start screen.").present()
-            }
+            Popup.show(content: {
+                InfoPopup(title: "Restoring from Backup", text: "To restore data from a backup, reset your data and select \"Returning? Import Backup\" from the start screen.")
+            })
         } catch {
             debugLog("Error creating backup file: \(error.localizedDescription)")
         }

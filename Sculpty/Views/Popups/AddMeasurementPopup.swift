@@ -7,9 +7,8 @@
 
 import SwiftUI
 import SwiftData
-import MijickPopups
 
-struct AddMeasurementPopup: CenterPopup {
+struct AddMeasurementPopup: View {
     @Environment(\.modelContext) private var context
     
     @EnvironmentObject private var settings: CloudSettings
@@ -86,9 +85,9 @@ struct AddMeasurementPopup: CenterPopup {
     var body: some View {
         VStack(alignment: .center, spacing: 20) {
             Button {
-                Task {
-                    await MeasurementMenuPopup(options: typeOptions, selection: $type).present()
-                }
+                Popup.show(content: {
+                    MeasurementMenuPopup(options: typeOptions, selection: $type)
+                })
             } label: {
                 var selection: String {
                     var output = type.rawValue
@@ -134,9 +133,9 @@ struct AddMeasurementPopup: CenterPopup {
             // Unit Selector
             if type != .bodyFat {
                 Button {
-                    Task {
-                        await UnitMenuPopup(selection: $settings.units).present()
-                    }
+                    Popup.show(content: {
+                        UnitMenuPopup(selection: $settings.units)
+                    })
                 } label: {
                     HStack(alignment: .center) {
                         Text(settings.units == "Imperial" ? "Imperial (mi, ft, in, lbs)" : "Metric (km, m, cm, kg)")
@@ -186,8 +185,6 @@ struct AddMeasurementPopup: CenterPopup {
             .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
             .disabled(!isValid)
         }
-        .padding(.vertical, 20)
-        .padding(.horizontal, 8)
         .toolbar {
             ToolbarItemGroup (placement: .keyboard) {
                 Spacer()
@@ -230,8 +227,6 @@ struct AddMeasurementPopup: CenterPopup {
         heightFeet = ""
         heightInches = ""
         
-        Task {
-            await dismissLastPopup()
-        }
+        Popup.dismissLast()
     }
 }

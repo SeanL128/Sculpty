@@ -21,21 +21,27 @@ struct UserSettingsDTO: Codable {
     var showTempo: Bool?
     var targetWeeklyWorkouts: Int?
     var units: String?
+    var enableNotifications: Bool?
+    var enableCaloriesNotifications: Bool?
+    var enableMeasurementsNotifications: Bool?
     
     init(from settings: CloudSettings) {
-        self.dailyCalories = UserDefaults.standard.object(forKey: UserKeys.dailyCalories.rawValue) as? Int
+        self.dailyCalories = settings.dailyCalories
         self.gender = settings.gender
-        self.includeWarmUp = UserDefaults.standard.object(forKey: UserKeys.includeWarmUp.rawValue) as? Bool
-        self.includeDropSet = UserDefaults.standard.object(forKey: UserKeys.includeDropSet.rawValue) as? Bool
-        self.includeCoolDown = UserDefaults.standard.object(forKey: UserKeys.includeCoolDown.rawValue) as? Bool
-        self.longestWorkoutStreak = UserDefaults.standard.object(forKey: UserKeys.longestWorkoutStreak.rawValue) as? Int
-        self.onboarded = UserDefaults.standard.object(forKey: UserKeys.onboarded.rawValue) as? Bool
-        self.show1RM = UserDefaults.standard.object(forKey: UserKeys.show1RM.rawValue) as? Bool
-        self.showRir = UserDefaults.standard.object(forKey: UserKeys.showRir.rawValue) as? Bool
-        self.showSetTimer = UserDefaults.standard.object(forKey: UserKeys.showSetTimer.rawValue) as? Bool
-        self.showTempo = UserDefaults.standard.object(forKey: UserKeys.showTempo.rawValue) as? Bool
-        self.targetWeeklyWorkouts = UserDefaults.standard.object(forKey: UserKeys.targetWeeklyWorkouts.rawValue) as? Int
+        self.includeWarmUp = settings.includeWarmUp
+        self.includeDropSet = settings.includeDropSet
+        self.includeCoolDown = settings.includeCoolDown
+        self.longestWorkoutStreak = settings.longestWorkoutStreak
+        self.onboarded = settings.onboarded
+        self.show1RM = settings.show1RM
+        self.showRir = settings.showRir
+        self.showSetTimer = settings.showSetTimer
+        self.showTempo = settings.showTempo
+        self.targetWeeklyWorkouts = settings.targetWeeklyWorkouts
         self.units = settings.units
+        self.enableNotifications = settings.enableNotifications
+        self.enableCaloriesNotifications = settings.enableCaloriesNotifications
+        self.enableMeasurementsNotifications = settings.enableMeasurementsNotifications
     }
     
     func applyTo(settings: CloudSettings) {
@@ -89,6 +95,18 @@ struct UserSettingsDTO: Codable {
         
         if let units = units {
             settings.units = units
+        }
+        
+        if let enableNotifications = enableNotifications {
+            settings.enableNotifications = enableNotifications
+        }
+        
+        if let enableCaloriesNotifications = enableCaloriesNotifications {
+            settings.enableCaloriesNotifications = enableCaloriesNotifications
+        }
+        
+        if let enableMeasurementsNotifications = enableMeasurementsNotifications {
+            settings.enableMeasurementsNotifications = enableMeasurementsNotifications
         }
     }
 }

@@ -6,9 +6,8 @@
 //
 
 import SwiftUI
-import MijickPopups
 
-struct InfoPopup: CenterPopup {
+struct InfoPopup: View {
     private var title: String
     private var text: String
     
@@ -31,16 +30,12 @@ struct InfoPopup: CenterPopup {
             }
             
             Button {
-                Task {
-                    await dismissLastPopup()
-                }
+                Popup.dismissLast()
             } label: {
                 Text("OK")
                     .bodyText(size: 18, weight: .bold)
             }
             .textColor()
         }
-        .padding(.vertical, 20)
-        .padding(.horizontal, 8)
     }
 }

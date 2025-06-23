@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import MijickPopups
 
 struct WorkoutLogs: View {
     @Environment(\.modelContext) private var context
@@ -54,9 +53,9 @@ struct WorkoutLogs: View {
                                 Button {
                                     logToDelete = log
                                     
-                                    Task {
-                                        await ConfirmationPopup(selection: $confirmDelete, promptText: "Delete log from \(formatDateWithTime(log.start)))?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Delete").present()
-                                    }
+                                    Popup.show(content: {
+                                        ConfirmationPopup(selection: $confirmDelete, promptText: "Delete log from \(formatDateWithTime(log.start)))?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Delete")
+                                    })
                                 } label: {
                                     Image(systemName: "xmark")
                                         .padding(.horizontal, 8)

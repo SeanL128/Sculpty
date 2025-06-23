@@ -21,4 +21,9 @@ enum UserKeys: String, CaseIterable {
     case showTempo = "SHOW_TEMPO"
     case targetWeeklyWorkouts = "TARGET_WEEKLY_WORKOUTS"
     case units = "UNITS"
+    
+    // Notifications
+    case enableNotifications = "ENABLE_NOTIFICATIONS"
+    case enableCaloriesNotifications = "ENABLE_CALORIES_NOTIFICATIONS"
+    case enableMeasurementsNotifications = "ENABLE_MEASUREMENTS_NOTIFICATIONS"
 }

@@ -48,9 +48,9 @@ struct CaloriesHistory: View {
                                     
                                     HStack {
                                         Button {
-                                            Task {
-                                                await AddFoodEntryPopup(entry: entry, log: log).present()
-                                            }
+                                            Popup.show(content: {
+                                                AddFoodEntryPopup(entry: entry, log: log)
+                                            })
                                         } label: {
                                             Image(systemName: "pencil")
                                                 .padding(.horizontal, 8)
@@ -61,9 +61,9 @@ struct CaloriesHistory: View {
                                         Button {
                                             entryToDelete = entry
                                             
-                                            Task {
-                                                await ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(entry.name)?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Delete").present()
-                                            }
+                                            Popup.show(content: {
+                                                ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(entry.name)?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Delete")
+                                            })
                                         } label: {
                                             Image(systemName: "xmark")
                                                 .padding(.horizontal, 8)
@@ -128,6 +128,5 @@ struct CaloriesHistory: View {
                     .textColor()
             }
         }
-                        
     }
 }

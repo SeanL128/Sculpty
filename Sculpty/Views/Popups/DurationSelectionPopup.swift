@@ -6,9 +6,8 @@
 //
 
 import SwiftUI
-import MijickPopups
 
-struct DurationSelectionPopup: CenterPopup {
+struct DurationSelectionPopup: View {
     private var title: String
 
     @Binding private var hours: Int
@@ -75,16 +74,12 @@ struct DurationSelectionPopup: CenterPopup {
             .frame(maxHeight: 200)
             
             Button {
-                Task {
-                    await dismissLastPopup()
-                }
+                Popup.dismissLast()
             } label: {
                 Text("Done")
                     .bodyText(size: 16, weight: .bold)
             }
             .textColor()
         }
-        .padding(.vertical, 20)
-        .padding(.horizontal, 8)
     }
 }

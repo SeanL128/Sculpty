@@ -6,9 +6,8 @@
 //
 
 import SwiftUI
-import MijickPopups
 
-struct ConfirmationPopup: CenterPopup {
+struct ConfirmationPopup: View {
     @Binding private var selection: Bool
     private var promptText: String
     private var resultText: String?
@@ -24,7 +23,7 @@ struct ConfirmationPopup: CenterPopup {
     }
     
     var body: some View {
-        VStack(alignment: .center, spacing: 36) {
+        VStack(alignment: .center, spacing: 24) {
             VStack (alignment: .center, spacing: 6) {
                 Text(promptText)
                     .bodyText(size: 16)
@@ -41,23 +40,20 @@ struct ConfirmationPopup: CenterPopup {
                 Button {
                     selection = false
                     
-                    Task {
-                        await dismissLastPopup()
-                    }
+                    Popup.dismissLast()
                 } label: {
                     Text(cancelText)
                         .bodyText(size: 18)
                 }
                 .textColor()
                 
-                Divider().frame(width: 1)
+                Divider()
+                    .frame(width: 1, height: 24)
                 
                 Button {
                     selection = true
                     
-                    Task {
-                        await dismissLastPopup()
-                    }
+                    Popup.dismissLast()
                 } label: {
                     Text(confirmText)
                         .bodyText(size: 18, weight: .bold)
@@ -65,7 +61,5 @@ struct ConfirmationPopup: CenterPopup {
                 .textColor()
             }
         }
-        .padding(.vertical, 20)
-        .padding(.horizontal, 8)
     }
 }

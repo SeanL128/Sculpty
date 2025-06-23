@@ -6,9 +6,8 @@
 //
 
 import SwiftUI
-import MijickPopups
 
-struct TempoPopup: CenterPopup {
+struct TempoPopup: View {
     private var arr: [String]
     private var zeroPresent: Bool
     
@@ -36,7 +35,5 @@ struct TempoPopup: CenterPopup {
                 .padding(1)
         }
         .textColor()
-        .padding(.top, 20)
-        .padding(.bottom, 18)
     }
 }

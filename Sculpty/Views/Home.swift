@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import MijickPopups
 
 struct Home: View {
     @Environment(\.modelContext) private var context
@@ -186,9 +185,9 @@ struct Home: View {
                     }
                     
                     Button {
-                        Task {
-                            await AddFoodEntryPopup(log: log ?? CaloriesLog()).present()
-                        }
+                        Popup.show(content: {
+                            AddFoodEntryPopup(log: log ?? CaloriesLog())
+                        })
                     } label: {
                         Image(systemName: "plus")
                             .padding(.horizontal, 5)
@@ -278,11 +277,9 @@ struct Home: View {
                     }
                     
                     Button {
-                        Task {
-                            await AddMeasurementPopup(measurementToAdd: $measurementToAdd)
-                                .setEnvironmentObject(settings)
-                                .present()
-                        }
+                        Popup.show(content: {
+                            AddMeasurementPopup(measurementToAdd: $measurementToAdd)
+                        })
                     } label: {
                         Image(systemName: "plus")
                             .padding(.horizontal, 5)

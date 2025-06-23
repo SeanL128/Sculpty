@@ -6,9 +6,8 @@
 //
 
 import SwiftUI
-import MijickPopups
 
-struct UnitMenuPopup: CenterPopup {
+struct UnitMenuPopup: View {
     @Binding var selection: String
     
     init(selection: Binding<String>) {
@@ -27,65 +26,53 @@ struct UnitMenuPopup: CenterPopup {
                 Spacer()
             }
             
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    // Imperial
-                    Button {
-                        selection = "Imperial"
-                        
-                        Task {
-                            await dismissLastPopup()
-                        }
-                    } label: {
-                        HStack(alignment: .center) {
-                            Text("Imperial (mi, ft, in, lbs)")
-                                .bodyText(size: 16, weight: selection == "Imperial" ? .bold : .regular)
-                                .textColor()
-                                .multilineTextAlignment(.leading)
-                            
-                            if selection == "Imperial" {
-                                Spacer()
-                                
-                                Image(systemName: "checkmark")
-                                    .padding(.horizontal, 8)
-                                    .font(Font.system(size: 16))
-                            }
-                        }
-                    }
-                    .textColor()
+            VStack(alignment: .leading, spacing: 12) {
+                // Imperial
+                Button {
+                    selection = "Imperial"
                     
-                    // Metric
-                    Button {
-                        selection = "Metric"
+                    Popup.dismissLast()
+                } label: {
+                    HStack(alignment: .center) {
+                        Text("Imperial (mi, ft, in, lbs)")
+                            .bodyText(size: 16, weight: selection == "Imperial" ? .bold : .regular)
+                            .textColor()
+                            .multilineTextAlignment(.leading)
                         
-                        Task {
-                            await dismissLastPopup()
-                        }
-                    } label: {
-                        HStack(alignment: .center) {
-                            Text("Metric (km, m, cm, kg)")
-                                .bodyText(size: 16, weight: selection == "Metric" ? .bold : .regular)
-                                .textColor()
-                                .multilineTextAlignment(.leading)
+                        if selection == "Imperial" {
+                            Spacer()
                             
-                            if selection == "Metric" {
-                                Spacer()
-                                
-                                Image(systemName: "checkmark")
-                                    .padding(.horizontal, 8)
-                                    .font(Font.system(size: 16))
-                            }
+                            Image(systemName: "checkmark")
+                                .padding(.horizontal, 8)
+                                .font(Font.system(size: 16))
                         }
                     }
-                    .textColor()
                 }
+                .textColor()
+                
+                // Metric
+                Button {
+                    selection = "Metric"
+                    
+                    Popup.dismissLast()
+                } label: {
+                    HStack(alignment: .center) {
+                        Text("Metric (km, m, cm, kg)")
+                            .bodyText(size: 16, weight: selection == "Metric" ? .bold : .regular)
+                            .textColor()
+                            .multilineTextAlignment(.leading)
+                        
+                        if selection == "Metric" {
+                            Spacer()
+                            
+                            Image(systemName: "checkmark")
+                                .padding(.horizontal, 8)
+                                .font(Font.system(size: 16))
+                        }
+                    }
+                }
+                .textColor()
             }
-            .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
-            .scrollIndicators(.hidden)
-            .scrollContentBackground(.hidden)
-            .padding(.horizontal, 5)
         }
-        .padding(.vertical, 20)
-        .padding(.horizontal, 8)
     }
 }

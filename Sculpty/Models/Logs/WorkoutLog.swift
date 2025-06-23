@@ -132,6 +132,6 @@ class WorkoutLog: Identifiable {
             }
         }
         
-        return completed / total
+        return total > 0 ? completed / total : 1
     }
 }

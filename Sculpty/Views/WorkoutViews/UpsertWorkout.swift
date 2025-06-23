@@ -61,9 +61,9 @@ struct UpsertWorkout: View {
                 .textColor()
                 
                 Button {
-                    Task {
-                        await ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(workout.name)?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Delete").present()
-                    }
+                    Popup.show(content: {
+                        ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(workout.name)?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Delete")
+                    })
                 } label: {
                     Image(systemName: "trash")
                         .padding(.horizontal, 5)

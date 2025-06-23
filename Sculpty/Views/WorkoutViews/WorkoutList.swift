@@ -97,19 +97,22 @@ struct WorkoutList: View {
                                 .textColor()
                                 
                                 Button {
-                                    let log = WorkoutLog(workout: workout)
-                                    
-                                    context.insert(log)
-                                    
-                                    workoutToStart = log
-                                    
-                                    dismiss()
+                                    if !workout.exercises.isEmpty {
+                                        let log = WorkoutLog(workout: workout)
+                                        
+                                        context.insert(log)
+                                        
+                                        workoutToStart = log
+                                        
+                                        dismiss()
+                                    }
                                 } label: {
                                     Image(systemName: "play.fill")
                                         .padding(.horizontal, 8)
                                         .font(Font.system(size: 18))
                                 }
-                                .textColor()
+                                .foregroundStyle(workout.exercises.isEmpty ? ColorManager.secondary : ColorManager.text)
+                                .disabled(workout.exercises.isEmpty)
                             }
                             
                             HStack {

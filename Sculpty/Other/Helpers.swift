@@ -433,3 +433,7 @@ extension Array where Element: Hashable {
         self = self.removingDuplicates()
     }
 }
+
+extension Notification.Name {
+    static let dismissPopup = Notification.Name("dismissPopup")
+}

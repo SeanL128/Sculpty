@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import MijickPopups
 import MijickTimer
 
 struct ViewWorkout: View {
@@ -76,9 +75,9 @@ struct ViewWorkout: View {
                         Spacer()
                         
                         Button {
-                            Task {
-                                await ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(log.workout?.name ?? "Workout") Log?", resultText: "This cannot be undone. This log will not be included in your stats.", cancelText: "Cancel", confirmText: "Delete").present()
-                            }
+                            Popup.show(content: {
+                                ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(log.workout?.name ?? "Workout") Log?", resultText: "This cannot be undone. This log will not be included in your stats.", cancelText: "Cancel", confirmText: "Delete")
+                            })
                         } label: {
                             Image(systemName: "xmark")
                                 .padding(.horizontal, 5)
@@ -109,15 +108,13 @@ struct ViewWorkout: View {
                         
                         Button {
                             if log.completed {
-                                Task {
-                                    await WorkoutSummaryPopup(log: log)
-                                        .setEnvironmentObject(settings)
-                                        .present()
-                                }
+                                Popup.show(content: {
+                                    WorkoutSummaryPopup(log: log)
+                                })
                             } else {
-                                Task {
-                                    await ConfirmationPopup(selection: $finishWorkoutSelection, promptText: "Finish \(log.workout?.name ?? "Workout")?", resultText: "This will skip all remaining sets.", cancelText: "Cancel", confirmText: "Finish").present()
-                                }
+                                Popup.show(content: {
+                                    ConfirmationPopup(selection: $finishWorkoutSelection, promptText: "Finish \(log.workout?.name ?? "Workout")?", resultText: "This will skip all remaining sets.", cancelText: "Cancel", confirmText: "Finish")
+                                })
                             }
                         } label: {
                             Image(systemName: log.completed ? "checkmark.circle.fill" : "checkmark.circle")
@@ -142,9 +139,9 @@ struct ViewWorkout: View {
                                                 let tempoArr = Array(exercise.tempo)
                                                 
                                                 Button {
-                                                    Task {
-                                                        await TempoPopup(tempo: exercise.tempo).present()
-                                                    }
+                                                    Popup.show(content: {
+                                                        TempoPopup(tempo: exercise.tempo)
+                                                    })
                                                 } label: {
                                                     HStack(alignment: .center) {
                                                         Text("Tempo: \(tempoArr[0])\(tempoArr[1])\(tempoArr[2])\(tempoArr[3])")
@@ -160,9 +157,9 @@ struct ViewWorkout: View {
                                             
                                             if !exercise.specNotes.isEmpty {
                                                 Button {
-                                                    Task {
-                                                        await InfoPopup(title: "\(exercise.exercise?.name ?? "Exercise") Notes", text: exercise.specNotes).present()
-                                                    }
+                                                    Popup.show(content: {
+                                                        InfoPopup(title: "\(exercise.exercise?.name ?? "Exercise") Notes", text: exercise.specNotes)
+                                                    })
                                                 } label: {
                                                     HStack(alignment: .center) {
                                                         Text("Notes")
@@ -185,20 +182,18 @@ struct ViewWorkout: View {
                                                 Button {
                                                     let exerciseLogIndex = exerciseLog.index
                                                     
-                                                    Task {
-                                                        if let setLogIndex = exerciseLog.setLogs.firstIndex(where: { $0.id == setLog.id }),
-                                                           let eSet = exerciseLogs[exerciseLogIndex].setLogs[setLogIndex].set,
-                                                           let type = exercises[exerciseLogIndex].exercise?.type {
-                                                            
-                                                            if type == .weight {
-                                                                await EditWeightSetPopup(set: eSet, log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer)
-                                                                    .setEnvironmentObject(settings)
-                                                                    .present()
-                                                            } else if type == .distance {
-                                                                await EditDistanceSetPopup(set: eSet, log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer)
-                                                                    .setEnvironmentObject(settings)
-                                                                    .present()
-                                                            }
+                                                    if let setLogIndex = exerciseLog.setLogs.firstIndex(where: { $0.id == setLog.id }),
+                                                       let eSet = exerciseLogs[exerciseLogIndex].setLogs[setLogIndex].set,
+                                                       let type = exercises[exerciseLogIndex].exercise?.type {
+                                                        
+                                                        if type == .weight {
+                                                            Popup.show(content: {
+                                                                EditWeightSetPopup(set: eSet, log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer)
+                                                            })
+                                                        } else if type == .distance {
+                                                            Popup.show(content: {
+                                                                EditDistanceSetPopup(set: eSet, log: $exerciseLogs[exerciseLogIndex].setLogs[setLogIndex], restTime: exercise.restTime, timer: restTimer)
+                                                            })
                                                         }
                                                     }
                                                 } label: {
@@ -285,7 +280,9 @@ struct ViewWorkout: View {
                     Task {
                         try? await Task.sleep(for: .seconds(0.7))
                         
-                        await ConfirmationPopup(selection: $finishWorkoutSelection, promptText: "Finish \(log.workout?.name ?? "Workout")?", cancelText: "Continue", confirmText: "Finish").present()
+                        Popup.show(content: {
+                            ConfirmationPopup(selection: $finishWorkoutSelection, promptText: "Finish \(log.workout?.name ?? "Workout")?", cancelText: "Continue", confirmText: "Finish")
+                        })
                     }
                 }
             }
@@ -295,13 +292,11 @@ struct ViewWorkout: View {
                     
                     try? context.save()
                     
-                    Task {
-                        await dismissLastPopup()
-                        
-                        await WorkoutSummaryPopup(log: log)
-                            .setEnvironmentObject(settings)
-                            .present()
-                    }
+                    Popup.dismissLast()
+                    
+                    Popup.show(content: {
+                        WorkoutSummaryPopup(log: log)
+                    })
                 }
             }
         }

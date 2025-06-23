@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import MijickPopups
 
 struct FoodEntries: View {
     @Environment(\.modelContext) private var context
@@ -22,9 +21,9 @@ struct FoodEntries: View {
     var body: some View {
         ContainerView(title: "Food Entries", spacing: 20, showScrollBar: true, trailingItems: {
             Button {
-                Task {
-                    await AddFoodEntryPopup(log: log).present()
-                }
+                Popup.show(content: {
+                    AddFoodEntryPopup(log: log)
+                })
             } label: {
                 Image(systemName: "plus")
                     .padding(.horizontal, 5)
@@ -53,9 +52,9 @@ struct FoodEntries: View {
                                 
                                 HStack {
                                     Button {
-                                        Task {
-                                            await AddFoodEntryPopup(entry: entry, log: log).present()
-                                        }
+                                        Popup.show(content: {
+                                            AddFoodEntryPopup(entry: entry, log: log)
+                                        })
                                     } label: {
                                         Image(systemName: "pencil")
                                             .padding(.horizontal, 8)
@@ -66,9 +65,9 @@ struct FoodEntries: View {
                                     Button {
                                         indexToDelete = index
                                         
-                                        Task {
-                                            await ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(entry.name)?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Delete").present()
-                                        }
+                                        Popup.show(content: {
+                                            ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(entry.name)?", resultText: "This cannot be undone.", cancelText: "Cancel", confirmText: "Delete")
+                                        })
                                     } label: {
                                         Image(systemName: "xmark")
                                             .padding(.horizontal, 8)
