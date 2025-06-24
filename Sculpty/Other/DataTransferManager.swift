@@ -141,12 +141,13 @@ class DataTransferManager {
                 allSetModels.append(contentsOf: workoutExercise.sets)
             }
         }
+        
         let setMap = Dictionary(uniqueKeysWithValues: allSetModels.map { ($0.id, $0) })
         
-        let workoutMap = Dictionary(uniqueKeysWithValues: workoutModels.map { ($0.name, $0) })
+        let workoutMap = Dictionary(uniqueKeysWithValues: workoutModels.map { ($0.id, $0) })
         
         for workoutLogDTO in appData.workoutLogs {
-            if let workout = workoutMap[workoutLogDTO.workout.name] {
+            if let workout = workoutMap[workoutLogDTO.workout.id] {
                 let workoutLog = WorkoutLog(
                     workout: workout,
                     started: workoutLogDTO.started,
@@ -159,9 +160,13 @@ class DataTransferManager {
                 workoutLog.exerciseLogs = []
                 
                 for exerciseLogDTO in workoutLogDTO.exerciseLogs {
-                    if let workoutExercise = workout.exercises.first(where: {
-                        $0.exercise?.name == exerciseLogDTO.exercise.exerciseId.flatMap { exerciseMap[$0]?.name }
-                    }) {
+                    var workoutExercise: WorkoutExercise?
+                    
+                    if workoutExercise == nil, let exerciseId = exerciseLogDTO.exercise.exerciseId {
+                        workoutExercise = workout.exercises.first(where: { $0.exercise?.id == exerciseId })
+                    }
+                    
+                    if let workoutExercise = workoutExercise {
                         let exerciseLog = ExerciseLog(index: exerciseLogDTO.index, exercise: workoutExercise)
                         exerciseLog.id = exerciseLogDTO.id
                         exerciseLog.completed = exerciseLogDTO.completed
