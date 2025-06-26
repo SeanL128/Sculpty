@@ -86,6 +86,8 @@ struct ViewWorkout: View {
                         .textColor()
                         .onChange(of: confirmDelete) {
                             if confirmDelete {
+                                log.completed = true
+                                
                                 do {
                                     for exerciseLog in log.exerciseLogs {
                                         for setLog in exerciseLog.setLogs {

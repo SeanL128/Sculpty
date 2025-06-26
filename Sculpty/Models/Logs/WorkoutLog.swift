@@ -60,7 +60,7 @@ class WorkoutLog: Identifiable {
         started = true
     }
     
-    func finishWorkout() {
+    func finishWorkout(date: Date = Date()) {
         for exerciseLog in exerciseLogs {
             if !exerciseLog.completed {
                 exerciseLog.completed = true
@@ -72,7 +72,7 @@ class WorkoutLog: Identifiable {
             }
         }
         
-        end = Date()
+        end = date
         completed = true
     }
     

@@ -220,6 +220,8 @@ class CloudSettings: ObservableObject {
     var enableNotifications: Bool {
         get { userDefaults.bool(forKey: UserKeys.enableNotifications.rawValue) }
         set {
+            objectWillChange.send()
+            
             setValue(newValue, for: .enableNotifications)
             
             if newValue {
@@ -233,6 +235,8 @@ class CloudSettings: ObservableObject {
     var enableCaloriesNotifications: Bool {
         get { userDefaults.bool(forKey: UserKeys.enableCaloriesNotifications.rawValue) }
         set {
+            objectWillChange.send()
+            
             setValue(newValue, for: .enableCaloriesNotifications)
             
             if newValue {
@@ -246,6 +250,8 @@ class CloudSettings: ObservableObject {
     var enableMeasurementsNotifications: Bool {
         get { userDefaults.bool(forKey: UserKeys.enableMeasurementsNotifications.rawValue) }
         set {
+            objectWillChange.send()
+            
             setValue(newValue, for: .enableMeasurementsNotifications)
             
             if newValue {

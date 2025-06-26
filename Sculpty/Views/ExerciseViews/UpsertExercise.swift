@@ -13,165 +13,224 @@ struct UpsertExercise: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     
-    @State var exercise: Exercise
+    @State var exercise: Exercise?
     
     @Binding var selectedExercise: Exercise?
     
-    @State var new: Bool
+    @State private var exerciseName: String
+    @State private var exerciseNotes: String
     
     @State private var selectedMuscleGroup: String?
     @State private var selectedExerciseType: Int = 0
     
     @State private var confirmDelete: Bool = false
+    @State private var stayOnPage: Bool = true
     
     @FocusState private var isNameFocused: Bool
     @FocusState private var isNotesFocused: Bool
     
+    @State private var originalSnapshot: String?
+    
     private var isValid: Bool {
-        !exercise.name.trimmingCharacters(in: .whitespaces).isEmpty && selectedMuscleGroup != nil
+        !exerciseName.trimmingCharacters(in: .whitespaces).isEmpty && selectedMuscleGroup != nil
     }
     
-    init(exercise: Exercise = Exercise(), selectedExercise: Binding<Exercise?> = .constant(nil)) {
+    init(selectedExercise: Binding<Exercise?> = .constant(nil)) {
+        exerciseName = ""
+        exerciseNotes = ""
+        
+        self._selectedExercise = selectedExercise
+    }
+    
+    init(exercise: Exercise, selectedExercise: Binding<Exercise?> = .constant(nil)) {
         self.exercise = exercise
         
-        new = (exercise.name == "")
+        exerciseName = exercise.name
+        exerciseNotes = exercise.notes
+        selectedMuscleGroup = exercise.muscleGroup?.rawValue ?? "Other"
+        selectedExerciseType = ExerciseType.stringDisplayOrder.firstIndex(of: exercise.type.rawValue) ?? 0
         
         self._selectedExercise = selectedExercise
     }
     
     var body: some View {
-        ContainerView(title: "\(new ? "Add" : "Edit") Exercise", spacing: 20, trailingItems: {
-            if !new {
-                Button {
-                    copyExercise()
-                    
-                    dismiss()
-                } label: {
-                    Image(systemName: "document.on.document")
-                        .padding(.horizontal, 5)
-                        .font(Font.system(size: 20))
-                }
-                .textColor()
+        NavigationStack {
+            ZStack {
+                ColorManager.background
+                    .ignoresSafeArea(edges: .all)
                 
-                Button {
-                    Popup.show(content: {
-                        ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(exercise.name)?", resultText: "This will also remove it from all workouts.", cancelText: "Cancel", confirmText: "Delete")
-                    })
-                } label: {
-                    Image(systemName: "trash")
-                        .padding(.horizontal, 5)
-                        .font(Font.system(size: 20))
-                }
-                .textColor()
-                .onChange(of: confirmDelete) {
-                    if confirmDelete {
-                        deleteExercise()
-                        
-                        try? context.save()
-                        
-                        dismiss()
-                    }
-                }
-            }
-        }) {
-            Input(title: "Name", text: $exercise.name, isFocused: _isNameFocused, autoCapitalization: .words)
-                .frame(maxWidth: 250)
-            
-            
-            VStack(alignment: .leading) {
-                Text("Muscle Group")
-                    .bodyText(size: 12)
-                    .textColor()
-                
-                Button {
-                    Popup.show(content: {
-                        MenuPopup(title: "Muscle Group", options: MuscleGroup.stringDisplayOrder, selection: $selectedMuscleGroup)
-                    })
-                } label: {
+                VStack(alignment: .leading) {
                     HStack(alignment: .center) {
-                        Text(selectedMuscleGroup ?? "Select")
-                            .bodyText(size: 18, weight: .bold)
+                        Button {
+                            let snapshot = getSnapshot()
+                            
+                            if originalSnapshot != snapshot {
+                                Popup.show(content: {
+                                    ConfirmationPopup(selection: $stayOnPage, promptText: "Unsaved Changes", resultText: "Are you sure you want to leave without saving?", cancelText: "Discard Changes", confirmText: "Stay on Page")
+                                })
+                            } else {
+                                dismiss()
+                            }
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .padding(.trailing, 6)
+                                .font(Font.system(size: 22))
+                        }
+                        .textColor()
+                        .onChange(of: stayOnPage) {
+                            if !stayOnPage {
+                                dismiss()
+                            }
+                        }
                         
-                        Image(systemName: "chevron.right")
-                            .padding(.leading, -2)
-                            .font(Font.system(size: 12, weight: .bold))
-                    }
-                }
-                .textColor()
-                .onChange(of: selectedMuscleGroup) {
-                    exercise.muscleGroup = MuscleGroup(rawValue: selectedMuscleGroup ?? "Other")
-                }
-            }
-            
-            VStack(alignment: .leading) {
-                Text("Tracking Type")
-                    .bodyText(size: 12)
-                    .textColor()
-                
-                BRHSegmentedControl(
-                    selectedIndex: $selectedExerciseType,
-                    labels: ExerciseType.stringDisplayOrder,
-                    builder: { _, label in
-                        Text(label)
-                            .bodyText(size: 16)
-                    },
-                    styler: { state in
-                        switch state {
-                        case .none:
-                            return ColorManager.secondary
-                        case .touched:
-                            return ColorManager.secondary.opacity(0.7)
-                        case .selected:
-                            return ColorManager.text
+                        Text("\(exercise == nil ? "ADD" : "EDIT") EXERCISE")
+                            .headingText(size: 32)
+                            .textColor()
+                        
+                        Spacer()
+                        
+                        if exercise != nil {
+                            Button {
+                                copyExercise()
+                                
+                                dismiss()
+                            } label: {
+                                Image(systemName: "document.on.document")
+                                    .padding(.horizontal, 5)
+                                    .font(Font.system(size: 20))
+                            }
+                            .textColor()
+                            
+                            Button {
+                                Popup.show(content: {
+                                    ConfirmationPopup(selection: $confirmDelete, promptText: "Delete \(exerciseName)?", resultText: "This will also remove it from all workouts.", cancelText: "Cancel", confirmText: "Delete")
+                                })
+                            } label: {
+                                Image(systemName: "trash")
+                                    .padding(.horizontal, 5)
+                                    .font(Font.system(size: 20))
+                            }
+                            .textColor()
+                            .onChange(of: confirmDelete) {
+                                if confirmDelete {
+                                    deleteExercise()
+                                    
+                                    try? context.save()
+                                    
+                                    dismiss()
+                                }
+                            }
                         }
                     }
-                )
-                .onChange(of: selectedExerciseType) {
-                    exercise.type = ExerciseType.displayOrder[selectedExerciseType]
+                    .padding(.bottom)
+                    
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 20) {
+                            Input(title: "Name", text: $exerciseName, isFocused: _isNameFocused, autoCapitalization: .words)
+                                .frame(maxWidth: 250)
+                            
+                            
+                            VStack(alignment: .leading) {
+                                Text("Muscle Group")
+                                    .bodyText(size: 12)
+                                    .textColor()
+                                
+                                Button {
+                                    Popup.show(content: {
+                                        MenuPopup(title: "Muscle Group", options: MuscleGroup.stringDisplayOrder, selection: $selectedMuscleGroup)
+                                    })
+                                } label: {
+                                    HStack(alignment: .center) {
+                                        Text(selectedMuscleGroup ?? "Select")
+                                            .bodyText(size: 18, weight: .bold)
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .padding(.leading, -2)
+                                            .font(Font.system(size: 12, weight: .bold))
+                                    }
+                                }
+                                .textColor()
+                            }
+                            
+                            VStack(alignment: .leading) {
+                                Text("Tracking Type")
+                                    .bodyText(size: 12)
+                                    .textColor()
+                                
+                                BRHSegmentedControl(
+                                    selectedIndex: $selectedExerciseType,
+                                    labels: ExerciseType.stringDisplayOrder,
+                                    builder: { _, label in
+                                        Text(label)
+                                            .bodyText(size: 16)
+                                    },
+                                    styler: { state in
+                                        switch state {
+                                        case .none:
+                                            return ColorManager.secondary
+                                        case .touched:
+                                            return ColorManager.secondary.opacity(0.7)
+                                        case .selected:
+                                            return ColorManager.text
+                                        }
+                                    }
+                                )
+                            }
+                            
+                            
+                            Spacer()
+                                .frame(height: 5)
+                            
+                            
+                            Input(title: "Notes", text: $exerciseNotes, isFocused: _isNotesFocused, axis: .vertical)
+                            
+                            
+                            Spacer()
+                                .frame(height: 5)
+                            
+                            
+                            Button {
+                                save()
+                            } label: {
+                                Text("Save")
+                                    .bodyText(size: 20, weight: .bold)
+                            }
+                            .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
+                            .disabled(!isValid)
+                        }
+                    }
+                    .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
+                    .scrollIndicators(.hidden)
+                    .scrollContentBackground(.hidden)
+                }
+                .padding()
+            }
+            .toolbar(.hidden, for: .navigationBar)
+            .toolbar {
+                ToolbarItemGroup (placement: .keyboard) {
+                    Spacer()
+                    
+                    KeyboardDoneButton(focusStates: [_isNameFocused, _isNotesFocused])
                 }
             }
-            
-            
-            Spacer()
-                .frame(height: 5)
-            
-            
-            Input(title: "Notes", text: $exercise.notes, isFocused: _isNotesFocused, axis: .vertical)
-            
-            
-            Spacer()
-                .frame(height: 5)
-            
-            
-            Button {
-                save()
-            } label: {
-                Text("Save")
-                    .bodyText(size: 20, weight: .bold)
-            }
-            .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
-            .disabled(!isValid)
-        }
-        .toolbar {
-            ToolbarItemGroup (placement: .keyboard) {
-                Spacer()
-                
-                KeyboardDoneButton(focusStates: [_isNameFocused, _isNotesFocused])
-            }
-        }
-        .onAppear() {
-            if !new {
-                selectedMuscleGroup = exercise.muscleGroup?.rawValue ?? "Other"
-                selectedExerciseType = ExerciseType.stringDisplayOrder.firstIndex(of: exercise.type.rawValue) ?? 0
+            .onAppear() {
+                originalSnapshot = getSnapshot()
             }
         }
     }
     
     private func save() {
-        if new {
+        if let exercise = exercise {
+            exercise.name = exerciseName
+            exercise.notes = exerciseNotes
+            exercise.muscleGroup = MuscleGroup(rawValue: selectedMuscleGroup ?? "Other")
+            exercise.type = ExerciseType.displayOrder[selectedExerciseType]
+        } else {
+            let exercise = Exercise(name: exerciseName, notes: exerciseNotes, muscleGroup: MuscleGroup(rawValue: selectedMuscleGroup ?? "Other") ?? .other, type: ExerciseType.displayOrder[selectedExerciseType])
+            
             context.insert(exercise)
         }
-        
+
         try? context.save()
         
         selectedExercise = exercise
@@ -180,8 +239,8 @@ struct UpsertExercise: View {
     }
     
     private func copyExercise() {
-        if !new {
-            let exerciseCopy = Exercise(name: "Copy of \(exercise.name)", notes: exercise.notes, muscleGroup: exercise.muscleGroup ?? .other, type: exercise.type)
+        if exercise != nil {
+            let exerciseCopy = Exercise(name: "Copy of \(exerciseName)", notes: exerciseNotes, muscleGroup: MuscleGroup(rawValue: selectedMuscleGroup ?? "Other") ?? .other, type: ExerciseType.displayOrder[selectedExerciseType])
             
             context.insert(exerciseCopy)
             
@@ -194,7 +253,7 @@ struct UpsertExercise: View {
     }
     
     private func deleteExercise() {
-        if !new {
+        if let exercise = exercise {
             exercise.hide()
             
             do {
@@ -209,5 +268,12 @@ struct UpsertExercise: View {
                 debugLog("Error: \(error.localizedDescription)")
             }
         }
+    }
+    
+    
+    private func getSnapshot() -> String {
+        let replacements = [("##:", "[DELIM]")]
+        
+        return "name:\(exerciseName.sanitize(replacements))##:notes:\(exerciseNotes.sanitize(replacements))##:muscleGroup:\(selectedMuscleGroup ?? "none")##:type:\(selectedExerciseType)##:"
     }
 }

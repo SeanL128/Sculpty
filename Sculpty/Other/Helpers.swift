@@ -418,6 +418,16 @@ extension String {
         let filtered = self.filter { "0123456789".contains($0) }
         return filtered.count > 1 ? filtered.replacing(/^([+-])?0+/, with: {$0.output.1 ?? ""}) : filtered
     }
+    
+    func sanitize(_ replacements: [(String, String)]) -> String {
+        var sanitized: String = self
+        
+        for (search, replace) in replacements {
+            sanitized = sanitized.replacingOccurrences(of: search, with: replace)
+        }
+        
+        return sanitized
+    }
 }
 
 extension Array where Element: Hashable {

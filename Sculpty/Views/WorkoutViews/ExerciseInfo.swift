@@ -134,7 +134,7 @@ struct ExerciseInfo: View {
     }
 
     var body: some View {
-        ContainerView(title: "Exercise Info", spacing: 20, onDismiss: { save() }) {
+        ContainerView(title: "Exercise Info", spacing: 20, onDismiss: { save(false) }) {
             VStack(alignment: .leading, spacing: 20) {
                 NavigationLink(destination: SelectExercise(selectedExercise: $exercise)) {
                     HStack(alignment: .center) {
@@ -345,7 +345,7 @@ struct ExerciseInfo: View {
             
             
             Button {
-                save()
+                save(true)
             } label: {
                 Text("Save")
                     .bodyText(size: 20, weight: .bold)
@@ -362,7 +362,7 @@ struct ExerciseInfo: View {
         }
     }
     
-    private func save() {
+    private func save(_ dismissAfter: Bool = true) {
         if !sortedSets.isEmpty {
             workoutExercise.exercise = exercise
             
@@ -377,6 +377,8 @@ struct ExerciseInfo: View {
             workoutExercise.tempo = tempo
         }
         
-        dismiss()
+        if dismissAfter {
+            dismiss()
+        }
     }
 }
