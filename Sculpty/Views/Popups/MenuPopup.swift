@@ -55,6 +55,7 @@ struct MenuPopup: View {
                         }
                     }
                     .textColor()
+                    .animatedButton(scale: 0.98, feedback: .selection)
                 }
             }
             .padding(.horizontal, 5)

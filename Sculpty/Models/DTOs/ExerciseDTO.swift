@@ -25,7 +25,13 @@ struct ExerciseDTO: Identifiable, Codable {
     }
     
     func toModel() -> Exercise {
-        let exercise = Exercise(name: name, notes: notes, muscleGroup: muscleGroup ?? .other, type: type, hidden: hidden)
+        let exercise = Exercise(
+            name: name,
+            notes: notes,
+            muscleGroup: muscleGroup ?? .other,
+            type: type,
+            hidden: hidden
+        )
         exercise.id = id
         return exercise
     }

@@ -30,6 +30,8 @@ struct PopupOverlay: View {
             popupContent
         }
         .onAppear {
+            dismissKeyboard()
+            
             withAnimation(popup.config.animation) {
                 isVisible = true
             }
@@ -46,10 +48,6 @@ struct PopupOverlay: View {
             return 0.0
         }
         
-        if !isLast {
-            return 0.1
-        }
-        
         if isDragging {
             let dragDistance = abs(dragOffset.height)
             let maxDrag: CGFloat = 200
@@ -60,6 +58,8 @@ struct PopupOverlay: View {
     }
     
     private func dismissWithAnimation() {
+        dismissKeyboard()
+        
         withAnimation(popup.config.animation) {
             isVisible = false
         }

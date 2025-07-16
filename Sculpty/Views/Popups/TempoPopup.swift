@@ -21,18 +21,26 @@ struct TempoPopup: View {
             Text("\(arr[0]): Eccentric (Lowering/Lenthening)")
                 .bodyText(size: 16)
                 .padding(1)
+                .contentTransition(.numericText())
+                .animation(.easeInOut(duration: 0.3), value: arr[0])
             
             Text("\(arr[1]): Lengthened Pause (Fully Stretched)")
                 .bodyText(size: 16)
                 .padding(1)
+                .contentTransition(.numericText())
+                .animation(.easeInOut(duration: 0.3), value: arr[1])
             
             Text("\(arr[2]): Concentric (Lifting/Shortening)")
                 .bodyText(size: 16)
                 .padding(1)
+                .contentTransition(.numericText())
+                .animation(.easeInOut(duration: 0.3), value: arr[2])
             
             Text("\(arr[3]): Shortened Pause (Fully Shortened)")
                 .bodyText(size: 16)
                 .padding(1)
+                .contentTransition(.numericText())
+                .animation(.easeInOut(duration: 0.3), value: arr[3])
         }
         .textColor()
     }

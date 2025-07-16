@@ -27,13 +27,12 @@ struct SmallMenuPopup: View {
                 .multilineTextAlignment(.center)
 
             HStack(spacing: 0) {
-                ForEach(options.indices, id: \.self) { index in
-                    let option = options[index]
-                    
-                    Button(action: {
+                ForEach(Array(options.enumerated()), id: \.element.self) { index, option in
+                    Button {
                         selection = option
+                        
                         Popup.dismissLast()
-                    }) {
+                    } label: {
                         HStack(spacing: 6) {
                             Text(option)
                                 .bodyText(size: 16, weight: selection == option ? .bold : .regular)
@@ -48,11 +47,13 @@ struct SmallMenuPopup: View {
                         .padding(.vertical, 10)
                     }
                     .textColor()
+                    .animatedButton(scale: 0.98, feedback: .selection)
                     
                     if index < options.count - 1 {
                         Divider()
                             .frame(height: 24)
                             .padding(.horizontal, 4)
+                            .background(ColorManager.text)
                     }
                 }
             }

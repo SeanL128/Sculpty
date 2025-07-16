@@ -10,9 +10,9 @@ import SwiftUI
 struct MeasurementMenuPopup: View {
     @Binding private var selection: MeasurementType
     
-    private var options: [String : MeasurementType]
+    private var options: [String: MeasurementType]
     
-    init(options: [String : MeasurementType], selection: Binding<MeasurementType>) {
+    init(options: [String: MeasurementType], selection: Binding<MeasurementType>) {
         self.options = options
         
         self._selection = selection
@@ -20,7 +20,7 @@ struct MeasurementMenuPopup: View {
     
     var body: some View {
         VStack(alignment: .center, spacing: 12) {
-            ForEach(options.sorted { MeasurementType.displayOrder.firstIndex(of: $0.value)! < MeasurementType.displayOrder.firstIndex(of: $1.value)! }, id: \.key) { str, type in
+            ForEach(options.sorted { MeasurementType.displayOrder.firstIndex(of: $0.value)! < MeasurementType.displayOrder.firstIndex(of: $1.value)! }, id: \.key) { str, type in // swiftlint:disable:this line_length force_unwrapping
                 Button {
                     selection = type
                     
@@ -36,6 +36,7 @@ struct MeasurementMenuPopup: View {
                     }
                 }
                 .textColor()
+                .animatedButton(scale: 0.98, feedback: .selection)
             }
         }
     }

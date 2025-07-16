@@ -12,10 +12,13 @@ struct Measurements: View {
     @Query private var measurements: [Measurement]
     
     var body: some View {
-        ContainerView(title: "Measurements", spacing: 20) {
+        ContainerView(title: "Measurements", spacing: 16) {
             ForEach(MeasurementType.displayOrder, id: \.id) { type in
                 let empty = measurements.filter { $0.type == type }.isEmpty
-                NavigationLink(destination: MeasurementPage(type: type)) {
+                
+                NavigationLink {
+                    MeasurementPage(type: type)
+                } label: {
                     HStack(alignment: .center) {
                         Text(type.rawValue)
                             .bodyText(size: 16)
@@ -27,9 +30,11 @@ struct Measurements: View {
                         }
                     }
                 }
-                .foregroundStyle(empty ? ColorManager.secondary : ColorManager.text)
                 .disabled(empty)
+                .foregroundStyle(empty ? ColorManager.secondary : ColorManager.text)
+                .animatedButton(scale: 0.98, isValid: !empty)
             }
         }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: measurements.count)
     }
 }

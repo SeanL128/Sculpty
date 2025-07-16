@@ -12,14 +12,7 @@ struct SelectWorkout: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     
-    @Query(filter: #Predicate<Workout> { !$0.hidden }) private var workouts: [Workout]
-    private var workoutOptions: [Workout] {
-        if forStats {
-            return workouts.filter { !$0.workoutLogs.isEmpty }
-        } else {
-            return workouts
-        }
-    }
+    @Query(filter: #Predicate<Workout> { $0.index >= 0 && !$0.hidden }, sort: \.index) private var workouts: [Workout]
     
     @Binding var selectedWorkout: Workout?
     
@@ -39,54 +32,43 @@ struct SelectWorkout: View {
     }
     
     var body: some View {
-        ContainerView(title: "Select Workout", spacing: 16, showScrollBar: true, trailingItems: {
+        ContainerView(title: "Select Workout", spacing: 16, showScrollBar: true, lazy: true, trailingItems: {
             if !forStats {
-                NavigationLink(destination: UpsertWorkout()) {
+                NavigationLink {
+                    UpsertWorkout()
+                } label: {
                     Image(systemName: "plus")
                         .padding(.horizontal, 5)
                         .font(Font.system(size: 20))
                 }
                 .textColor()
+                .animatedButton()
             }
         }) {
             TextField("Search Workouts", text: $searchText)
                 .focused($isSearchFocused)
-                .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isSearchFocused }, set: { isSearchFocused = $0 }), text: $searchText))
+                .textFieldStyle(
+                    UnderlinedTextFieldStyle(
+                        isFocused: Binding<Bool>(
+                            get: { isSearchFocused },
+                            set: { isSearchFocused = $0 }
+                        ),
+                        text: $searchText)
+                )
                 .padding(.bottom, 5)
             
             ForEach(filteredWorkouts.sorted { $0.index < $1.index }, id: \.id) { workout in
-                Button {
-                    selectedWorkout = workout
-                } label: {
-                    HStack(alignment: .center) {
-                        Text(workout.name)
-                            .bodyText(size: 16, weight: selectedWorkout == workout ? .bold : .regular)
-                            .multilineTextAlignment(.leading)
-                        
-                        if workoutOptions.contains(where: { $0 == workout }) {
-                            Image(systemName: "chevron.right")
-                                .padding(.leading, -2)
-                                .font(Font.system(size: 10, weight: selectedWorkout == workout ? .bold : .regular))
-                        }
-                        
-                        if selectedWorkout == workout {
-                            Spacer()
-                            
-                            Image(systemName: "checkmark")
-                                .padding(.horizontal, 8)
-                                .font(Font.system(size: 16))
-                        }
-                    }
-                }
-                .foregroundStyle(forStats && !workoutOptions.contains(where: { $0.id == workout.id }) ? ColorManager.secondary : ColorManager.text)
-                .disabled(forStats && !workoutOptions.contains(where: { $0.id == workout.id }))
+                SelectWorkoutRow(workout: workout, forStats: forStats, selectedWorkout: $selectedWorkout)
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .move(edge: .leading)),
+                        removal: .opacity.combined(with: .move(edge: .trailing))
+                    ))
             }
+            .animation(.easeInOut(duration: 0.3), value: filteredWorkouts.count)
         }
         .toolbar {
-            ToolbarItemGroup (placement: .keyboard) {
-                Spacer()
-                
-                KeyboardDoneButton(focusStates: [_isSearchFocused])
+            ToolbarItemGroup(placement: .keyboard) {
+                KeyboardDoneButton()
             }
         }
         .onChange(of: selectedWorkout) {

@@ -30,7 +30,14 @@ class WorkoutExercise: Identifiable {
         set { _exerciseLogs = newValue.isEmpty ? nil : newValue }
     }
     
-    init(index: Int = 0, exercise: Exercise? = nil, sets: [ExerciseSet] = [], restTime: TimeInterval = 180, specNotes: String = "", tempo: String = "0000") {
+    init(
+        index: Int = 0,
+        exercise: Exercise? = nil,
+        sets: [ExerciseSet] = [],
+        restTime: TimeInterval = 180,
+        specNotes: String = "",
+        tempo: String = "0000"
+    ) {
         self.index = index
         self.exercise = exercise
         self.sets = sets
@@ -53,10 +60,8 @@ class WorkoutExercise: Identifiable {
         let i = sets[index].index
         sets.remove(at: index)
         
-        for set in sets {
-            if set.index > i {
-                set.index = set.index - 1
-            }
+        for set in sets where set.index > i {
+            set.index -= 1
         }
     }
     
@@ -66,10 +71,8 @@ class WorkoutExercise: Identifiable {
         if i != -1 {
             sets.remove(at: i)
             
-            for set in sets {
-                if set.index > index {
-                    set.index = set.index - 1
-                }
+            for set in sets where set.index > index {
+                set.index -= 1
             }
         }
     }

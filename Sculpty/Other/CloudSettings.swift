@@ -31,6 +31,8 @@ class CloudSettings: ObservableObject {
     
     private func registerDefaults() {
         let defaults: [String: Any] = [
+            UserKeys.accentColorHex.rawValue: "#2B7EFF",
+            UserKeys.appearance.rawValue: "Automatic",
             UserKeys.dailyCalories.rawValue: 2000,
             UserKeys.gender.rawValue: "Male",
             UserKeys.includeWarmUp.rawValue: true,
@@ -51,10 +53,8 @@ class CloudSettings: ObservableObject {
         
         userDefaults.register(defaults: defaults)
         
-        for (key, value) in defaults {
-            if store.object(forKey: key) == nil {
-                store.set(value, forKey: key)
-            }
+        for (key, value) in defaults where store.object(forKey: key) == nil {
+            store.set(value, forKey: key)
         }
     }
     
@@ -89,11 +89,32 @@ class CloudSettings: ObservableObject {
         }
     }
     
-    private func setValue<T>(_ value: T, for key: UserKeys) {
+    private func setValue<T: Equatable>(_ value: T, for key: UserKeys) {
+        let currentValue = userDefaults.object(forKey: key.rawValue) as? T
+        guard currentValue != value else { return }
+        
         userDefaults.set(value, forKey: key.rawValue)
         store.set(value, forKey: key.rawValue)
     }
     
+    var appearance: Appearance {
+        get {
+            let rawValue = userDefaults.string(forKey: UserKeys.appearance.rawValue) ?? Appearance.automatic.rawValue
+            return Appearance(rawValue: rawValue) ?? .automatic
+        }
+        set {
+            objectWillChange.send()
+            setValue(newValue.rawValue, for: .appearance)
+        }
+    }
+    
+    var accentColorHex: String {
+        get { userDefaults.string(forKey: UserKeys.accentColorHex.rawValue) ?? "#2B7EFF" }
+        set {
+            objectWillChange.send()
+            setValue(newValue, for: .accentColorHex)
+        }
+    }
     
     var gender: String {
         get { userDefaults.string(forKey: UserKeys.gender.rawValue) ?? "notSpecified" }
@@ -215,7 +236,6 @@ class CloudSettings: ObservableObject {
             setValue(newValue, for: .showTempo)
         }
     }
-    
     
     var enableNotifications: Bool {
         get { userDefaults.bool(forKey: UserKeys.enableNotifications.rawValue) }

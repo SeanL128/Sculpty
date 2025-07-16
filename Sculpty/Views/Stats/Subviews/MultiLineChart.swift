@@ -1,0 +1,252 @@
+//
+//  MultiLineChart.swift
+//  Sculpty
+//
+//  Created by Sean Lindsay on 5/28/25.
+//
+
+import SwiftUI
+import Charts
+
+struct LineData {
+    let data: [(date: Date, value: Double)]
+    let color: Color
+    let name: String
+}
+
+struct MultiLineChart: View {
+    @Binding var selectedRangeIndex: Int
+    private var endDate: Date {
+        Date()
+    }
+    private var startDate: Date {
+        switch selectedRangeIndex {
+        case 0: return Calendar.current.date(byAdding: .day, value: -6, to: endDate) ?? endDate
+        case 1: return Calendar.current.date(byAdding: .day, value: -29, to: endDate) ?? endDate
+        case 2: return Calendar.current.date(byAdding: .month, value: -6, to: endDate) ?? endDate
+        case 3: return Calendar.current.date(byAdding: .year, value: -1, to: endDate) ?? endDate
+        default: return Calendar.current.date(byAdding: .year, value: -5, to: endDate) ?? endDate
+        }
+    }
+    
+    @State private var selectedDate: Date?
+    @State private var isInteracting: Bool = false
+    
+    var lineDataSets: [LineData]
+    var units: String
+    
+    private var allChartData: [LineData] {
+        lineDataSets.map { lineData in
+            let filteredData = lineData.data.filter { $0.date >= startDate && $0.date <= endDate }
+                .sorted { $0.date < $1.date }
+            return LineData(data: filteredData, color: lineData.color, name: lineData.name)
+        }
+    }
+    
+    private var allDataPoints: [(date: Date, value: Double)] {
+        allChartData.flatMap { $0.data }.sorted { $0.date < $1.date }
+    }
+    
+    private var selectedValues: [(name: String, value: Double, color: Color)] {
+        guard let selectedDate = selectedDate else { return [] }
+        
+        return allChartData.compactMap { lineData in
+            if let value = findClosestDataPointValue(to: selectedDate, in: lineData.data) {
+                return (name: lineData.name, value: value, color: lineData.color)
+            }
+            return nil
+        }
+    }
+    
+    var body: some View {
+        VStack {
+            GeometryReader { geometry in
+                ZStack(alignment: .topLeading) {
+                    Chart {
+                        ForEach(Array(allChartData.enumerated()), id: \.offset) { _, lineData in
+                            ForEach(lineData.data, id: \.date) { item in
+                                LineMark(
+                                    x: .value("Date", item.date),
+                                    y: .value("Value", item.value),
+                                    series: .value("", lineData.name)
+                                )
+                                .foregroundStyle(lineData.color)
+                                .lineStyle(StrokeStyle(lineWidth: 2))
+                                
+                                PointMark(
+                                    x: .value("Date", item.date),
+                                    y: .value("Value", item.value)
+                                )
+                                .foregroundStyle(lineData.color)
+                                .symbolSize(24)
+                                
+                                AreaMark(
+                                    x: .value("Date", item.date),
+                                    y: .value("Value", item.value),
+                                    series: .value("", lineData.name),
+                                    stacking: .unstacked
+                                )
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [lineData.color.opacity(0.2), .clear],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                )
+                            }
+                        }
+                        
+                        if let selectedDate = selectedDate {
+                            RuleMark(
+                                x: .value("Selected Date", selectedDate)
+                            )
+                            .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                            .foregroundStyle(ColorManager.text)
+                        }
+                    }
+                    .chartXScale(domain: startDate...endDate)
+                    .chartXAxis {
+                        AxisMarks { value in
+                            AxisGridLine()
+                            AxisValueLabel {
+                                if let date = value.as(Date.self) {
+                                    Text(selectedRangeIndex <= 1 ? formatDateNoYear(date) : formatMonth(date))
+                                        .bodyText(size: 12)
+                                        .textColor()
+                                }
+                            }
+                        }
+                    }
+                    .chartYAxis {
+                        AxisMarks(position: .leading) { value in
+                            AxisGridLine()
+                            AxisValueLabel {
+                                if let numericValue = value.as(Double.self) {
+                                    Text("\(numericValue.formatted())\(units)")
+                                        .bodyText(size: 12)
+                                        .textColor()
+                                }
+                            }
+                        }
+                    }
+                    .chartXSelection(value: .constant(selectedDate))
+                    .chartGesture { proxy in
+                        DragGesture(minimumDistance: 8)
+                            .onChanged { value in
+                                if !isInteracting {
+                                    isInteracting = true
+                                }
+                                
+                                if let date: Date = proxy.value(atX: value.location.x) {
+                                    let newSelectedDate = findClosestDataPoint(to: date)
+                                    
+                                    if newSelectedDate != selectedDate {
+                                        selectedDate = newSelectedDate
+                                    }
+                                }
+                            }
+                            .onEnded { _ in
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    isInteracting = false
+                                    selectedDate = nil
+                                }
+                            }
+                    }
+                    
+                    if isInteracting,
+                       let date = selectedDate,
+                       !selectedValues.isEmpty,
+                       !allDataPoints.isEmpty {
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(formatDate(date))
+                                .bodyText(size: 12)
+                                .textColor()
+                            
+                            ForEach(Array(selectedValues.enumerated()), id: \.offset) { _, item in
+                                HStack(spacing: 4) {
+                                    Circle()
+                                        .fill(item.color)
+                                        .frame(width: 8, height: 8)
+                                    
+                                    Text("\(item.name): \(item.value.formatted())\(units)")
+                                        .bodyText(size: 12, weight: .bold)
+                                        .foregroundStyle(item.color)
+                                }
+                            }
+                        }
+                        .padding(8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(ColorManager.background)
+                        )
+                        .transition(.asymmetric(
+                            insertion: .scale.combined(with: .opacity),
+                            removal: .opacity
+                        ))
+                        .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isInteracting)
+                        .position(tooltipPosition(in: geometry))
+                    }
+                }
+            }
+            .frame(height: 250)
+            .padding()
+        }
+        .animation(.easeInOut(duration: 0.4), value: allChartData.map { $0.data.count })
+        .animation(.easeInOut(duration: 0.3), value: selectedRangeIndex)
+        .drawingGroup()
+    }
+    
+    private func findClosestDataPoint(to date: Date) -> Date? {
+        guard !allDataPoints.isEmpty else { return nil }
+        
+        let targetTime = date.timeIntervalSince1970
+        var left = 0
+        var right = allDataPoints.count - 1
+        var closest = allDataPoints[0].date
+        var minDiff = abs(allDataPoints[0].date.timeIntervalSince1970 - targetTime)
+        
+        while left <= right {
+            let mid = (left + right) / 2
+            let midTime = allDataPoints[mid].date.timeIntervalSince1970
+            let diff = abs(midTime - targetTime)
+            
+            if diff < minDiff {
+                minDiff = diff
+                closest = allDataPoints[mid].date
+            }
+            
+            if midTime < targetTime {
+                left = mid + 1
+            } else {
+                right = mid - 1
+            }
+        }
+        
+        return closest
+    }
+    
+    private func findClosestDataPointValue(to date: Date, in data: [(date: Date, value: Double)]) -> Double? {
+        return data.first { $0.date == date }?.value
+    }
+    
+    private func tooltipPosition(in geometry: GeometryProxy) -> CGPoint {
+        guard let selectedDate = selectedDate else {
+            return CGPoint(x: geometry.size.width / 2, y: 50)
+        }
+        
+        let totalTimeInterval = endDate.timeIntervalSince(startDate)
+        let selectedTimeInterval = selectedDate.timeIntervalSince(startDate)
+        let relativePosition = max(0, min(1, selectedTimeInterval / totalTimeInterval))
+        
+        let chartPadding: CGFloat = 40
+        let availableWidth = geometry.size.width - (chartPadding * 2)
+        let xPosition = chartPadding + (availableWidth * relativePosition)
+        
+        let tooltipWidth: CGFloat = 150
+        let clampedX = max(tooltipWidth / 2 + 10,
+                          min(geometry.size.width - tooltipWidth / 2 - 10, xPosition))
+        
+        return CGPoint(x: clampedX, y: 20)
+    }
+}

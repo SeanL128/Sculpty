@@ -8,8 +8,8 @@
 import Foundation
 
 enum LongLengthUnit: String, CaseIterable {
-    case mi = "mi"
-    case km = "km"
+    case mi
+    case km
     
     var toKmFactor: Double {
         return self == .mi ? 1.60934 : 1.0
@@ -23,6 +23,6 @@ enum LongLengthUnit: String, CaseIterable {
         if self == unit { return value }
         
         let kmValue = value * self.toKmFactor
-        return (kmValue * unit.fromKmFactor * 100).rounded() / 100
+        return round(kmValue * unit.fromKmFactor, 2)
     }
 }

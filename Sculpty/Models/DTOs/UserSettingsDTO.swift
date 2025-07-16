@@ -8,6 +8,8 @@
 import Foundation
 
 struct UserSettingsDTO: Codable {
+    var accentColorHex: String?
+    var appearance: Appearance?
     var dailyCalories: Int?
     var gender: String?
     var includeWarmUp: Bool?
@@ -26,6 +28,8 @@ struct UserSettingsDTO: Codable {
     var enableMeasurementsNotifications: Bool?
     
     init(from settings: CloudSettings) {
+        self.accentColorHex = settings.accentColorHex
+        self.appearance = settings.appearance
         self.dailyCalories = settings.dailyCalories
         self.gender = settings.gender
         self.includeWarmUp = settings.includeWarmUp
@@ -45,6 +49,14 @@ struct UserSettingsDTO: Codable {
     }
     
     func applyTo(settings: CloudSettings) {
+        if let accentColorHex = accentColorHex {
+            settings.accentColorHex = accentColorHex
+        }
+        
+        if let appearance = appearance {
+            settings.appearance = appearance
+        }
+        
         if let dailyCalories = dailyCalories {
             settings.dailyCalories = dailyCalories
         }

@@ -17,5 +17,5 @@ struct PopupConfig {
     var tapOutsideToDismiss: Bool = true
     var dragToDismiss: Bool = false
     var animation: Animation = .spring(response: 0.5, dampingFraction: 0.75, blendDuration: 0.2)
-    var autoDismissAfter: TimeInterval? = nil
+    var autoDismissAfter: TimeInterval?
 }

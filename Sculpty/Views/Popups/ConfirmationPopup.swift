@@ -14,7 +14,13 @@ struct ConfirmationPopup: View {
     private var cancelText: String
     private var confirmText: String
     
-    init(selection: Binding<Bool>, promptText: String = "Are you sure?", resultText: String? = nil, cancelText: String = "Cancel", confirmText: String = "Confirm") {
+    init(
+        selection: Binding<Bool>,
+        promptText: String = "Are you sure?",
+        resultText: String? = nil,
+        cancelText: String = "Cancel",
+        confirmText: String = "Confirm"
+    ) {
         self._selection = selection
         self.promptText = promptText
         self.resultText = resultText
@@ -24,7 +30,7 @@ struct ConfirmationPopup: View {
     
     var body: some View {
         VStack(alignment: .center, spacing: 24) {
-            VStack (alignment: .center, spacing: 6) {
+            VStack(alignment: .center, spacing: 6) {
                 Text(promptText)
                     .bodyText(size: 16)
                     .multilineTextAlignment(.center)
@@ -46,9 +52,11 @@ struct ConfirmationPopup: View {
                         .bodyText(size: 18)
                 }
                 .textColor()
+                .animatedButton()
                 
                 Divider()
                     .frame(width: 1, height: 24)
+                    .background(ColorManager.text)
                 
                 Button {
                     selection = true
@@ -59,6 +67,7 @@ struct ConfirmationPopup: View {
                         .bodyText(size: 18, weight: .bold)
                 }
                 .textColor()
+                .animatedButton(feedback: .impact(weight: .medium))
             }
         }
     }

@@ -49,6 +49,7 @@ struct UnitMenuPopup: View {
                     }
                 }
                 .textColor()
+                .animatedButton(scale: 0.98, feedback: .selection)
                 
                 // Metric
                 Button {
@@ -72,6 +73,7 @@ struct UnitMenuPopup: View {
                     }
                 }
                 .textColor()
+                .animatedButton(scale: 0.98, feedback: .selection)
             }
         }
     }

@@ -18,7 +18,7 @@ struct InfoPopup: View {
     
     var body: some View {
         VStack(alignment: .center, spacing: 24) {
-            VStack (alignment: .center, spacing: 8){
+            VStack(alignment: .center, spacing: 8) {
                 Text(title)
                     .bodyText(size: 18, weight: .bold)
                     .multilineTextAlignment(.center)
@@ -27,7 +27,9 @@ struct InfoPopup: View {
                     .bodyText(size: 16)
                     .textColor()
                     .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+            .frame(width: 300)
             
             Button {
                 Popup.dismissLast()
@@ -36,6 +38,7 @@ struct InfoPopup: View {
                     .bodyText(size: 18, weight: .bold)
             }
             .textColor()
+            .animatedButton()
         }
     }
 }

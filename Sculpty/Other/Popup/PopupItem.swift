@@ -13,7 +13,11 @@ struct PopupItem: Identifiable {
     let config: PopupConfig
     let onDismiss: (() -> Void)?
     
-    init<Content: View>(@ViewBuilder content: () -> Content, config: PopupConfig = PopupConfig(), onDismiss: (() -> Void)? = nil) {
+    init<Content: View>(
+        @ViewBuilder content: () -> Content,
+        config: PopupConfig = PopupConfig(),
+        onDismiss: (() -> Void)? = nil
+    ) {
         self.content = AnyView(content())
         self.config = config
         self.onDismiss = onDismiss

@@ -16,19 +16,10 @@ struct ExerciseInfo: View {
     
     private var workout: Workout
     
-    @Query private var exercises: [Exercise]
-    
     @State private var workoutExercise: WorkoutExercise
     @State private var exercise: Exercise?
     @State private var type: ExerciseType?
     private var sortedSets: [ExerciseSet] { workoutExercise.sets.sorted { $0.index < $1.index } }
-    
-    // Store original values for change tracking
-    private let originalExercise: Exercise?
-    private let originalRestTime: TimeInterval
-    private let originalSpecNotes: String
-    private let originalTempo: String
-    private let originalSets: [ExerciseSet]
     
     @State private var restMinutes: Int
     @State private var restSeconds: Int
@@ -40,72 +31,17 @@ struct ExerciseInfo: View {
     
     @State private var editing: Bool = false
     
+    private var onChangesMade: (() -> Void)?
+    
     private var isValid: Bool {
         !workoutExercise.sets.isEmpty && exercise != nil
     }
     
-    @State private var stayOnPage: Bool = true
-    
-    private var hasChanges: Bool {
-        if exercise?.id != originalExercise?.id {
-            return true
-        }
-        
-        let currentRestTime = (Double(restMinutes) * 60) + Double(restSeconds)
-        if currentRestTime != originalRestTime {
-            return true
-        }
-        
-        if specNotes != originalSpecNotes {
-            return true
-        }
-        
-        var currentTempo = tempo
-        while currentTempo.count < 4 {
-            currentTempo.append("0")
-        }
-        if currentTempo != originalTempo {
-            return true
-        }
-        
-        if workoutExercise.sets.count != originalSets.count {
-            return true
-        }
-        
-        let currentSets = workoutExercise.sets.sorted { $0.index < $1.index }
-        let sortedOriginalSets = originalSets.sorted { $0.index < $1.index }
-        
-        for (currentSet, originalSet) in zip(currentSets, sortedOriginalSets) {
-            if currentSet.index != originalSet.index ||
-               currentSet.unit != originalSet.unit ||
-               currentSet.type != originalSet.type ||
-               currentSet.exerciseType != originalSet.exerciseType {
-                return true
-            }
-            
-            if currentSet.exerciseType == .weight {
-                if currentSet.reps != originalSet.reps ||
-                   currentSet.weight != originalSet.weight ||
-                   currentSet.rir != originalSet.rir {
-                    return true
-                }
-            }
-            
-            if currentSet.exerciseType == .distance {
-                if currentSet.time != originalSet.time ||
-                   currentSet.distance != originalSet.distance {
-                    return true
-                }
-            }
-        }
-        
-        return false
-    }
-    
-    init(workout: Workout, exercise: Exercise?, workoutExercise: WorkoutExercise) {
+    init(workout: Workout, exercise: Exercise?, workoutExercise: WorkoutExercise, onChangesMade: (() -> Void)? = nil) {
         self.workout = workout
         self.exercise = exercise
         self._workoutExercise = State(initialValue: workoutExercise)
+        self.onChangesMade = onChangesMade
         type = exercise?.type
         
         let restTotalSeconds = Double(workoutExercise.restTime)
@@ -125,21 +61,18 @@ struct ExerciseInfo: View {
         _restSeconds = State(initialValue: initialRestSeconds)
         _specNotes = State(initialValue: initialSpecNotes)
         _tempo = State(initialValue: initialTempo)
-        
-        originalExercise = exercise
-        originalRestTime = workoutExercise.restTime
-        originalSpecNotes = workoutExercise.specNotes
-        originalTempo = initialTempo
-        originalSets = workoutExercise.sets.map { $0.copy() }
     }
 
     var body: some View {
         ContainerView(title: "Exercise Info", spacing: 20, onDismiss: { save(false) }) {
             VStack(alignment: .leading, spacing: 20) {
-                NavigationLink(destination: SelectExercise(selectedExercise: $exercise)) {
+                NavigationLink {
+                    SelectExercise(selectedExercise: $exercise)
+                } label: {
                     HStack(alignment: .center) {
                         Text(exercise?.name ?? "Select Exercise")
                             .bodyText(size: 20, weight: .bold)
+                            .animation(.easeInOut(duration: 0.3), value: exercise?.name)
                         
                         Image(systemName: "chevron.right")
                             .padding(.leading, -2)
@@ -147,6 +80,7 @@ struct ExerciseInfo: View {
                     }
                 }
                 .textColor()
+                .animatedButton(scale: 0.98)
                 .onChange(of: exercise) {
                     if exercise?.type != type {
                         workoutExercise.sets.removeAll()
@@ -156,7 +90,7 @@ struct ExerciseInfo: View {
                 }
                 
                 if let notes = workoutExercise.exercise?.notes, !notes.isEmpty {
-                    Text(workoutExercise.exercise!.notes)
+                    Text(notes)
                         .bodyText(size: 16)
                         .textColor()
                 }
@@ -176,87 +110,39 @@ struct ExerciseInfo: View {
                             .font(Font.system(size: 18))
                     }
                     .foregroundStyle(editing ? Color.accentColor : ColorManager.text)
+                    .animatedButton()
+                    .animation(.easeInOut(duration: 0.3), value: editing)
                 }
             }
             
             VStack(alignment: .leading, spacing: 20) {
                 ForEach(workoutExercise.sets.sorted { $0.index < $1.index }, id: \.id) { set in
-                    if let index = workoutExercise.sets.firstIndex(of: set) {
-                        HStack(alignment: .center) {
-                            if editing {
-                                VStack(alignment: .center, spacing: 10) {
-                                    Button {
-                                        if let above = sortedSets.last(where: { $0.index < set.index }) {
-                                            let index = set.index
-                                            set.index = above.index
-                                            above.index = index
-                                        }
-                                    } label: {
-                                        Image(systemName: "chevron.up")
-                                            .font(Font.system(size: 14))
-                                    }
-                                    .foregroundStyle(sortedSets.last(where: { $0.index < set.index }) == nil ? ColorManager.secondary : ColorManager.text)
-                                    .disabled(sortedSets.last(where: { $0.index < set.index }) == nil)
-                                    
-                                    Button {
-                                        if let below = sortedSets.first(where: { $0.index > set.index }) {
-                                            let index = set.index
-                                            set.index = below.index
-                                            below.index = index
-                                        }
-                                    } label: {
-                                        Image(systemName: "chevron.down")
-                                            .font(Font.system(size: 14))
-                                    }
-                                    .foregroundStyle(sortedSets.first(where: { $0.index > set.index }) == nil ? ColorManager.secondary : ColorManager.text)
-                                    .disabled(sortedSets.first(where: { $0.index > set.index }) == nil)
-                                }
-                            }
-                            
-                            Button {
-                                let type = type ?? .weight
-                                
-                                switch type {
-                                case .weight:
-                                    Popup.show(content: {
-                                        EditWeightSetPopup(set: set)
-                                    })
-                                case .distance:
-                                    Popup.show(content: {
-                                        EditDistanceSetPopup(set: set)
-                                    })
-                                }
-                            } label: {
-                                SetView(set: set)
-                            }
-                            .textColor()
-                            
-                            Spacer()
-                            
-                            Button {
-                                var updatedSets = workoutExercise.sets
-                                updatedSets.remove(at: index)
-                                workoutExercise.sets = updatedSets
-                            } label: {
-                                Image(systemName: "xmark")
-                                    .padding(.horizontal, 8)
-                                    .font(Font.system(size: 16))
-                            }
-                            .textColor()
-                        }
-                    }
+                    EditSetRow(
+                        set: set,
+                        sortedSets: sortedSets,
+                        editing: editing,
+                        type: type,
+                        workoutExercise: $workoutExercise
+                    )
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .move(edge: .leading)),
+                        removal: .opacity.combined(with: .move(edge: .trailing))
+                    ))
                 }
             }
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: sortedSets.count)
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: editing)
             
             Button {
-                var updatedSets = workoutExercise.sets
-                
-                let nextIndex = updatedSets.isEmpty ? 0 : (updatedSets.map { $0.index }.max() ?? -1) + 1
+                let nextIndex = workoutExercise.sets.isEmpty ? 0 : (workoutExercise.sets.map { $0.index }.max() ?? -1) + 1 // swiftlint:disable:this line_length
                 
                 let newSet = ExerciseSet(index: nextIndex, type: type ?? .weight)
-                updatedSets.append(newSet)
                 
-                workoutExercise.sets = updatedSets
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    var updatedSets = workoutExercise.sets
+                    updatedSets.append(newSet)
+                    workoutExercise.sets = updatedSets
+                }
             } label: {
                 HStack(alignment: .center) {
                     Image(systemName: "plus")
@@ -267,11 +153,10 @@ struct ExerciseInfo: View {
                 }
             }
             .textColor()
-            
+            .animatedButton(scale: 0.98, feedback: .impact(weight: .light))
             
             Spacer()
                 .frame(height: 5)
-            
             
             Button {
                 Popup.show(content: {
@@ -285,6 +170,9 @@ struct ExerciseInfo: View {
                         
                         Text(" \(restMinutes)min \(restSeconds)sec")
                             .bodyText(size: 18)
+                            .contentTransition(.numericText())
+                            .animation(.easeInOut(duration: 0.3), value: restMinutes)
+                            .animation(.easeInOut(duration: 0.3), value: restSeconds)
                     }
                     
                     Image(systemName: "chevron.right")
@@ -293,11 +181,10 @@ struct ExerciseInfo: View {
                 }
             }
             .textColor()
-            
+            .animatedButton(scale: 0.98)
             
             Spacer()
                 .frame(height: 5)
-            
             
             if settings.showTempo {
                 VStack(alignment: .leading) {
@@ -316,12 +203,21 @@ struct ExerciseInfo: View {
                         }
                     }
                     .textColor()
+                    .animatedButton(scale: 0.98)
                     
                     HStack(alignment: .bottom) {
                         TextField("", text: $tempo, prompt: Text("0000"))
                             .keyboardType(.numberPad)
                             .focused($isTempoFocused)
-                            .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isTempoFocused }, set: { isTempoFocused = $0 }), text: $tempo))
+                            .textFieldStyle(
+                                UnderlinedTextFieldStyle(
+                                    isFocused: Binding<Bool>(
+                                        get: { isTempoFocused },
+                                        set: { isTempoFocused = $0 }
+                                    ),
+                                    text: $tempo
+                                )
+                            )
                             .onChange(of: tempo) {
                                 if tempo.count > 4 {
                                     tempo = String(tempo.prefix(4))
@@ -330,37 +226,30 @@ struct ExerciseInfo: View {
                     }
                     .frame(maxWidth: 50)
                 }
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: .top)),
+                    removal: .opacity.combined(with: .move(edge: .top))
+                ))
             }
-            
             
             Spacer()
                 .frame(height: 5)
-            
             
             Input(title: "Workout-Specific Notes", text: $specNotes, isFocused: _isNotesFocused, axis: .vertical)
             
-            
             Spacer()
                 .frame(height: 5)
             
-            
-            Button {
-                save(true)
-            } label: {
-                Text("Save")
-                    .bodyText(size: 20, weight: .bold)
-            }
-            .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
-            .disabled(!isValid)
+            SaveButton(save: save, isValid: isValid, size: 20)
         }
         .toolbar {
-            ToolbarItemGroup (placement: .keyboard) {
-                Spacer()
-                
-                KeyboardDoneButton(focusStates: [_isNotesFocused, _isTempoFocused])
+            ToolbarItemGroup(placement: .keyboard) {
+                KeyboardDoneButton()
             }
         }
     }
+    
+    private func save() { save(true) }
     
     private func save(_ dismissAfter: Bool = true) {
         if !sortedSets.isEmpty {
@@ -375,6 +264,8 @@ struct ExerciseInfo: View {
                 tempo.append("0")
             }
             workoutExercise.tempo = tempo
+            
+            onChangesMade?()
         }
         
         if dismissAfter {

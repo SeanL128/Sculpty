@@ -5,11 +5,19 @@
 //  Created by Sean Lindsay on 5/11/25.
 //
 
-// This in an intermediate view to use when using @Query causes an infinite loop. Apple, please look into and fix the issue.
+// This in an intermediate view to use when using @Query causes an infinite loop.
+// Apple, please look into and fix the issue.
 import SwiftUI
 
 struct PageRenderer: View {
-    let page: PageRendererType
+    private let page: PageRendererType
+    
+    @Binding private var selectedExercise: Exercise?
+    
+    init (page: PageRendererType, selectedExercise: Binding<Exercise?> = .constant(nil)) {
+        self.page = page
+        self._selectedExercise = selectedExercise
+    }
     
     var body: some View {
         switch page {
@@ -18,7 +26,7 @@ struct PageRenderer: View {
         case .upsertWorkout:
             UpsertWorkout()
         case .upsertExercise:
-            UpsertExercise()
+            UpsertExercise(selectedExercise: $selectedExercise)
         }
     }
 }

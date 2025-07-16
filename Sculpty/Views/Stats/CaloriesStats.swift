@@ -7,8 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import Charts
-import BRHSegmentedControl
 
 struct CaloriesStats: View {
     @Environment(\.modelContext) private var context
@@ -59,52 +57,23 @@ struct CaloriesStats: View {
                     .ignoresSafeArea(edges: .all)
                 
                 VStack(alignment: .leading) {
-                    HStack(alignment: .center) {
-                        Button {
-                            dismiss()
-                        } label: {
-                            Image(systemName: "chevron.left")
-                                .padding(.trailing, 6)
-                                .font(Font.system(size: 22))
-                        }
-                        .textColor()
-                        
-                        Text("CALORIES STATS")
-                            .headingText(size: 32)
+                    ContainerViewHeader(
+                        title: "Calories Stats",
+                        trailingItems: {
+                            NavigationLink {
+                                CaloriesHistory()
+                            } label: {
+                                Image(systemName: "list.bullet.clipboard")
+                                    .padding(.horizontal, 5)
+                                    .font(Font.system(size: 20))
+                            }
                             .textColor()
-                        
-                        Spacer()
-                        
-                        NavigationLink(destination: CaloriesHistory()) {
-                            Image(systemName: "list.bullet.clipboard")
-                                .padding(.horizontal, 5)
-                                .font(Font.system(size: 20))
+                            .animatedButton()
                         }
-                        .textColor()
-                    }
-                    .padding(.bottom)
+                    )
                     
                     VStack(alignment: .leading, spacing: 20) {
-                        BRHSegmentedControl(
-                            selectedIndex: $selectedRangeIndex,
-                            labels: ["Last 7 Days", "Last 30 Days", "Last 6 Months", "Last Year", "Last 5 Years"],
-                            builder: { _, label in
-                                Text(label)
-                                    .bodyText(size: 12)
-                                    .multilineTextAlignment(.center)
-                            },
-                            styler: { state in
-                                switch state {
-                                case .none:
-                                    return ColorManager.secondary
-                                case .touched:
-                                    return ColorManager.secondary.opacity(0.7)
-                                case .selected:
-                                    return ColorManager.text
-                                }
-                            }
-                        )
-                        .padding(.bottom, -8)
+                        ChartDateRangeControl(selectedRangeIndex: $selectedRangeIndex)
                         
                         if show {
                             ScrollView {
@@ -115,7 +84,12 @@ struct CaloriesStats: View {
                                         .textColor()
                                         .padding(.bottom, -16)
                                     
-                                    LineChart(selectedRangeIndex: $selectedRangeIndex, data: caloriesData, units: "cal", showTime: false)
+                                    LineChart(
+                                        selectedRangeIndex: $selectedRangeIndex,
+                                        data: caloriesData,
+                                        units: "cal",
+                                        showTime: false
+                                    )
                                     
                                     // Macros
                                     Text("MACROS")
@@ -123,16 +97,21 @@ struct CaloriesStats: View {
                                         .textColor()
                                         .padding(.bottom, -16)
                                     
-                                    MultiLineChart(selectedRangeIndex: $selectedRangeIndex, lineDataSets: macrosData, units: "g")
+                                    MultiLineChart(
+                                        selectedRangeIndex: $selectedRangeIndex,
+                                        lineDataSets: macrosData,
+                                        units: "g"
+                                    )
                                 }
                             }
                             .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
                             .scrollIndicators(.visible)
                             .scrollContentBackground(.hidden)
                         } else {
-                            Text("No Data")
-                                .bodyText(size: 18)
-                                .textColor()
+                            EmptyState(
+                                message: "No Data",
+                                size: 18
+                            )
                         }
                     }
                     

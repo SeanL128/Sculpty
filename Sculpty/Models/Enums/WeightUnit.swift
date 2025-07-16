@@ -8,8 +8,8 @@
 import Foundation
 
 enum WeightUnit: String, CaseIterable {
-    case lbs = "lbs"
-    case kg = "kg"
+    case lbs
+    case kg
     
     var toKgFactor: Double {
         return self == .lbs ? 0.453592 : 1.0
@@ -23,6 +23,6 @@ enum WeightUnit: String, CaseIterable {
         if self == unit { return value }
         
         let kgValue = value * self.toKgFactor
-        return (kgValue * unit.fromKgFactor * 100).rounded() / 100
+        return round(kgValue * unit.fromKgFactor, 2)
     }
 }

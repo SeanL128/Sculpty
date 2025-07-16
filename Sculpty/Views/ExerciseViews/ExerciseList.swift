@@ -37,53 +37,53 @@ struct ExerciseList: View {
     }
     
     var body: some View {
-        ContainerView(title: "Exercises", spacing: 16, showScrollBar: true, trailingItems: {
-            NavigationLink(destination: PageRenderer(page: .upsertExercise)) {
+        ContainerView(title: "Exercises", spacing: 16, showScrollBar: true, lazy: true, trailingItems: {
+            NavigationLink {
+                PageRenderer(page: .upsertExercise)
+            } label: {
                 Image(systemName: "plus")
                     .padding(.horizontal, 5)
                     .font(Font.system(size: 20))
             }
             .textColor()
+            .animatedButton()
         }) {
             TextField("Search Exercises", text: $searchText)
                 .focused($isSearchFocused)
-                .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isSearchFocused }, set: { isSearchFocused = $0 }), text: $searchText))
+                .textFieldStyle(
+                    UnderlinedTextFieldStyle(
+                        isFocused: Binding<Bool>(
+                            get: { isSearchFocused },
+                            set: { isSearchFocused = $0 }
+                        ),
+                        text: $searchText)
+                )
                 .padding(.bottom, 5)
             
-            ForEach(MuscleGroup.displayOrder, id: \.id) { muscleGroup in
-                if let exercisesForGroup = groupedExercises[muscleGroup], !exercisesForGroup.isEmpty {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text(muscleGroup.rawValue.uppercased())
-                            .headingText(size: 14)
-                            .textColor()
-                            .padding(.bottom, -8)
-                        
-                        ForEach(exercisesForGroup) { exercise in
-                            HStack(alignment: .center) {
-                                Text(exercise.name)
-                                    .bodyText(size: 16)
-                                    .multilineTextAlignment(.leading)
-                                
-                                Spacer()
-                                
-                                NavigationLink(destination: UpsertExercise(exercise: exercise)) {
-                                    Image(systemName: "pencil")
-                                        .padding(.horizontal, 8)
-                                        .font(Font.system(size: 16))
-                                }
-                            }
-                            .textColor()
-                            .padding(.trailing, 1)
-                        }
+            if filteredExercises.isEmpty {
+                HStack(alignment: .center) {
+                    Spacer()
+                    
+                    Text("No results")
+                        .bodyText(size: 18)
+                        .textColor()
+                    
+                    Spacer()
+                }
+                .transition(.scale.combined(with: .opacity))
+            } else {
+                ForEach(MuscleGroup.displayOrder, id: \.id) { muscleGroup in
+                    if let exercisesForGroup = groupedExercises[muscleGroup], !exercisesForGroup.isEmpty {
+                        ExerciseListGroup(muscleGroup: muscleGroup, exercises: exercisesForGroup)
                     }
                 }
             }
         }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: searchText)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: filteredExercises.isEmpty)
         .toolbar {
-            ToolbarItemGroup (placement: .keyboard) {
-                Spacer()
-                
-                KeyboardDoneButton(focusStates: [_isSearchFocused])
+            ToolbarItemGroup(placement: .keyboard) {
+                KeyboardDoneButton()
             }
         }
     }

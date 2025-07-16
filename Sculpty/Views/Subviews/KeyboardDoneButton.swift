@@ -8,22 +8,18 @@
 import SwiftUI
 
 struct KeyboardDoneButton: View {
-    var focusStates: [FocusState<Bool>]
-    
-    var disabled: Bool {
-        focusStates.allSatisfy { !$0.wrappedValue }
-    }
-    
     var body: some View {
-        Button {
-            for state in focusStates {
-                state.wrappedValue = false
+        HStack(alignment: .center) {
+            Spacer()
+            
+            Button {
+                dismissKeyboard()
+            } label: {
+                Text("Done")
+                    .bodyText(size: 18, weight: .bold)
             }
-        } label: {
-            Text("Done")
-                .bodyText(size: 18, weight: .bold)
+            .textColor()
+            .animatedButton()
         }
-        .foregroundStyle(disabled ? ColorManager.secondary : ColorManager.text)
-        .disabled(disabled)
     }
 }

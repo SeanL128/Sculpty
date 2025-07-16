@@ -29,7 +29,15 @@ struct Input: View {
                     .keyboardType(type)
                     .textInputAutocapitalization(autoCapitalization)
                     .focused($isFocused)
-                    .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isFocused }, set: { isFocused = $0 }), text: $text))
+                    .textFieldStyle(
+                        UnderlinedTextFieldStyle(
+                            isFocused: Binding<Bool>(
+                                get: { isFocused },
+                                set: { isFocused = $0 }
+                            ),
+                            text: $text
+                        )
+                    )
                 
                 if let unit = unit {
                     Text(unit)

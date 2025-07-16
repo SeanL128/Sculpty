@@ -31,7 +31,14 @@ class Workout: Identifiable {
         set { _workoutLogs = newValue.isEmpty ? nil : newValue }
     }
     
-    init(index: Int = -1, name: String = "", exercises: [WorkoutExercise] = [], notes: String = "", lastStarted: Date? = nil, hidden: Bool = false) {
+    init(
+        index: Int = -1,
+        name: String = "",
+        exercises: [WorkoutExercise] = [],
+        notes: String = "",
+        lastStarted: Date? = nil,
+        hidden: Bool = false
+    ) {
         self.index = index
         self.name = name
         self.exercises = exercises

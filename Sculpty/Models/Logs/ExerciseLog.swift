@@ -34,12 +34,10 @@ class ExerciseLog: Identifiable {
         }
     }
     
-    
     func toggle() {
         completed.toggle()
         
-        if completed { end = Date() }
-        else { end = Date(timeIntervalSince1970: 0) }
+        if completed { end = Date() } else { end = Date(timeIntervalSince1970: 0) }
     }
     
     func finish() {
@@ -51,7 +49,6 @@ class ExerciseLog: Identifiable {
         completed = false
         end = Date(timeIntervalSince1970: 0)
     }
-    
     
     func getTotalReps(_ includeWarmUp: Bool, _ includeDropSet: Bool, _ includeCoolDown: Bool) -> Int {
         return setLogs.filter {

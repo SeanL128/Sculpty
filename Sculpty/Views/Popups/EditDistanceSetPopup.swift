@@ -6,8 +6,6 @@
 //
 
 import SwiftUI
-import MijickTimer
-import BRHSegmentedControl
 
 struct EditDistanceSetPopup: View {
     @EnvironmentObject private var settings: CloudSettings
@@ -18,15 +16,11 @@ struct EditDistanceSetPopup: View {
     @State private var referenceHeight: CGFloat = 0
     
     private let restTime: Double
-    private let restTimer: MTimer?
+    private let restTimer: RestTimer?
 
-    private let setTimer: MTimer
-    @State private var setTime: MTime = .init()
-    @State private var setTimerStatus: MTimerStatus = .notStarted
+    @StateObject private var setTimer = SetTimer()
     
     @State private var disableType: Bool = false
-    
-    @State private var selectedTypeIndex: Int = 1
     
     @State private var updatedSet: ExerciseSet
     
@@ -41,7 +35,7 @@ struct EditDistanceSetPopup: View {
     init (set: ExerciseSet,
           log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet(), unit: UnitsManager.longLength)),
           restTime: Double = 0,
-          timer: MTimer? = nil,
+          timer: RestTimer? = nil,
           disableType: Bool = false) {
         self.set = set
         self._log = log
@@ -49,10 +43,7 @@ struct EditDistanceSetPopup: View {
         self.restTime = restTime
         restTimer = timer
         
-        setTimer = MTimer(MTimerID(rawValue: "Set Timer \(log.id)"))
-        
         self.disableType = disableType
-        self.selectedTypeIndex = ExerciseSetType.displayOrder.firstIndex(of: set.type) ?? 1
         
         _updatedSet = State(initialValue: set)
         
@@ -82,6 +73,7 @@ struct EditDistanceSetPopup: View {
                             .font(Font.system(size: 16))
                     }
                     .textColor()
+                    .animatedButton(feedback: .impact(weight: .light))
                 }
                 
                 Button {
@@ -92,17 +84,17 @@ struct EditDistanceSetPopup: View {
                         if let restTimer = restTimer {
                             var time: Double = 0
                             
-                            switch (updatedSet.type) {
-                            case (.warmUp):
+                            switch updatedSet.type {
+                            case .warmUp:
                                 time = 30
-                            case (.coolDown):
+                            case .coolDown:
                                 time = 60
                             default:
                                 time = restTime
                             }
                             
-                            try? restTimer.skip()
-                            try? restTimer.start(from: time, to: .zero)
+                            restTimer.skip()
+                            restTimer.start(duration: time)
                         }
                     }
                     
@@ -113,6 +105,7 @@ struct EditDistanceSetPopup: View {
                         .font(Font.system(size: 16))
                 }
                 .textColor()
+                .animatedButton(feedback: .success)
             }
             .padding(.top, 25)
             .padding(.bottom, 1)
@@ -127,7 +120,12 @@ struct EditDistanceSetPopup: View {
                     
                     Button {
                         Popup.show(content: {
-                            DurationSelectionPopup(title: "Duration", hours: $hours, minutes: $minutes, seconds: $seconds)
+                            DurationSelectionPopup(
+                                title: "Duration",
+                                hours: $hours,
+                                minutes: $minutes,
+                                seconds: $seconds
+                            )
                         })
                     } label: {
                         HStack(alignment: .center) {
@@ -143,6 +141,7 @@ struct EditDistanceSetPopup: View {
                     .onChange(of: hours) { updateTime() }
                     .onChange(of: minutes) { updateTime() }
                     .onChange(of: seconds) { updateTime() }
+                    .animatedButton()
                 }
                 .frame(maxWidth: 200, maxHeight: referenceHeight)
                 
@@ -186,71 +185,63 @@ struct EditDistanceSetPopup: View {
                     .textColor()
                     .frame(maxWidth: 65)
                     .padding(.leading, 5)
+                    .animatedButton()
                 }
                 .frame(maxWidth: 190)
             }
             .padding(.bottom, 10)
             
             if !disableType {
-                BRHSegmentedControl(
-                    selectedIndex: $selectedTypeIndex,
-                    labels: ExerciseSetType.stringDisplayOrder,
-                    builder: { _, label in
-                        Text(label)
-                            .bodyText(size: 12, weight: .bold)
-                            .multilineTextAlignment(.center)
-                    },
-                    styler: { state in
-                        switch state {
-                        case .none:
-                            return ColorManager.secondary
-                        case .touched:
-                            return ColorManager.secondary.opacity(0.7)
-                        case .selected:
-                            return ColorManager.text
-                        }
-                    }
+                TypedSegmentedControl(
+                    selection: $updatedSet.type,
+                    options: ExerciseSetType.displayOrder,
+                    displayNames: ExerciseSetType.stringDisplayOrder
                 )
-                .onChange(of: selectedTypeIndex) {
-                    updatedSet.type = ExerciseSetType.displayOrder[selectedTypeIndex]
-                }
             }
             
             if log.index > -1 && settings.showSetTimer {
                 HStack {
-                    Text("\(setTime.toString())")
+                    Text(setTimer.timeString())
+                        .bodyText(size: 22, weight: .bold)
                     
                     Spacer()
                     
                     Button {
-                        if setTimerStatus == .notStarted {
-                            try? startTimer()
-                        } else if setTimerStatus == .paused {
-                            try? setTimer.resume()
+                        if setTimer.status == .notStarted {
+                            setTimer.start()
+                        } else if setTimer.status == .paused {
+                            setTimer.resume()
                         } else {
                             setTimer.pause()
                         }
                     } label: {
-                        Image(systemName: (setTimerStatus == .notStarted || setTimerStatus == .paused) ? "play.fill" : "pause.fill")
-                            .padding(.horizontal, 1)
+                        Image(systemName: (setTimer.status == .notStarted || setTimer.status == .paused) ? "play.fill" : "pause.fill") // swiftlint:disable:this line_length
                             .padding(.vertical, -4)
                             .font(Font.system(size: 16))
+                            .frame(width: 15)
                     }
                     .textColor()
-                    .buttonStyle(FilledToBorderedButtonStyle())
+                    .filledToBorderedButton(
+                        scale: 0.95,
+                        feedback: [.notStarted, .paused].contains(setTimer.status) ? .start : .stop
+                    )
                     
                     Button {
                         setTimer.cancel()
                     } label: {
                         Image(systemName: "stop.fill")
-                            .padding(.horizontal, 1)
                             .padding(.vertical, -4)
                             .font(Font.system(size: 16))
+                            .frame(width: 15)
                     }
                     .buttonStyle(FilledToBorderedButtonStyle())
-                    .disabled(setTimer.timerStatus != .running && setTimer.timerStatus != .paused)
+                    .disabled(setTimer.status != .running && setTimer.status != .paused)
+                    .filledToBorderedButton(
+                        scale: 0.95,
+                        feedback: .stop,
+                        isValid: setTimer.status == .running || setTimer.status == .paused
+                    )
                 }
-                .font(.title2)
                 .padding(.top, 10)
                 .padding(.horizontal, 30)
             }
@@ -258,21 +249,12 @@ struct EditDistanceSetPopup: View {
         .padding(.top, -30)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                
-                KeyboardDoneButton(focusStates: [_isDistanceFocused])
+                KeyboardDoneButton()
             }
         }
     }
     
     func updateTime() {
         updatedSet.time = Double((hours * 3600) + (minutes * 60) + seconds)
-    }
-    
-    func startTimer() throws {
-        try setTimer
-            .publish(every: 1, currentTime: $setTime)
-            .bindTimerStatus(timerStatus: $setTimerStatus)
-            .start()
     }
 }

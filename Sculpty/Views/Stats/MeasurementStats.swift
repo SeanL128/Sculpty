@@ -7,8 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import Charts
-import BRHSegmentedControl
 
 struct MeasurementStats: View {
     @Environment(\.modelContext) private var context
@@ -22,12 +20,21 @@ struct MeasurementStats: View {
     
     @State private var type: MeasurementType?
     
-    private var data: [(date: Date, value: Double)] {
-        measurements
-            .filter { $0.type == type }
-            .map { (date: $0.date, value: $0.getConvertedMeasurement()) }
-            .sorted { $0.date < $1.date }
+    private var filteredMeasurements: [Measurement] {
+        guard let type = type else { return [] }
+        
+        let descriptor = FetchDescriptor<Measurement>(
+            predicate: #Predicate<Measurement> { $0.type == type },
+            sortBy: [SortDescriptor(\Measurement.date)]
+        )
+        
+        return (try? context.fetch(descriptor)) ?? []
     }
+
+    private var data: [(date: Date, value: Double)] {
+        filteredMeasurements.map { (date: $0.date, value: $0.getConvertedMeasurement()) }
+    }
+    
     private var units: String {
         switch type {
         case .bodyFat: return "%"
@@ -43,33 +50,25 @@ struct MeasurementStats: View {
                     .ignoresSafeArea(edges: .all)
                 
                 VStack(alignment: .leading) {
-                    HStack(alignment: .center) {
-                        Button {
-                            dismiss()
-                        } label: {
-                            Image(systemName: "chevron.left")
-                                .padding(.trailing, 6)
-                                .font(Font.system(size: 22))
-                        }
-                        .textColor()
-                        
-                        Text("MEASUREMENT STATS")
-                            .headingText(size: 32)
+                    ContainerViewHeader(
+                        title: "Measurement Stats",
+                        trailingItems: {
+                            NavigationLink {
+                                Measurements()
+                            } label: {
+                                Image(systemName: "list.bullet.clipboard")
+                                    .padding(.trailing, 5)
+                                    .font(Font.system(size: 20))
+                            }
                             .textColor()
-                        
-                        Spacer()
-                        
-                        NavigationLink(destination: Measurements()) {
-                            Image(systemName: "list.bullet.clipboard")
-                                .padding(.trailing, 5)
-                                .font(Font.system(size: 20))
+                            .animatedButton()
                         }
-                        .textColor()
-                    }
-                    .padding(.bottom)
+                    )
                     
                     VStack(alignment: .leading, spacing: 20) {
-                        NavigationLink(destination: SelectMeasurement(selectedMeasurementType: $type, forStats: true)) {
+                        NavigationLink {
+                            SelectMeasurement(selectedMeasurementType: $type, forStats: true)
+                        } label: {
                             HStack(alignment: .center) {
                                 Text(type?.rawValue ?? "Select Measurement")
                                     .bodyText(size: 20, weight: .bold)
@@ -80,27 +79,9 @@ struct MeasurementStats: View {
                             }
                         }
                         .textColor()
+                        .animatedButton(scale: 0.98)
                         
-                        BRHSegmentedControl(
-                            selectedIndex: $selectedRangeIndex,
-                            labels: ["Last 7 Days", "Last 30 Days", "Last 6 Months", "Last Year", "Last 5 Years"],
-                            builder: { _, label in
-                                Text(label)
-                                    .bodyText(size: 12)
-                                    .multilineTextAlignment(.center)
-                            },
-                            styler: { state in
-                                switch state {
-                                case .none:
-                                    return ColorManager.secondary
-                                case .touched:
-                                    return ColorManager.secondary.opacity(0.7)
-                                case .selected:
-                                    return ColorManager.text
-                                }
-                            }
-                        )
-                        .padding(.bottom, -8)
+                        ChartDateRangeControl(selectedRangeIndex: $selectedRangeIndex)
                         
                         if show {
                             ScrollView {
@@ -118,9 +99,10 @@ struct MeasurementStats: View {
                             .scrollIndicators(.visible)
                             .scrollContentBackground(.hidden)
                         } else {
-                            Text("No Data")
-                                .bodyText(size: 18)
-                                .textColor()
+                            EmptyState(
+                                message: "No Data",
+                                size: 18
+                            )
                         }
                     }
                     

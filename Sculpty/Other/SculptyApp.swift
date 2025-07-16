@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import UserNotifications
+import IQKeyboardManagerSwift
 
 @main
 struct SculptyApp: App {
@@ -16,10 +17,26 @@ struct SculptyApp: App {
     
     @StateObject private var settings = CloudSettings()
     
+    var colorScheme: ColorScheme? {
+        switch settings.appearance {
+        case .light:
+            return .light
+        case .dark:
+            return .dark
+        case .automatic:
+            return nil
+        }
+    }
+    
+    init() {
+        IQKeyboardManager.shared.resignOnTouchOutside = true
+    }
+    
     var body: some Scene {
         WindowGroup {
             Main()
-                .accentColor(Color("AccentColor"))
+                .preferredColorScheme(colorScheme)
+                .accentColor(Color(hex: settings.accentColorHex))
                 .dynamicTypeSize(.medium ... .xxxLarge)
                 .modelContainer(for: [Workout.self, Exercise.self, WorkoutLog.self, CaloriesLog.self, Measurement.self])
                 .environmentObject(settings)

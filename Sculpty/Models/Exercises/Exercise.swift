@@ -24,7 +24,13 @@ class Exercise: Identifiable {
         set { _workoutExercises = newValue.isEmpty ? nil : newValue }
     }
     
-    init(name: String = "", notes: String = "", muscleGroup: MuscleGroup = MuscleGroup.other, type: ExerciseType = .weight, hidden: Bool = false) {
+    init(
+        name: String = "",
+        notes: String = "",
+        muscleGroup: MuscleGroup = MuscleGroup.other,
+        type: ExerciseType = .weight,
+        hidden: Bool = false
+    ) {
         self.name = name
         self.notes = notes
         self.muscleGroup = muscleGroup

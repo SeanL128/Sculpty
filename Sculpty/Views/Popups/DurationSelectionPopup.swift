@@ -80,6 +80,7 @@ struct DurationSelectionPopup: View {
                     .bodyText(size: 16, weight: .bold)
             }
             .textColor()
+            .animatedButton()
         }
     }
 }

@@ -14,15 +14,15 @@ struct Main: View {
     @StateObject private var popupManager = PopupManager.shared
     
     @State private var hasPerformedLaunchTasks = false
-    
+
     var body: some View {
         ZStack {
             if !settings.onboarded {
                 Onboarding()
                     .transition(
                         .asymmetric(
-                            insertion: .identity,
-                            removal: .opacity.combined(with: .scale(scale: 2))
+                            insertion: .opacity.combined(with: .scale(scale: 0.8)),
+                            removal: .opacity.combined(with: .scale(scale: 1.2)).combined(with: .move(edge: .top))
                         )
                     )
                     .zIndex(1)
@@ -30,26 +30,33 @@ struct Main: View {
             
             Home()
                 .opacity(settings.onboarded ? 1 : 0)
-                .animation(.easeInOut(duration: 0.5), value: settings.onboarded)
+                .scaleEffect(settings.onboarded ? 1.0 : 0.95)
+                .animation(.easeInOut(duration: 0.6).delay(settings.onboarded ? 0.3 : 0), value: settings.onboarded)
             
             ForEach(Array(popupManager.popups.enumerated()), id: \.element.id) { index, popup in
                 PopupOverlay(
                     popup: popup,
                     isLast: index == popupManager.popups.count - 1,
                     onDismiss: {
-                        popupManager.dismiss(popup.id)
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            popupManager.dismiss(popup.id)
+                        }
                     }
                 )
                 .zIndex(Double(index + 1000))
             }
         }
-        .onChange(of: settings.onboarded) {
-            withAnimation(.easeOut(duration: 0.5)) { }
-        }
-        .onAppear() {
+        .animation(.easeInOut(duration: 0.5), value: popupManager.popups.count)
+        .onAppear {
             if !hasPerformedLaunchTasks {
                 performAppLaunchTasks()
+                
                 hasPerformedLaunchTasks = true
+            }
+        }
+        .onChange(of: settings.onboarded) { _, newValue in
+            if newValue {
+                withAnimation(.easeOut(duration: 0.8).delay(0.2)) { }
             }
         }
     }
@@ -61,11 +68,15 @@ struct Main: View {
             NotificationManager.shared.scheduleAllNotifications()
         }
         
-        performDataCleanup()
+        Task {
+            await MainActor.run {
+                performDataCleanup()
+            }
+        }
     }
     
     private func requestNotificationPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
             DispatchQueue.main.async {
                 if granted {
                     settings.enableNotifications = true
@@ -79,10 +90,8 @@ struct Main: View {
     private func performDataCleanup() {
         do {
             let workouts = try context.fetch(FetchDescriptor<Workout>())
-            for workout in workouts {
-                if workout.index == -1 {
-                    debugLog(workout.name)
-                }
+            for workout in workouts where workout.index == -1 {
+                debugLog(workout.name)
             }
             
             let invalidWorkouts = workouts.filter { $0.index < 0 }
@@ -90,6 +99,7 @@ struct Main: View {
             if !invalidWorkouts.isEmpty {
                 for workout in invalidWorkouts {
                     workout.exercises.forEach { context.delete($0) }
+                    
                     context.delete(workout)
                 }
                 
@@ -97,14 +107,14 @@ struct Main: View {
             }
             
             for workout in workouts {
-                for exercise in workout.exercises {
-                    if exercise.exercise == nil {
-                        context.delete(exercise)
-                        workout.exercises.remove(at: workout.exercises.firstIndex(of: exercise)!)
+                for exercise in workout.exercises where exercise.exercise == nil {
+                    context.delete(exercise)
+                    
+                    if let index = workout.exercises.firstIndex(of: exercise) {
+                        workout.exercises.remove(at: index)
                     }
                 }
             }
-            
             
             let logs = try context.fetch(FetchDescriptor<WorkoutLog>())
                 .filter { ($0.started && !$0.completed && $0.start <= Date().addingTimeInterval(-86400)) }
@@ -112,7 +122,6 @@ struct Main: View {
             for log in logs {
                 log.finishWorkout(date: log.start.addingTimeInterval(86400))
             }
-            
             
             try context.save()
         } catch {

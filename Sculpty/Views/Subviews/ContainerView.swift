@@ -8,20 +8,20 @@
 import SwiftUI
 
 struct ContainerView<Content: View, TrailingItems: View>: View {
-    @Environment(\.dismiss) private var dismiss
-    
     let content: Content
-    var title: String
+    let title: String
     
-    var spacing: CGFloat
+    let spacing: CGFloat
     
     let trailingItems: TrailingItems?
     
-    var backgroundColor: Color
+    let backgroundColor: Color
     
-    var showNavBar: Bool
-    var showBackButton: Bool
-    var showScrollBar: Bool
+    let showNavBar: Bool
+    let showBackButton: Bool
+    let showScrollBar: Bool
+    
+    let lazy: Bool
     
     let onDismiss: (() -> Void)?
     
@@ -32,6 +32,7 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
         showNavBar: Bool = false,
         showBackButton: Bool = true,
         showScrollBar: Bool = false,
+        lazy: Bool = false,
         onDismiss: (() -> Void)? = nil,
         @ViewBuilder content: () -> Content
     ) where TrailingItems == EmptyView {
@@ -41,6 +42,7 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
         self.showNavBar = showNavBar
         self.showBackButton = showBackButton
         self.showScrollBar = showScrollBar
+        self.lazy = lazy
         self.onDismiss = onDismiss
         self.content = content()
         trailingItems = nil
@@ -53,6 +55,7 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
         showNavBar: Bool = false,
         showBackButton: Bool = true,
         showScrollBar: Bool = false,
+        lazy: Bool = false,
         onDismiss: (() -> Void)? = nil,
         @ViewBuilder trailingItems: () -> TrailingItems,
         @ViewBuilder content: () -> Content
@@ -63,6 +66,7 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
         self.showNavBar = showNavBar
         self.showBackButton = showBackButton
         self.showScrollBar = showScrollBar
+        self.lazy = lazy
         self.onDismiss = onDismiss
         self.trailingItems = trailingItems()
         self.content = content()
@@ -76,38 +80,22 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
                 
                 VStack(alignment: .leading) {
                     if !title.isEmpty {
-                        HStack(alignment: .center) {
-                            if showBackButton {
-                                Button {
-                                    if let onDismiss = onDismiss {
-                                        onDismiss()
-                                    }
-                                    
-                                    dismiss()
-                                } label: {
-                                    Image(systemName: "chevron.left")
-                                        .padding(.trailing, 6)
-                                        .font(Font.system(size: 22))
-                                }
-                                .textColor()
-                            }
-                            
-                            Text(title.uppercased())
-                                .headingText(size: 32)
-                                .textColor()
-                            
-                            Spacer()
-                            
-                            if let trailingItems = trailingItems {
-                                trailingItems
-                            }
-                        }
-                        .padding(.bottom)
+                        ContainerViewHeader(
+                            title: title,
+                            showBackButton: showBackButton,
+                            trailingItems: { trailingItems }
+                        )
                     }
                     
                     ScrollView {
-                        VStack(alignment: .leading, spacing: spacing) {
-                            content
+                        if lazy {
+                            LazyVStack(alignment: .leading, spacing: spacing) {
+                                content
+                            }
+                        } else {
+                            VStack(alignment: .leading, spacing: spacing) {
+                                content
+                            }
                         }
                     }
                     .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
@@ -117,6 +105,9 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
                 .padding()
             }
             .toolbar(showNavBar ? .visible : .hidden, for: .navigationBar)
+        }
+        .onDisappear {
+            onDismiss?()
         }
     }
 }

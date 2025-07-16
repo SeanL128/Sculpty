@@ -28,6 +28,8 @@ struct SelectExercise: View {
     @State private var searchText: String = ""
     @FocusState private var isSearchFocused: Bool
     
+    @State private var addButtonPressed: Bool = false
+    
     var filteredExercises: [Exercise] {
         if searchText.isEmpty {
             return exercises
@@ -48,67 +50,64 @@ struct SelectExercise: View {
     }
     
     var body: some View {
-        ContainerView(title: "Select Exercise", spacing: 16, showScrollBar: true, trailingItems: {
+        ContainerView(title: "Select Exercise", spacing: 16, showScrollBar: true, lazy: true, trailingItems: {
             if !forStats {
-                NavigationLink(destination: PageRenderer(page: .upsertExercise)) {
+                NavigationLink {
+                    PageRenderer(page: .upsertExercise, selectedExercise: $selectedExercise)
+                } label: {
                     Image(systemName: "plus")
                         .padding(.horizontal, 5)
                         .font(Font.system(size: 20))
                 }
                 .textColor()
+                .animatedButton()
             }
         }) {
             TextField("Search Exercises", text: $searchText)
                 .focused($isSearchFocused)
-                .textFieldStyle(UnderlinedTextFieldStyle(isFocused: Binding<Bool>(get: { isSearchFocused }, set: { isSearchFocused = $0 }), text: $searchText))
+                .textFieldStyle(
+                    UnderlinedTextFieldStyle(
+                        isFocused: Binding<Bool>(
+                            get: { isSearchFocused },
+                            set: { isSearchFocused = $0 }
+                        ),
+                        text: $searchText
+                    )
+                )
                 .padding(.bottom, 5)
             
-            ForEach(MuscleGroup.displayOrder, id: \.id) { muscleGroup in
-                if let exercisesForGroup = groupedExercises[muscleGroup], !exercisesForGroup.isEmpty {
-                    VStack(alignment: .leading, spacing: 9) {
-                        Text(muscleGroup.rawValue.uppercased())
-                            .headingText(size: 14)
-                            .textColor()
-                            .padding(.bottom, -2)
-                        
-                        ForEach(exercisesForGroup) { exercise in
-                            Button {
-                                selectedExercise = exercise
-                            } label: {
-                                HStack(alignment: .center) {
-                                    Text(exercise.name)
-                                        .bodyText(size: 16, weight: selectedExercise == exercise ? .bold : .regular)
-                                        .multilineTextAlignment(.leading)
-                                    
-                                    if exerciseOptions.contains(where: { $0 == exercise }) {
-                                        Image(systemName: "chevron.right")
-                                            .padding(.leading, -2)
-                                            .font(Font.system(size: 10, weight: selectedExercise == exercise ? .bold : .regular))
-                                    }
-                                    
-                                    if selectedExercise == exercise {
-                                        Spacer()
-                                        
-                                        Image(systemName: "checkmark")
-                                            .padding(.horizontal, 8)
-                                            .font(Font.system(size: 16))
-                                    }
-                                }
-                            }
-                            .foregroundStyle(forStats && !exerciseOptions.contains(where: { $0.id == exercise.id }) ? ColorManager.secondary : ColorManager.text)
-                            .disabled(forStats && !exerciseOptions.contains(where: { $0.id == exercise.id }))
-                        }
+            if filteredExercises.isEmpty {
+                HStack(alignment: .center) {
+                    Spacer()
+                    
+                    Text("No results")
+                        .bodyText(size: 18)
+                        .textColor()
+                        .transition(.scale.combined(with: .opacity))
+                    
+                    Spacer()
+                }
+            } else {
+                ForEach(MuscleGroup.displayOrder, id: \.id) { muscleGroup in
+                    if let exercisesForGroup = groupedExercises[muscleGroup], !exercisesForGroup.isEmpty {
+                        ExerciseListGroup(
+                            muscleGroup: muscleGroup,
+                            exercises: exercisesForGroup,
+                            selectedExercise: $selectedExercise,
+                            exerciseOptions: exerciseOptions
+                        )
                     }
                 }
+                .animation(.easeInOut(duration: 0.3), value: groupedExercises)
             }
         }
         .toolbar {
-            ToolbarItemGroup (placement: .keyboard) {
-                Spacer()
-                
-                KeyboardDoneButton(focusStates: [_isSearchFocused])
+            ToolbarItemGroup(placement: .keyboard) {
+                KeyboardDoneButton()
             }
         }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: searchText)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: filteredExercises.isEmpty)
         .onChange(of: selectedExercise) {
             if selectedExercise != nil {
                 dismiss()

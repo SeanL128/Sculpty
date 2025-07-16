@@ -15,8 +15,14 @@ class PopupManager: ObservableObject {
     
     private init() {}
     
-    func show<Content: View>(@ViewBuilder content: () -> Content, config: PopupConfig = PopupConfig(), onDismiss: (() -> Void)? = nil) {
+    func show<Content: View>(
+        @ViewBuilder content: () -> Content,
+        config: PopupConfig = PopupConfig(),
+        onDismiss: (() -> Void)? = nil
+    ) {
         let popup = PopupItem(content: content, config: config, onDismiss: onDismiss)
+        
+        dismissKeyboard()
         
         withAnimation(config.animation) {
             popups.append(popup)
@@ -33,6 +39,8 @@ class PopupManager: ObservableObject {
     
     func dismiss(_ id: UUID) {
         guard let popup = popups.first(where: { $0.id == id }) else { return }
+        
+        dismissKeyboard()
         
         popup.onDismiss?()
         

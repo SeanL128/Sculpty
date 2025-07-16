@@ -9,6 +9,7 @@ import Foundation
 
 struct FoodEntryDTO: Identifiable, Codable {
     var id: UUID
+    var fatSecretFood: FatSecretFood?
     var name: String
     var calories: Double
     var carbs: Double
@@ -18,6 +19,7 @@ struct FoodEntryDTO: Identifiable, Codable {
     
     init(from model: FoodEntry) {
         self.id = model.id
+        self.fatSecretFood = model.fatSecretFood
         self.name = model.name
         self.calories = model.calories
         self.carbs = model.carbs
@@ -29,6 +31,7 @@ struct FoodEntryDTO: Identifiable, Codable {
     func toModel() -> FoodEntry {
         let entry = FoodEntry(
             id: id,
+            fatSecretFood: fatSecretFood,
             name: name,
             calories: calories,
             carbs: carbs,
@@ -36,6 +39,7 @@ struct FoodEntryDTO: Identifiable, Codable {
             fat: fat,
             date: date
         )
+        
         return entry
     }
 }

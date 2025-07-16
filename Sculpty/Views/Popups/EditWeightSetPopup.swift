@@ -6,8 +6,6 @@
 //
 
 import SwiftUI
-import MijickTimer
-import BRHSegmentedControl
 
 struct EditWeightSetPopup: View {
     @EnvironmentObject private var settings: CloudSettings
@@ -16,18 +14,9 @@ struct EditWeightSetPopup: View {
     @Binding var log: SetLog
     
     private let restTime: Double
-    private let restTimer: MTimer?
-    
-    private let setTimer: MTimer
-    @State private var setTime: MTime = .init()
-    @State private var setTimerStatus: MTimerStatus = .notStarted
+    private let restTimer: RestTimer?
     
     @State private var disableType: Bool = false
-    
-    @State private var selectedTypeIndex: Int = 1
-    
-    @State private var selectedRirIndex: Int = 1
-    private let rirLabels: [String] = ["Failure", "0", "1", "2", "3+"]
     
     @State private var updatedSet: ExerciseSet
     
@@ -40,7 +29,7 @@ struct EditWeightSetPopup: View {
     init (set: ExerciseSet,
           log: Binding<SetLog> = .constant(SetLog(index: -1, set: ExerciseSet(), unit: UnitsManager.weight)),
           restTime: Double = 0,
-          timer: MTimer? = nil,
+          timer: RestTimer? = nil,
           disableType: Bool = false) {
         self.set = set
         self._log = log
@@ -48,13 +37,7 @@ struct EditWeightSetPopup: View {
         self.restTime = restTime
         restTimer = timer
         
-        setTimer = MTimer(MTimerID(rawValue: "Set Timer \(log.id)"))
-        
         self.disableType = disableType
-        
-        self.selectedTypeIndex = ExerciseSetType.displayOrder.firstIndex(of: set.type) ?? 1
-        
-        self.selectedRirIndex = rirLabels.firstIndex(of: set.rir ?? "0") ?? 1
         
         _updatedSet = State(initialValue: set)
         
@@ -83,6 +66,7 @@ struct EditWeightSetPopup: View {
                             .font(Font.system(size: 16))
                     }
                     .textColor()
+                    .animatedButton(feedback: .impact(weight: .light))
                 }
                 
                 Button {
@@ -95,17 +79,17 @@ struct EditWeightSetPopup: View {
                         if let restTimer = restTimer {
                             var time: Double = 0
                             
-                            switch (updatedSet.type) {
-                            case (.warmUp):
+                            switch updatedSet.type {
+                            case .warmUp:
                                 time = 30
-                            case (.coolDown):
+                            case .coolDown:
                                 time = 60
                             default:
                                 time = restTime
                             }
                             
-                            try? restTimer.skip()
-                            try? restTimer.start(from: time, to: .zero)
+                            restTimer.skip()
+                            restTimer.start(duration: time)
                         }
                     }
                     
@@ -116,6 +100,7 @@ struct EditWeightSetPopup: View {
                         .font(Font.system(size: 16))
                 }
                 .textColor()
+                .animatedButton(feedback: .success)
             }
             .padding(.top, 25)
             .padding(.bottom, 1)
@@ -174,34 +159,18 @@ struct EditWeightSetPopup: View {
                     }
                     .textColor()
                     .frame(maxWidth: 55)
+                    .animatedButton()
                 }
                 .frame(maxWidth: 230)
             }
             .padding(.bottom, 10)
             
             if !disableType {
-                BRHSegmentedControl(
-                    selectedIndex: $selectedTypeIndex,
-                    labels: ExerciseSetType.stringDisplayOrder,
-                    builder: { _, label in
-                        Text(label)
-                            .bodyText(size: 12, weight: .bold)
-                            .multilineTextAlignment(.center)
-                    },
-                    styler: { state in
-                        switch state {
-                        case .none:
-                            return ColorManager.secondary
-                        case .touched:
-                            return ColorManager.secondary.opacity(0.7)
-                        case .selected:
-                            return ColorManager.text
-                        }
-                    }
+                TypedSegmentedControl(
+                    selection: $updatedSet.type,
+                    options: ExerciseSetType.displayOrder,
+                    displayNames: ExerciseSetType.stringDisplayOrder
                 )
-                .onChange(of: selectedTypeIndex) {
-                    updatedSet.type = ExerciseSetType.displayOrder[selectedTypeIndex]
-                }
             }
             
             // RIR
@@ -210,28 +179,11 @@ struct EditWeightSetPopup: View {
                     Text("RIR")
                         .padding(.horizontal, 5)
                     
-                    BRHSegmentedControl(
-                        selectedIndex: $selectedRirIndex,
-                        labels: rirLabels,
-                        builder: { _, label in
-                            Text(label)
-                                .bodyText(size: 12, weight: .bold)
-                                .multilineTextAlignment(.center)
-                        },
-                        styler: { state in
-                            switch state {
-                            case .none:
-                                return ColorManager.secondary
-                            case .touched:
-                                return ColorManager.secondary.opacity(0.7)
-                            case .selected:
-                                return ColorManager.text
-                            }
-                        }
+                    TypedSegmentedControl(
+                        selection: $updatedSet.rir,
+                        options: ["Failure", "0", "1", "2", "3+"],
+                        displayNames: ["Failure", "0", "1", "2", "3+"]
                     )
-                    .onChange(of: selectedRirIndex) {
-                        updatedSet.rir = rirLabels[selectedRirIndex]
-                    }
                 }
                 .padding(.top, 10)
             }
@@ -239,17 +191,8 @@ struct EditWeightSetPopup: View {
         .padding(.top, -30)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                
-                KeyboardDoneButton(focusStates: [_isRepsFocused, _isWeightFocused])
+                KeyboardDoneButton()
             }
         }
-    }
-    
-    func startTimer() throws {
-        try setTimer
-            .publish(every: 1, currentTime: $setTime)
-            .bindTimerStatus(timerStatus: $setTimerStatus)
-            .start()
     }
 }

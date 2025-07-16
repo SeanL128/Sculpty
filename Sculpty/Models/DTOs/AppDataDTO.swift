@@ -49,13 +49,13 @@ struct AppDataDTO: Codable {
     }
     
     static func export(
-            exercises: [Exercise],
-            workouts: [Workout],
-            workoutLogs: [WorkoutLog],
-            measurements: [Measurement],
-            caloriesLogs: [CaloriesLog],
-            includeSettings: Bool = true
-        ) -> Data? {
+        exercises: [Exercise],
+        workouts: [Workout],
+        workoutLogs: [WorkoutLog],
+        measurements: [Measurement],
+        caloriesLogs: [CaloriesLog],
+        includeSettings: Bool = true
+    ) -> Data? {
         let exerciseDTOs = exercises.map { ExerciseDTO(from: $0) }
         let workoutDTOs = workouts.map { WorkoutDTO(from: $0) }
         let workoutLogDTOs = workoutLogs.map { WorkoutLogDTO(from: $0) }

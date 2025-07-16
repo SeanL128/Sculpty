@@ -23,6 +23,6 @@ enum ShortLengthUnit: String, CaseIterable {
         if self == unit { return value }
         
         let cmValue = value * self.toCmFactor
-        return (cmValue * unit.fromCmFactor * 100).rounded() / 100
+        return round(cmValue * unit.fromCmFactor, 2)
     }
 }

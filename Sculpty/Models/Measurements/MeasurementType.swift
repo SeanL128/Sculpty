@@ -28,8 +28,21 @@ enum MeasurementType: String, CaseIterable, Codable, Identifiable {
     
     var id: String { self.rawValue }
     
+    var unit: String {
+        switch self {
+        case .bodyFat: return "%"
+        case .weight: return UnitsManager.weight
+        default: return UnitsManager.shortLength
+        }
+    }
+    
     static let displayOrder: [MeasurementType] = [
         .weight, .height, .bodyFat, .neck, .shoulders, .chest, .upperArmLeft, .upperArmRight,
         .forearmLeft, .forearmRight, .waist, .hips, .thighLeft, .thighRight, .calfLeft, .calfRight
+    ]
+    
+    static let lengthTypes: [MeasurementType] = [
+        .height, .neck, .shoulders, .chest, .upperArmLeft, .upperArmRight, .forearmLeft,
+        .forearmRight, .waist, .hips, .thighLeft, .thighRight, .calfLeft, .calfRight
     ]
 }

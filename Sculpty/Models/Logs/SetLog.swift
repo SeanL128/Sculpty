@@ -120,7 +120,7 @@ class SetLog: Identifiable {
         if set?.type == .main,
            let weight = weight,
            let reps = reps {
-            return round(((weight / Double(reps) / Double(reps)) * (1.0 + (Double(reps) / 30.0))) * 100) / 100.0
+            return round(((weight / Double(reps) / Double(reps)) * (1.0 + (Double(reps) / 30.0))), 2)
         } else {
             return 0
         }

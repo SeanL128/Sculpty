@@ -8,8 +8,8 @@
 import Foundation
 
 enum MediumLengthUnit: String, CaseIterable {
-    case ft = "ft"
-    case m = "m"
+    case ft
+    case m
     
     var toMFactor: Double {
         return self == .ft ? 0.3048 : 1.0
@@ -23,6 +23,6 @@ enum MediumLengthUnit: String, CaseIterable {
         if self == unit { return value }
         
         let mValue = value * self.toMFactor
-        return (mValue * unit.fromMFactor * 100).rounded() / 100
+        return round(mValue * unit.fromMFactor, 2)
     }
 }

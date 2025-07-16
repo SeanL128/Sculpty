@@ -23,7 +23,14 @@ class WorkoutLog: Identifiable {
         set { _exerciseLogs = newValue.isEmpty ? nil : newValue }
     }
     
-    init(workout: Workout, started: Bool = false, completed: Bool = false, start: Date = Date(), end: Date = Date(timeIntervalSince1970: 0), exerciseLogs: [ExerciseLog]? = nil) {
+    init(
+        workout: Workout,
+        started: Bool = false,
+        completed: Bool = false,
+        start: Date = Date(),
+        end: Date = Date(timeIntervalSince1970: 0),
+        exerciseLogs: [ExerciseLog]? = nil
+    ) {
         self.workout = workout
         self.started = started
         self.completed = completed
@@ -42,16 +49,12 @@ class WorkoutLog: Identifiable {
     }
     
     func updateWorkoutLog() {
-        for exercise in workout?.exercises ?? [] {
-            if exerciseLogs.firstIndex (where: { $0.exercise?.id == exercise.id }) == -1 {
-                exerciseLogs.append(ExerciseLog(index: exercise.index, exercise: exercise))
-            }
+        for exercise in workout?.exercises ?? [] where exerciseLogs.firstIndex(where: { $0.exercise?.id == exercise.id }) == -1 { // swiftlint:disable:this line_length
+            exerciseLogs.append(ExerciseLog(index: exercise.index, exercise: exercise))
         }
         
-        for exerciseLog in exerciseLogs {
-            if workout?.exercises.firstIndex (where: { $0.id == exerciseLog.exercise?.id }) == -1 {
-                exerciseLogs.remove(at: exerciseLogs.firstIndex(of: exerciseLog)!)
-            }
+        for exerciseLog in exerciseLogs where workout?.exercises.firstIndex(where: { $0.id == exerciseLog.exercise?.id }) == -1 { // swiftlint:disable:this line_length
+            exerciseLogs.remove(at: exerciseLogs.firstIndex(of: exerciseLog)!) // swiftlint:disable:this line_length force_unwrapping
         }
     }
     
@@ -61,14 +64,11 @@ class WorkoutLog: Identifiable {
     }
     
     func finishWorkout(date: Date = Date()) {
-        for exerciseLog in exerciseLogs {
-            if !exerciseLog.completed {
-                exerciseLog.completed = true
-                for setLog in exerciseLog.setLogs {
-                    if !setLog.completed && !setLog.skipped {
-                        setLog.skip()
-                    }
-                }
+        for exerciseLog in exerciseLogs where !exerciseLog.completed {
+            exerciseLog.completed = true
+            
+            for setLog in exerciseLog.setLogs where !setLog.completed && !setLog.skipped {
+                setLog.skip()
             }
         }
         
@@ -93,27 +93,18 @@ class WorkoutLog: Identifiable {
     }
     
     func getLength() -> Double {
-        if completed {
-            return end.timeIntervalSince(start)
-        } else {
-            let setLog: SetLog? = exerciseLogs.compactMap { $0.getLastFinishedSetLog() }.sorted { $0.end < $1.end }.last
-            
-            if let setLog = setLog {
-                return setLog.end.timeIntervalSince(start)
-            } else {
-                return 0
-            }
-        }
+        let end = completed ? end : Date()
+        return end.timeIntervalSince(start)
     }
     
     func getMuscleGroupBreakdown() -> [MuscleGroup] {
         var muscleGroups: [MuscleGroup] = []
         
-        for log in exerciseLogs {
-            if !muscleGroups.contains(MuscleGroup(rawValue: (log.exercise?.exercise?.muscleGroup)!.rawValue) ?? .other) {
-                muscleGroups.append(MuscleGroup(rawValue: (log.exercise?.exercise?.muscleGroup)!.rawValue) ?? .other)
-            }
+        // swiftlint:disable line_length
+        for log in exerciseLogs where log.setLogs.contains(where: { $0.completed }) && !muscleGroups.contains(MuscleGroup(rawValue: (log.exercise?.exercise?.muscleGroup)?.rawValue ?? "Other") ?? .other) {
+            muscleGroups.append(MuscleGroup(rawValue: (log.exercise?.exercise?.muscleGroup)?.rawValue ?? "Other") ?? .other)
         }
+        // swiftlint:enable line_length
         
         return muscleGroups
     }

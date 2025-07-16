@@ -13,70 +13,62 @@ struct MeasurementPage: View {
     
     var type: MeasurementType
     
-    private var unit: String {
-        switch type {
-        case .bodyFat: return "%"
-        case .weight: return UnitsManager.weight
-        default: return UnitsManager.shortLength
-        }
-    }
+    private var unit: String { type.unit }
     
     @State private var data: [Measurement] = []
     
     @State private var confirmDelete: Bool = false
-    @State private var measurementToDelete: Measurement? = nil
+    @State private var measurementToDelete: Measurement?
     
     var body: some View {
-        ContainerView(title: type.rawValue) {
-            if data.isEmpty {
-                Text("No Data")
-                    .bodyText(size: 18)
-                    .textColor()
-            } else {
+        ContainerView(title: type.rawValue, spacing: 16, lazy: true) {
+            if !data.isEmpty {
                 ForEach(data, id: \.id) { measurement in
-                    HStack(alignment: .center) {
-                        Text("\(formatDateWithTime(measurement.date))  -  \(measurement.measurement.formatted())\(measurement.unit)")
-                            .bodyText(size: 16)
-                        
-                        Spacer()
-                        
-                        Button {
-                            measurementToDelete = measurement
-                            
-                            Popup.show(content: {
-                                ConfirmationPopup(selection: $confirmDelete, promptText: "Delete measurement from \(formatDateWithTime(measurement.date))?", cancelText: "Cancel", confirmText: "Delete")
-                            })
-                        } label: {
-                            Image(systemName: "xmark")
-                                .padding(.horizontal, 8)
-                                .font(Font.system(size: 16))
-                        }
-                        .textColor()
-                        .onChange(of: confirmDelete) {
-                            if confirmDelete,
-                               let measurement = measurementToDelete {
-                                context.delete(measurement)
-                                try? context.save()
-                                
-                                setData()
-                                
-                                confirmDelete = false
-                                measurementToDelete = nil
-                            }
-                        }
-                    }
-                    .textColor()
+                    MeasurementRow(
+                        measurement: measurement,
+                        measurementToDelete: $measurementToDelete,
+                        confirmDelete: $confirmDelete
+                    )
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .top).combined(with: .opacity),
+                        removal: .move(edge: .bottom).combined(with: .opacity)
+                    ))
                 }
+            } else {
+                EmptyState(
+                    message: "No Data",
+                    size: 18
+                )
             }
         }
-        .onAppear() {
+        .onAppear {
             setData()
         }
+        .onChange(of: confirmDelete) {
+            if confirmDelete,
+               let measurement = measurementToDelete {
+                context.delete(measurement)
+                
+                do {
+                    try context.save()
+                } catch {
+                    debugLog("Error: \(error.localizedDescription)")
+                }
+                
+                setData()
+                
+                confirmDelete = false
+                measurementToDelete = nil
+            }
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: data.count)
     }
     
     private func setData() {
         do {
-            let fetched = try context.fetch(FetchDescriptor<Measurement>()).filter({ $0.type == type }).sorted(by: { $0.date > $1.date })
+            let fetched = try context.fetch(FetchDescriptor<Measurement>())
+                .filter({ $0.type == type })
+                .sorted(by: { $0.date > $1.date })
             
             data = fetched
         } catch {

@@ -16,7 +16,7 @@ struct AddMeasurementPopup: View {
     @Binding var measurementToAdd: Measurement?
     
     @State private var type: MeasurementType = .weight
-    private var typeOptions: [String : MeasurementType] {
+    private var typeOptions: [String: MeasurementType] {
         var dict: [String: MeasurementType] = [:]
         
         for type in MeasurementType.displayOrder {
@@ -129,6 +129,7 @@ struct AddMeasurementPopup: View {
                 heightFeet = ""
                 heightInches = ""
             }
+            .animatedButton(scale: 0.98)
             
             // Unit Selector
             if type != .bodyFat {
@@ -146,6 +147,7 @@ struct AddMeasurementPopup: View {
                     }
                 }
                 .textColor()
+                .animatedButton(scale: 0.98)
             }
             
             // Input
@@ -156,15 +158,27 @@ struct AddMeasurementPopup: View {
                 
                 if type == .height && settings.units == "Imperial" {
                     HStack(alignment: .bottom) {
-                        Input(title: "", text: $heightFeet, isFocused: _isHeightFeetFocused, unit: "ft", type: .numberPad)
-                            .onChange(of: heightFeet) {
-                                heightFeet = heightFeet.filteredNumericWithoutDecimalPoint()
-                            }
+                        Input(
+                            title: "",
+                            text: $heightFeet,
+                            isFocused: _isHeightFeetFocused,
+                            unit: "ft",
+                            type: .numberPad
+                        )
+                        .onChange(of: heightFeet) {
+                            heightFeet = heightFeet.filteredNumericWithoutDecimalPoint()
+                        }
                         
-                        Input(title: "", text: $heightInches, isFocused: _isHeightInchesFocused, unit: "in", type: .numberPad)
-                            .onChange(of: heightInches) {
-                                heightInches = heightInches.filteredNumeric()
-                            }
+                        Input(
+                            title: "",
+                            text: $heightInches,
+                            isFocused: _isHeightInchesFocused,
+                            unit: "in",
+                            type: .numberPad
+                        )
+                        .onChange(of: heightInches) {
+                            heightInches = heightInches.filteredNumeric()
+                        }
                     }
                 } else {
                     Input(title: "", text: $text, isFocused: _isTextFocused, unit: units, type: .decimalPad)
@@ -176,20 +190,11 @@ struct AddMeasurementPopup: View {
             .padding(.horizontal)
             .padding(.vertical, 5)
             
-            Button {
-                save()
-            } label: {
-                Text("Save")
-                    .bodyText(size: 18, weight: .bold)
-            }
-            .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
-            .disabled(!isValid)
+            SaveButton(save: save, isValid: isValid, size: 18)
         }
         .toolbar {
-            ToolbarItemGroup (placement: .keyboard) {
-                Spacer()
-                
-                KeyboardDoneButton(focusStates: [_isTextFocused, _isHeightFeetFocused, _isHeightInchesFocused])
+            ToolbarItemGroup(placement: .keyboard) {
+                KeyboardDoneButton()
             }
         }
     }
