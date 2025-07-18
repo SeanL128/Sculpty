@@ -170,6 +170,7 @@ struct ExerciseInfo: View {
                         
                         Text(" \(restMinutes)min \(restSeconds)sec")
                             .bodyText(size: 18)
+                            .monospacedDigit()
                             .contentTransition(.numericText())
                             .animation(.easeInOut(duration: 0.3), value: restMinutes)
                             .animation(.easeInOut(duration: 0.3), value: restSeconds)

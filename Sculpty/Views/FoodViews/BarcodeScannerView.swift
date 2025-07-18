@@ -119,7 +119,6 @@ struct BarcodeScannerView: View {
                             .disabled(!checkmarkValid)
                             .foregroundStyle(checkmarkValid ? ColorManager.text : ColorManager.secondary)
                             .animatedButton(isValid: checkmarkValid)
-                            .animation(.easeInOut(duration: 0.2), value: isBatchMode)
                             .animation(.easeInOut(duration: 0.2), value: checkmarkValid)
                         }
                     }
@@ -189,12 +188,15 @@ struct BarcodeScannerView: View {
                                             scannedItems.remove(at: index)
                                         })
                                     }, onDismiss: {
-                                        showBatchList = false
+                                        withAnimation(.easeInOut(duration: 0.3)) {
+                                            showBatchList = false
+                                        }
                                     })
                                 } label: {
                                     HStack(alignment: .center) {
                                         Text("\(scannedItems.count) items")
                                             .bodyText(size: 18)
+                                            .monospacedDigit()
                                             .contentTransition(.numericText())
                                         
                                         Image(systemName: "chevron.right")
@@ -214,14 +216,15 @@ struct BarcodeScannerView: View {
                         HStack {
                             if coordinator.isTorchAvailable {
                                 Button {
-                                    coordinator.toggleTorch()
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        coordinator.toggleTorch()
+                                    }
                                 } label: {
                                     Image(systemName: coordinator.isTorchOn ? "flashlight.on.circle.fill" : "flashlight.off.circle") // swiftlint:disable:this line_length
                                         .font(.system(size: 30))
                                 }
                                 .textColor()
                                 .animatedButton(feedback: .impact(weight: .light))
-                                .animation(.easeInOut(duration: 0.2), value: coordinator.isTorchOn)
                             } else {
                                 Image(systemName: "flashlight.slash.circle")
                                     .font(.system(size: 30))
@@ -231,7 +234,9 @@ struct BarcodeScannerView: View {
                             Spacer()
                             
                             Button {
-                                coordinator.capturePhoto()
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    coordinator.capturePhoto()
+                                }
                             } label: {
                                 HStack(spacing: 6) {
                                     if isCapturingPhoto {
@@ -249,7 +254,6 @@ struct BarcodeScannerView: View {
                             .textColor()
                             .disabled(isCapturingPhoto)
                             .animatedButton(feedback: .impact(weight: .light), isValid: !isCapturingPhoto)
-                            .animation(.easeInOut(duration: 0.3), value: isCapturingPhoto)
                             
                             Spacer()
                             
@@ -283,7 +287,6 @@ struct BarcodeScannerView: View {
                             }
                             .textColor()
                             .animatedButton(feedback: .selection)
-                            .animation(.easeInOut(duration: 0.3), value: isBatchMode)
                             .onChange(of: stayOnBatch) {
                                 if !stayOnBatch {
                                     withAnimation(.easeInOut(duration: 0.3)) {

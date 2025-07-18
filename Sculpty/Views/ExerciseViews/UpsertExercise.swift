@@ -30,12 +30,7 @@ struct UpsertExercise: View {
     
     @State private var hasUnsavedChanges: Bool = false
     
-    @State private var copyButtonPressed: Bool = false
-    @State private var deleteButtonPressed: Bool = false
-    
     @State private var dismissTrigger: Int = 0
-    @State private var copyTrigger: Int = 0
-    @State private var deleteTrigger: Int = 0
     
     private var isValid: Bool {
         !exerciseName.trimmingCharacters(in: .whitespaces).isEmpty && selectedMuscleGroup != nil
@@ -83,27 +78,17 @@ struct UpsertExercise: View {
             }, trailingItems: {
                 if exercise != nil {
                     Button {
-                        copyTrigger += 1
-                        
                         copyExercise()
                         dismiss()
                     } label: {
                         Image(systemName: "document.on.document")
                             .padding(.horizontal, 5)
                             .font(Font.system(size: 20))
-                            .scaleEffect(copyButtonPressed ? 0.95 : 1.0)
                     }
                     .textColor()
-                    .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
-                        withAnimation(.easeInOut(duration: 0.1)) {
-                            copyButtonPressed = pressing
-                        }
-                    }, perform: {})
-                    .sensoryFeedback(.impact(weight: .light), trigger: copyTrigger)
+                    .animatedButton(feedback: .impact(weight: .light))
                     
                     Button {
-                        deleteTrigger += 1
-                        
                         Popup.show(content: {
                             ConfirmationPopup(
                                 selection: $confirmDelete,
@@ -117,15 +102,9 @@ struct UpsertExercise: View {
                         Image(systemName: "trash")
                             .padding(.horizontal, 5)
                             .font(Font.system(size: 20))
-                            .scaleEffect(deleteButtonPressed ? 0.95 : 1.0)
                     }
                     .textColor()
-                    .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
-                        withAnimation(.easeInOut(duration: 0.1)) {
-                            deleteButtonPressed = pressing
-                        }
-                    }, perform: {})
-                    .sensoryFeedback(.warning, trigger: deleteTrigger)
+                    .animatedButton(feedback: .warning)
                     .onChange(of: confirmDelete) {
                         if confirmDelete {
                             do {

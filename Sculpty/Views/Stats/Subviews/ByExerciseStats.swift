@@ -210,6 +210,7 @@ struct ByExerciseStats: View {
                             Text("Current PR: \(prData.last?.value.formatted() ?? "0")\(UnitsManager.weight) (\(formatDate(prData.last?.date ?? Date())))") // swiftlint:disable:this line_length
                                 .bodyText(size: 16)
                                 .textColor()
+                                .monospacedDigit()
                                 .contentTransition(.numericText())
                                 .animation(.easeInOut(duration: 0.3), value: prData.last?.value)
                                 .animation(.easeInOut(duration: 0.3), value: prData.last?.date)

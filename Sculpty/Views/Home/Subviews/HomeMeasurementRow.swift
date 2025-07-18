@@ -21,6 +21,7 @@ struct HomeMeasusrementRow: View {
                 Text("\(measurement.measurement.formatted())\(measurement.unit)")
                     .statsText(size: large ? 18 : 14)
                     .textColor()
+                    .monospacedDigit()
                     .contentTransition(.numericText())
                     .animation(.easeInOut(duration: 0.3), value: measurement.measurement)
                 

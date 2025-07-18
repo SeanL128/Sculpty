@@ -16,7 +16,7 @@ struct AddFoodEntryPopup: View {
     
     @Binding var foodAdded: Bool
     
-    private var newEntry: Bool = true
+    private let newEntry: Bool
     
     @State private var nameInput: String = ""
     @FocusState private var isNameFocused: Bool
@@ -55,6 +55,14 @@ struct AddFoodEntryPopup: View {
         if entry.calories == -1 {
             entry.calories = 0
             
+            nameInput = ""
+            caloriesInput = ""
+            carbsInput = ""
+            proteinInput = ""
+            fatInput = ""
+            
+            newEntry = true
+        } else {
             nameInput = entry.name
             caloriesInput = "\(entry.calories.formatted())"
             carbsInput = "\(entry.carbs.formatted())"

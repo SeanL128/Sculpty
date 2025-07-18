@@ -34,18 +34,21 @@ struct WorkoutSummaryPopup: View {
                 Text("Total Time: \(time)")
                     .bodyText(size: 16)
                     .textColor()
+                    .monospacedDigit()
                     .contentTransition(.numericText())
                     .animation(.easeInOut(duration: 0.3), value: time)
                 
                 Text("Total Reps: \(reps) reps")
                     .bodyText(size: 16)
                     .textColor()
+                    .monospacedDigit()
                     .contentTransition(.numericText())
                     .animation(.easeInOut(duration: 0.3), value: reps)
                 
                 Text("Total Weight: \(weight)\(UnitsManager.weight)")
                     .bodyText(size: 16)
                     .textColor()
+                    .monospacedDigit()
                     .contentTransition(.numericText())
                     .animation(.easeInOut(duration: 0.3), value: weight)
                 

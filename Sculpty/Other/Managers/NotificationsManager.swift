@@ -75,22 +75,42 @@ class NotificationManager {
         cancelAllNotifications()
     }
     
-    func enableCaloriesNotifications() {
-        scheduleDailyCalorieReminders()
-    }
-    
     func disableCaloriesNotifications() {
-        cancelAllNotifications()
-        scheduleWeeklyMeasurementReminders()
+        cancelCalorieNotifications()
     }
-    
-    func enableMeasurementsNotifications() {
-        scheduleWeeklyMeasurementReminders()
-    }
-    
+
     func disableMeasurementsNotifications() {
-        cancelAllNotifications()
+        cancelMeasurementNotifications()
+    }
+
+    func enableCaloriesNotifications() {
+        cancelCalorieNotifications()
         scheduleDailyCalorieReminders()
+    }
+
+    func enableMeasurementsNotifications() {
+        cancelMeasurementNotifications()
+        scheduleWeeklyMeasurementReminders()
+    }
+    
+    private func cancelCalorieNotifications() {
+        let calendar = Calendar.current
+        var identifiers: [String] = []
+        
+        for i in 0..<30 {
+            guard let date = calendar.date(byAdding: .day, value: i, to: Date()) else { continue }
+            let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
+            let identifier = "sculpty-daily-calorie-reminder-\(dateComponents.year!)-\(dateComponents.month!)-\(dateComponents.day!)" // swiftlint:disable:this line_length force_unwrapping
+            identifiers.append(identifier)
+        }
+        
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
+    }
+
+    private func cancelMeasurementNotifications() {
+        UNUserNotificationCenter
+            .current()
+            .removePendingNotificationRequests(withIdentifiers: ["sculpty-weekly-measurement"])
     }
     
     private func scheduleWeeklyMeasurementReminders() {

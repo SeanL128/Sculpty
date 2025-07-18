@@ -30,6 +30,7 @@ struct SetLogRow: View {
                         Text("\(reps) x \(String(format: "%0.2f", weight)) \(set.unit) \((settings.showRir && [.main, .dropSet].contains(set.type)) ? "(\(rir)\((rir) == "Failure" ? "" : " RIR"))" : "")") // swiftlint:disable:this line_length
                             .bodyText(size: 16)
                             .textColor()
+                            .monospacedDigit()
                             .contentTransition(.numericText())
                             .animation(.easeInOut(duration: 0.3), value: weight)
                             .animation(.easeInOut(duration: 0.3), value: reps)
@@ -38,6 +39,7 @@ struct SetLogRow: View {
                         Text("\(set.timeString) \(String(format: "%0.2f", distance)) \(set.unit)")
                             .bodyText(size: 16)
                             .textColor()
+                            .monospacedDigit()
                             .contentTransition(.numericText())
                             .animation(.easeInOut(duration: 0.3), value: distance)
                     }

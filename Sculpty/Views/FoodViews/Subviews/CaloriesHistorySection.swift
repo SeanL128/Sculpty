@@ -28,7 +28,6 @@ struct CaloriesHistorySection: View {
                             Image(systemName: "chevron.down")
                                 .font(Font.system(size: 10, weight: .bold))
                                 .rotationEffect(.degrees(open ? -180 : 0))
-                                .animation(.easeInOut(duration: 0.5), value: open)
                         }
                     }
                     .animatedButton()

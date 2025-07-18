@@ -10,8 +10,6 @@ import SwiftUI
 struct MuscleGroupMenu: View {
     @Binding var selectedMuscleGroup: String?
     
-    @State private var buttonPressed: Bool = false
-    
     var body: some View {
         VStack(alignment: .leading) {
             Text("Muscle Group")
@@ -35,14 +33,9 @@ struct MuscleGroupMenu: View {
                         .padding(.leading, -2)
                         .font(Font.system(size: 12, weight: .bold))
                 }
-                .scaleEffect(buttonPressed ? 0.98 : 1.0)
             }
             .textColor()
-            .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
-                withAnimation(.easeInOut(duration: 0.1)) {
-                    buttonPressed = pressing
-                }
-            }, perform: {})
+            .animatedButton(scale: 0.98, feedback: .selection)
         }
     }
 }

@@ -73,6 +73,7 @@ struct PerformSet: View {
                             .font(Font.system(size: 16))
                     }
                 }
+                .contentShape(Rectangle())
             }
             .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
             .disabled(!isValid)

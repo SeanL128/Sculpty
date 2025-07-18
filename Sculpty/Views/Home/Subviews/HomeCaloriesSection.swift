@@ -72,34 +72,50 @@ struct HomeCaloriesSection: View {
                 Text("Remaining: ")
                     .bodyText(size: 14)
                 
-                Text("\((Double(settings.dailyCalories) - caloriesBreakdown.0).formatted())cal")
-                    .statsText(size: 14)
-                    .contentTransition(.numericText())
-                    .animation(.easeInOut(duration: 0.3), value: caloriesBreakdown.0)
+                if log != nil,
+                   !caloriesLogs.isEmpty {
+                    Text("\((Double(settings.dailyCalories) - caloriesBreakdown.0).formatted())cal")
+                        .statsText(size: 14)
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                        .animation(.easeInOut(duration: 0.3), value: caloriesBreakdown.0)
+                } else {
+                    Text("---")
+                        .statsText(size: 14)
+                        .opacity(0.5)
+                }
             }
             .secondaryColor()
             
-            HStack(spacing: 16) {
-                MacroLabel(
-                    value: caloriesBreakdown.1,
-                    label: "Carbs",
-                    size: 14,
-                    color: Color.blue
-                )
-                
-                MacroLabel(
-                    value: caloriesBreakdown.2,
-                    label: "Protein",
-                    size: 14,
-                    color: Color.red
-                )
-                
-                MacroLabel(
-                    value: caloriesBreakdown.3,
-                    label: "Fat",
-                    size: 14,
-                    color: Color.orange
-                )
+            if log != nil,
+               !caloriesLogs.isEmpty {
+                HStack(spacing: 16) {
+                    MacroLabel(
+                        value: caloriesBreakdown.1,
+                        label: "Carbs",
+                        size: 14,
+                        color: Color.blue
+                    )
+                    
+                    MacroLabel(
+                        value: caloriesBreakdown.2,
+                        label: "Protein",
+                        size: 14,
+                        color: Color.red
+                    )
+                    
+                    MacroLabel(
+                        value: caloriesBreakdown.3,
+                        label: "Fat",
+                        size: 14,
+                        color: Color.orange
+                    )
+                }
+            } else {
+                Text("---")
+                    .statsText(size: 14)
+                    .secondaryColor()
+                    .opacity(0.5)
             }
         }
         .frame(maxWidth: .infinity)

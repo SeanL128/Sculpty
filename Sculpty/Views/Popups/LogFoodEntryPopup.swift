@@ -131,6 +131,7 @@ struct LogFoodEntryPopup: View {
                         Text("\(calories.formatted())cal")
                             .bodyText(size: 16, weight: .bold)
                             .textColor()
+                            .monospacedDigit()
                             .contentTransition(.numericText())
                             .animation(.easeInOut(duration: 0.3), value: calories)
                     }
@@ -149,6 +150,7 @@ struct LogFoodEntryPopup: View {
                         Text("\(carbs.formatted())g")
                             .bodyText(size: 16, weight: .bold)
                             .textColor()
+                            .monospacedDigit()
                             .contentTransition(.numericText())
                             .animation(.easeInOut(duration: 0.3), value: carbs)
                     }
@@ -168,6 +170,7 @@ struct LogFoodEntryPopup: View {
                         Text("\(protein.formatted())g")
                             .bodyText(size: 16, weight: .bold)
                             .textColor()
+                            .monospacedDigit()
                             .contentTransition(.numericText())
                             .animation(.easeInOut(duration: 0.3), value: protein)
                     }
@@ -186,6 +189,7 @@ struct LogFoodEntryPopup: View {
                         Text("\(fat.formatted())g")
                             .bodyText(size: 16, weight: .bold)
                             .textColor()
+                            .monospacedDigit()
                             .contentTransition(.numericText())
                             .animation(.easeInOut(duration: 0.3), value: fat)
                     }

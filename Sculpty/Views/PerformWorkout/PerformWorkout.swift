@@ -32,6 +32,10 @@ struct PerformWorkout: View {
         return true
     }
     
+    private var sortedExerciseLogs: [ExerciseLog] {
+        log.exerciseLogs.sorted { $0.index < $1.index }
+    }
+    
     init(log: WorkoutLog) {
         self.log = log
         
@@ -116,24 +120,51 @@ struct PerformWorkout: View {
                         .animation(.easeInOut(duration: 0.3), value: log.completed)
                     })
                     
+                    ProgressView(value: log.getProgress())
+                        .padding(.horizontal)
+                        .frame(height: 5)
+                        .progressViewStyle(.linear)
+                        .accentColor(ColorManager.text)
+                        .scaleEffect(x: 1, y: 1.5, anchor: .center)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                    
+                    Spacer()
+                        .frame(height: 0)
+                    
                     TabView {
-                        ForEach(log.exerciseLogs.sorted { $0.index < $1.index }, id: \.id) { exerciseLog in
-                            PerformExercise(workoutLog: log, exerciseLog: exerciseLog, restTimer: restTimer)
+                        ForEach(sortedExerciseLogs, id: \.id) { exerciseLog in
+                            VStack {
+                                PerformExercise(workoutLog: log, exerciseLog: exerciseLog, restTimer: restTimer)
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
                     }
                     .tabViewStyle(.page(indexDisplayMode: .always))
-                    .indexViewStyle(.page(backgroundDisplayMode: .always))
+                    .indexViewStyle(.page(backgroundDisplayMode: .interactive))
                     
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Rest Time: \(restTimer.timeString())")
-                            .contentTransition(.numericText())
-                            .animation(.easeInOut(duration: 0.2), value: restTimer.timeString())
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 0) {
+                            Text("Rest Time: ")
+                                .bodyText(size: 16)
+                            
+                            Text(restTimer.timeString())
+                                .statsText(size: 16)
+                                .monospacedDigit()
+                                .contentTransition(.numericText())
+                                .animation(.easeInOut(duration: 0.2), value: restTimer.timeString())
+                        }
                         
-                        Text("Total Time: \(timeIntervalToString(totalTime))")
-                            .contentTransition(.numericText())
-                            .animation(.easeInOut(duration: 0.2), value: totalTime)
+                        HStack(spacing: 0) {
+                            Text("Total Time: ")
+                                .bodyText(size: 16)
+                            
+                            Text(timeIntervalToString(totalTime))
+                                .statsText(size: 16)
+                                .monospacedDigit()
+                                .contentTransition(.numericText())
+                                .animation(.easeInOut(duration: 0.2), value: totalTime)
+                        }
                     }
-                    .statsText(size: 16)
                     .secondaryColor()
                 }
                 .padding()

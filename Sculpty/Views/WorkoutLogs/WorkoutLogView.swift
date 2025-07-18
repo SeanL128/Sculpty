@@ -37,18 +37,21 @@ struct WorkoutLogView: View {
                 Text("Total Time: \(lengthToString(length: log.getLength()))")
                     .bodyText(size: 16)
                     .textColor()
+                    .monospacedDigit()
                     .contentTransition(.numericText())
                     .animation(.easeInOut(duration: 0.3), value: log.getLength())
                 
                 Text("Total Reps: \(reps) reps")
                     .bodyText(size: 16)
                     .textColor()
+                    .monospacedDigit()
                     .contentTransition(.numericText())
                     .animation(.easeInOut(duration: 0.3), value: reps)
                 
                 Text("Total Weight: \(weight)\(UnitsManager.weight)")
                     .bodyText(size: 16)
                     .textColor()
+                    .monospacedDigit()
                     .contentTransition(.numericText())
                     .animation(.easeInOut(duration: 0.3), value: weight)
                 

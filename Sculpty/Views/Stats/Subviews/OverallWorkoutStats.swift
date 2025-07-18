@@ -184,6 +184,7 @@ struct OverallWorkoutStats: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Current Streak: \(workoutStreak) week\(workoutStreak != 1 ? "s" : "") in a row with \(settings.targetWeeklyWorkouts)+ workouts")
                             .bodyText(size: 16)
+                            .monospacedDigit()
                             .contentTransition(.numericText())
                             .animation(.easeInOut(duration: 0.3), value: workoutStreak)
                         
@@ -192,6 +193,7 @@ struct OverallWorkoutStats: View {
                         
                         Text("Longest Streak: \(settings.longestWorkoutStreak) week\(settings.longestWorkoutStreak != 1 ? "s" : "")")
                             .bodyText(size: 14)
+                            .monospacedDigit()
                             .contentTransition(.numericText())
                             .animation(.easeInOut(duration: 0.3), value: settings.longestWorkoutStreak)
                         

@@ -35,6 +35,7 @@ struct HomeWorkoutRow: View {
                     Text("\((round(log.getProgress() * 100)).formatted())%")
                         .statsText(size: 16)
                         .frame(width: 40)
+                        .monospacedDigit()
                         .contentTransition(.numericText())
                         .animation(.easeInOut(duration: 0.3), value: log.getProgress())
                 }
@@ -43,6 +44,7 @@ struct HomeWorkoutRow: View {
                     .padding(.leading, -2)
                     .font(Font.system(size: 12))
             }
+            .contentShape(Rectangle())
         }
         .textColor()
         .padding(.trailing, 6)

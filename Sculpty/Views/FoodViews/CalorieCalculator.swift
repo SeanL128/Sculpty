@@ -206,6 +206,7 @@ struct CalorieCalculator: View {
                 
                 Text(dailyCalories != nil ? "\(dailyCalories ?? 0)cal" : "N/A")
                     .statsText(size: 16)
+                    .monospacedDigit()
                     .contentTransition(.numericText())
                     .animation(.easeInOut(duration: 0.3), value: dailyCalories)
             }

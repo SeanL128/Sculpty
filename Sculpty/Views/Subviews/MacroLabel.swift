@@ -17,6 +17,7 @@ struct MacroLabel: View {
         HStack(spacing: 0) {
             Text("\(value.formatted())g")
                 .statsText(size: size)
+                .monospacedDigit()
                 .contentTransition(.numericText())
                 .animation(.easeInOut(duration: 0.3), value: value)
             

@@ -17,6 +17,7 @@ struct MeasurementRow: View {
         HStack(alignment: .center) {
             Text("\(formatDateWithTime(measurement.date))  -  \(measurement.measurement.formatted())\(measurement.unit)") // swiftlint:disable:this line_length
                 .bodyText(size: 16)
+                .monospacedDigit()
                 .contentTransition(.numericText())
                 .animation(.easeInOut(duration: 0.3), value: measurement.measurement)
             

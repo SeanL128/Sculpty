@@ -73,6 +73,5 @@ struct ExerciseListRow: View {
             }
         }
         .sensoryFeedback(.selection, trigger: selectionTrigger)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedExercise?.wrappedValue)
     }
 }

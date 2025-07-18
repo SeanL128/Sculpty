@@ -46,7 +46,6 @@ struct Main: View {
                 .zIndex(Double(index + 1000))
             }
         }
-        .animation(.easeInOut(duration: 0.5), value: popupManager.popups.count)
         .onAppear {
             if !hasPerformedLaunchTasks {
                 performAppLaunchTasks()
