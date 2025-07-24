@@ -132,14 +132,14 @@ struct HomeCaloriesSection: View {
     }
     
     private func setCaloriesLog() {
-        let todaysLog = caloriesLogs.first { log in
+        var todaysLog = caloriesLogs.first { log in
             Calendar.current.isDate(log.date, inSameDayAs: Date())
         }
         
         if todaysLog == nil {
-            let todaysLog = CaloriesLog()
+            todaysLog = CaloriesLog()
             
-            context.insert(todaysLog)
+            context.insert(todaysLog ?? CaloriesLog())
             
             do {
                 try context.save()

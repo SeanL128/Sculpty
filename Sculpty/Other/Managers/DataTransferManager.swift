@@ -79,7 +79,9 @@ class DataTransferManager {
             .filter { !defaultExerciseIDSet.contains($0.id) }
             .map { $0.toModel() }
         
-        filteredExerciseModels.forEach { context.insert($0) }
+        for model in filteredExerciseModels {
+            context.insert(model)
+        }
         
         var exerciseMap = Dictionary(uniqueKeysWithValues: filteredExerciseModels.map { ($0.id, $0) })
         for exercise in defaultExercises {
@@ -167,7 +169,9 @@ class DataTransferManager {
             }
         }
         
-        appData.measurements.forEach { context.insert($0.toModel()) }
+        for measurement in appData.measurements {
+            context.insert(measurement.toModel())
+        }
         
         for caloriesLogDTO in appData.caloriesLogs {
             let caloriesLog = caloriesLogDTO.toModel()
@@ -213,7 +217,9 @@ class DataTransferManager {
                 
                 let nonDefaultExercises = try context.fetch(descriptor)
                 
-                nonDefaultExercises.forEach { context.delete($0) }
+                for exercise in nonDefaultExercises {
+                    context.delete(exercise)
+                }
             } else {
                 try deleteAllEntities(of: Exercise.self, in: context)
             }
@@ -233,7 +239,9 @@ class DataTransferManager {
     private func deleteAllEntities<T: PersistentModel>(of type: T.Type, in context: ModelContext) throws {
         let entities = try context.fetch(FetchDescriptor<T>())
         
-        entities.forEach { context.delete($0) }
+        for entity in entities {
+            context.delete(entity)
+        }
     }
     
     enum ImportError: Error {

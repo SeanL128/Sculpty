@@ -36,7 +36,7 @@ struct SetView: View {
                let reps = set.reps,
                let weight = set.weight,
                let rir = set.rir {
-                Text("\(reps) x \(String(format: "%0.2f", weight)) \(set.unit) \((settings.showRir && [.main, .dropSet].contains(set.type)) ? "(\(rir)\((rir) == "Failure" ? "" : " RIR"))" : "")") // swiftlint:disable:this line_length
+                Text("\(reps)x\(String(format: "%0.2f", weight)) \(set.unit) \((settings.showRir && [.main, .dropSet].contains(set.type)) ? "(\(rir)\((rir) == "Failure" ? "" : " RIR"))" : "")") // swiftlint:disable:this line_length
                     .bodyText(size: 16)
                     .textColor()
                     .strikethrough(setLog?.completed ?? false || setLog?.skipped ?? false)
@@ -50,7 +50,7 @@ struct SetView: View {
                 Spacer()
                 
                 if settings.show1RM && set.type == .main && (setLog?.completed ?? false) {
-                    Text("1RM: \(String(format: "%0.2f", weight * (1.0 + (Double(reps) / 30.0)))) \(set.unit)")
+                    Text("1RM: \(String(format: "%0.2f", weight * (1.0 + (Double(reps) / 30.0))))\(set.unit)")
                         .secondaryColor()
                         .transition(.asymmetric(
                             insertion: .opacity.combined(with: .move(edge: .trailing)),
@@ -61,7 +61,7 @@ struct SetView: View {
                 }
             } else if set.exerciseType == .distance,
                       let distance = set.distance {
-                Text("\(set.timeString) \(String(format: "%0.2f", distance)) \(set.unit)")
+                Text("\(set.timeString) \(String(format: "%0.2f", distance))\(set.unit)")
                     .bodyText(size: 16)
                     .textColor()
                     .strikethrough(setLog?.completed ?? false || setLog?.skipped ?? false)

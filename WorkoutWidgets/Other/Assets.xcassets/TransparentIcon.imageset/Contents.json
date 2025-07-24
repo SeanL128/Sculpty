@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "Sculpty App Icon - Dark:Tinted (No Background, Compressed).png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

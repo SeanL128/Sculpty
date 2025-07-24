@@ -8,19 +8,15 @@
 import SwiftUI
 
 struct InfoPopup: View {
-    private var title: String
-    private var text: String
-    
-    init(title: String, text: String) {
-        self.title = title
-        self.text = text
-    }
+    let title: String
+    let text: String
     
     var body: some View {
         VStack(alignment: .center, spacing: 24) {
             VStack(alignment: .center, spacing: 8) {
                 Text(title)
                     .bodyText(size: 18, weight: .bold)
+                    .textColor()
                     .multilineTextAlignment(.center)
                 
                 Text(text)

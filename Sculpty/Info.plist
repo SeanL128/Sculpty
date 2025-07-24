@@ -59,5 +59,7 @@
 	</array>
     <key>NSCameraUsageDescription</key>
     <string>Sculpty needs camera access to scan food barcodes for nutrition tracking.</string>
+    <key>NSSupportsLiveActivities</key>
+    <true/>
 </dict>
 </plist>

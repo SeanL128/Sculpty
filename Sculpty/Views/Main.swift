@@ -97,7 +97,9 @@ struct Main: View {
             
             if !invalidWorkouts.isEmpty {
                 for workout in invalidWorkouts {
-                    workout.exercises.forEach { context.delete($0) }
+                    for exercise in workout.exercises {
+                        context.delete(exercise)
+                    }
                     
                     context.delete(workout)
                 }
@@ -119,7 +121,11 @@ struct Main: View {
                 .filter { ($0.started && !$0.completed && $0.start <= Date().addingTimeInterval(-86400)) }
             
             for log in logs {
-                log.finishWorkout(date: log.start.addingTimeInterval(86400))
+                let date = log.exerciseLogs.compactMap { log in
+                    log.setLogs.compactMap { $0.end }.max() ?? log.start
+                }.max() ?? log.start
+                
+                log.finishWorkout(date: date)
             }
             
             try context.save()

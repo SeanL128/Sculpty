@@ -234,7 +234,9 @@ struct Onboarding: View {
     
     private func preloadData() {
         if let existingExercises = try? context.fetch(FetchDescriptor<Exercise>()), existingExercises.isEmpty {
-            defaultExercises.forEach { context.insert($0) }
+            for exercise in defaultExercises {
+                context.insert(exercise)
+            }
             
             do {
                 try context.save()

@@ -59,12 +59,12 @@ class CloudSettings: ObservableObject {
     }
     
     func resetAllSettings() {
-        UserKeys.allCases.forEach {
-            userDefaults.removeObject(forKey: $0.rawValue)
+        for key in UserKeys.allCases {
+            userDefaults.removeObject(forKey: key.rawValue)
         }
         
-        UserKeys.allCases.forEach {
-            store.removeObject(forKey: $0.rawValue)
+        for key in UserKeys.allCases {
+            store.removeObject(forKey: key.rawValue)
         }
         
         registerDefaults()

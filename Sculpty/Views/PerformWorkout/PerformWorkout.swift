@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import ActivityKit
 
 struct PerformWorkout: View {
     @Environment(\.modelContext) private var context
@@ -15,6 +16,9 @@ struct PerformWorkout: View {
     let log: WorkoutLog
     
     @StateObject private var restTimer: RestTimer = RestTimer()
+    
+    @StateObject private var activityManager = WorkoutActivityManager.shared
+    @State private var activityUpdateTimer: Timer?
     
     @State private var totalTimer: Timer?
     @State private var totalTime: Double
@@ -78,10 +82,16 @@ struct PerformWorkout: View {
                                     try context.save()
                                     
                                     for exerciseLog in log.exerciseLogs {
-                                        exerciseLog.setLogs.forEach { context.delete($0) }
+                                        for setLog in exerciseLog.setLogs {
+                                            context.delete(setLog)
+                                        }
+                                        
+                                        try context.save()
                                         
                                         context.delete(exerciseLog)
                                     }
+                                    
+                                    try context.save()
                                     
                                     context.delete(log)
                                     
@@ -176,10 +186,25 @@ struct PerformWorkout: View {
                 totalTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
                     totalTime = log.getLength()
                 }
+                
+                activityManager.registerActiveWorkout(log)
+                
+                if !activityManager.hasActiveLiveActivity {
+                    activityManager.startWorkoutActivity(for: log)
+                }
+                
+                activityUpdateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+                    activityManager.updateWorkoutActivity(for: log)
+                }
             }
             .onDisappear {
                 totalTimer?.invalidate()
                 totalTimer = nil
+                
+                activityUpdateTimer?.invalidate()
+                activityUpdateTimer = nil
+                
+                activityManager.removeActiveWorkout(log.id.uuidString)
             }
             .onChange(of: allLogsDone) {
                 if allLogsDone && !log.completed {
@@ -199,6 +224,8 @@ struct PerformWorkout: View {
                             )
                         })
                     }
+                    
+                    activityManager.endWorkoutActivity(for: log)
                 }
             }
             .onChange(of: finishWorkoutSelection) {
@@ -216,6 +243,8 @@ struct PerformWorkout: View {
                     Popup.show(content: {
                         WorkoutSummaryPopup(log: log)
                     })
+                    
+                    activityManager.endCurrentActivity()
                 }
             }
         }

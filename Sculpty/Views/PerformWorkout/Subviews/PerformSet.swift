@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import ActivityKit
 
 struct PerformSet: View {
     let workoutLog: WorkoutLog
@@ -13,6 +14,8 @@ struct PerformSet: View {
     let setLog: SetLog
     
     @ObservedObject private var restTimer: RestTimer
+    
+    @StateObject private var activityManager = WorkoutActivityManager.shared
     
     @State private var exercises: [WorkoutExercise]
     @State private var exerciseLogs: [ExerciseLog]
@@ -49,6 +52,8 @@ struct PerformSet: View {
                                 restTime: exercise.restTime,
                                 timer: restTimer
                             )
+                        }, onDismiss: {
+                            activityManager.updateActiveWorkout(workoutLog)
                         })
                     } else if type == .distance {
                         Popup.show(content: {
@@ -58,6 +63,8 @@ struct PerformSet: View {
                                 restTime: exercise.restTime,
                                 timer: restTimer
                             )
+                        }, onDismiss: {
+                            activityManager.updateActiveWorkout(workoutLog)
                         })
                     }
                 }

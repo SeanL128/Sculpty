@@ -46,6 +46,17 @@ struct WorkoutListRow: View {
                     Text(workout.name)
                         .bodyText(size: 18)
                     
+                    Button {
+                        Popup.show(content: {
+                            WorkoutPreviewPopup(workout: workout)
+                        })
+                    } label: {
+                        Image(systemName: "eye.fill")
+                            .padding(.horizontal, 4)
+                            .font(Font.system(size: 12))
+                    }
+                    .animatedButton(feedback: .selection)
+                    
                     Spacer()
                     
                     NavigationLink {

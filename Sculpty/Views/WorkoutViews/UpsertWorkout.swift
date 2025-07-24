@@ -303,7 +303,9 @@ struct UpsertWorkout: View {
     private func cleanExercises() {
         let exercisesToDelete = exercises.filter { $0.exercise == nil }
         
-        exercisesToDelete.forEach { context.delete($0) }
+        for exercise in exercisesToDelete {
+            context.delete(exercise)
+        }
         
         exercises.removeAll { $0.exercise == nil }
     }
