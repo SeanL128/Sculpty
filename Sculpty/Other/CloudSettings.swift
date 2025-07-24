@@ -48,7 +48,12 @@ class CloudSettings: ObservableObject {
             UserKeys.units.rawValue: "Imperial",
             UserKeys.enableNotifications.rawValue: true,
             UserKeys.enableCaloriesNotifications.rawValue: true,
-            UserKeys.enableMeasurementsNotifications.rawValue: true
+            UserKeys.calorieReminderHour.rawValue: 19,
+            UserKeys.calorieReminderMinute.rawValue: 0,
+            UserKeys.enableMeasurementsNotifications.rawValue: true,
+            UserKeys.measurementReminderWeekday.rawValue: 1,
+            UserKeys.measurementReminderHour.rawValue: 9,
+            UserKeys.measurementReminderMinute.rawValue: 0
         ]
         
         userDefaults.register(defaults: defaults)
@@ -280,5 +285,106 @@ class CloudSettings: ObservableObject {
                 NotificationManager.shared.disableMeasurementsNotifications()
             }
         }
+    }
+    
+    var calorieReminderHour: Int? {
+        get {
+            let value = userDefaults.integer(forKey: UserKeys.calorieReminderHour.rawValue)
+            return value == 0 ? nil : value
+        }
+        set {
+            objectWillChange.send()
+            setValue(newValue ?? 19, for: .calorieReminderHour)
+            
+            if enableCaloriesNotifications {
+                NotificationManager.shared.enableCaloriesNotifications()
+            }
+        }
+    }
+    
+    var calorieReminderMinute: Int? {
+        get {
+            let value = userDefaults.integer(forKey: UserKeys.calorieReminderMinute.rawValue)
+            return value == 0 ? nil : value
+        }
+        set {
+            objectWillChange.send()
+            setValue(newValue ?? 0, for: .calorieReminderMinute)
+            
+            if enableCaloriesNotifications {
+                NotificationManager.shared.enableCaloriesNotifications()
+            }
+        }
+    }
+    
+    var measurementReminderWeekday: Int? {
+        get {
+            let value = userDefaults.integer(forKey: UserKeys.measurementReminderWeekday.rawValue)
+            return value == 0 ? nil : value
+        }
+        set {
+            objectWillChange.send()
+            setValue(newValue ?? 1, for: .measurementReminderWeekday)
+            
+            if enableMeasurementsNotifications {
+                NotificationManager.shared.enableMeasurementsNotifications()
+            }
+        }
+    }
+    
+    var measurementReminderHour: Int? {
+        get {
+            let value = userDefaults.integer(forKey: UserKeys.measurementReminderHour.rawValue)
+            return value == 0 ? nil : value
+        }
+        set {
+            objectWillChange.send()
+            setValue(newValue ?? 9, for: .measurementReminderHour)
+            
+            if enableMeasurementsNotifications {
+                NotificationManager.shared.enableMeasurementsNotifications()
+            }
+        }
+    }
+    
+    var measurementReminderMinute: Int? {
+        get {
+            let value = userDefaults.integer(forKey: UserKeys.measurementReminderMinute.rawValue)
+            return value == 0 ? nil : value
+        }
+        set {
+            objectWillChange.send()
+            setValue(newValue ?? 0, for: .measurementReminderMinute)
+            
+            if enableMeasurementsNotifications {
+                NotificationManager.shared.enableMeasurementsNotifications()
+            }
+        }
+    }
+    
+    func getCalorieReminderTime() -> (hour: Int, minute: Int) {
+        return (
+            hour: calorieReminderHour ?? 19,
+            minute: calorieReminderMinute ?? 0
+        )
+    }
+    
+    func getMeasurementReminderTime() -> (weekday: Int, hour: Int, minute: Int) {
+        return (
+            weekday: measurementReminderWeekday ?? 1,
+            hour: measurementReminderHour ?? 9,
+            minute: measurementReminderMinute ?? 0
+        )
+    }
+    
+    func setCalorieReminderTime(hour: Int, minute: Int) {
+        calorieReminderHour = hour
+        calorieReminderMinute = minute
+    }
+    
+    func setMeasurementReminderTime(weekday: Int, hour: Int, minute: Int) {
+        measurementReminderWeekday = weekday
+        measurementReminderHour = hour
+        measurementReminderMinute = minute
     }
 }

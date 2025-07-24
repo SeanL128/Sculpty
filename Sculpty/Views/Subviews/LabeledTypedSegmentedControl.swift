@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct LabeledTypeSegmentedControl<T: Hashable>: View {
+struct LabeledTypedSegmentedControl<T: Hashable>: View {
     let label: String
     let size: CGFloat
     @Binding var selection: T

@@ -133,7 +133,7 @@ struct UpsertExercise: View {
             
             MuscleGroupMenu(selectedMuscleGroup: $selectedMuscleGroup)
             
-            LabeledTypeSegmentedControl(
+            LabeledTypedSegmentedControl(
                 label: "Tracking Type",
                 size: 12,
                 selection: $selectedExerciseType,

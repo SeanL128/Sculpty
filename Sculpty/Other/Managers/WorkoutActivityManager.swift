@@ -21,6 +21,8 @@ class WorkoutActivityManager: ObservableObject {
         return currentActivity != nil
     }
     
+    private init() {}
+    
     func startWorkoutActivity(for workoutLog: WorkoutLog) {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
         

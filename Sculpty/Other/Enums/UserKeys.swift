@@ -26,6 +26,13 @@ enum UserKeys: String, CaseIterable {
     
     // Notifications
     case enableNotifications = "ENABLE_NOTIFICATIONS"
+    
     case enableCaloriesNotifications = "ENABLE_CALORIES_NOTIFICATIONS"
+    case calorieReminderHour = "CALORIE_REMINDER_HOUR"
+    case calorieReminderMinute = "CALORIE_REMINDER_MINUTE"
+    
     case enableMeasurementsNotifications = "ENABLE_MEASUREMENTS_NOTIFICATIONS"
+    case measurementReminderWeekday = "MEASUREMENT_REMINDER_WEEKDAY"
+    case measurementReminderHour = "MEASUREMENT_REMINDER_HOUR"
+    case measurementReminderMinute = "MEASUREMENT_REMINDER_MINUTE"
 }

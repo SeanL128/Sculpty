@@ -25,7 +25,12 @@ struct UserSettingsDTO: Codable {
     var units: String?
     var enableNotifications: Bool?
     var enableCaloriesNotifications: Bool?
+    var calorieReminderHour: Int?
+    var calorieReminderMinute: Int?
     var enableMeasurementsNotifications: Bool?
+    var measurementReminderWeekday: Int?
+    var measurementReminderHour: Int?
+    var measurementReminderMinute: Int?
     
     init(from settings: CloudSettings) {
         self.accentColorHex = settings.accentColorHex
@@ -45,7 +50,12 @@ struct UserSettingsDTO: Codable {
         self.units = settings.units
         self.enableNotifications = settings.enableNotifications
         self.enableCaloriesNotifications = settings.enableCaloriesNotifications
+        self.calorieReminderHour = settings.calorieReminderHour
+        self.calorieReminderMinute = settings.calorieReminderMinute
         self.enableMeasurementsNotifications = settings.enableMeasurementsNotifications
+        self.measurementReminderWeekday = settings.measurementReminderWeekday
+        self.measurementReminderHour = settings.measurementReminderHour
+        self.measurementReminderMinute = settings.measurementReminderMinute
     }
     
     func applyTo(settings: CloudSettings) {
@@ -117,8 +127,28 @@ struct UserSettingsDTO: Codable {
             settings.enableCaloriesNotifications = enableCaloriesNotifications
         }
         
+        if let calorieReminderHour = settings.calorieReminderHour {
+            settings.calorieReminderHour = calorieReminderHour
+        }
+        
+        if let calorieReminderMinute = settings.calorieReminderMinute {
+            settings.calorieReminderMinute = calorieReminderMinute
+        }
+        
         if let enableMeasurementsNotifications = enableMeasurementsNotifications {
             settings.enableMeasurementsNotifications = enableMeasurementsNotifications
+        }
+        
+        if let measurementReminderWeekdayIndex = settings.measurementReminderWeekday {
+            settings.measurementReminderWeekday = measurementReminderWeekdayIndex
+        }
+        
+        if let measurementReminderHour = settings.measurementReminderHour {
+            settings.measurementReminderHour = measurementReminderHour
+        }
+        
+        if let measurementReminderMinute = settings.measurementReminderMinute {
+            settings.measurementReminderMinute = measurementReminderMinute
         }
     }
 }

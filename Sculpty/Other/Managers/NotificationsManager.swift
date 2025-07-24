@@ -1,5 +1,5 @@
 //
-//  NotificationsManager.swift
+//  NotificationManager.swift
 //  Sculpty
 //
 //  Created by Sean Lindsay on 6/8/25.
@@ -17,6 +17,16 @@ class NotificationManager {
         case authorized
         case provisional
     }
+    
+    private enum NotificationIdentifiers {
+        static let dailyCaloriePrefix = "sculpty-daily-calorie-reminder"
+        static let weeklyMeasurement = "sculpty-weekly-measurement"
+        static let gentleReminder = "sculpty-gentle-checkin"
+        static let workoutReminder = "sculpty-workout-reminder"
+        static let streakReminder = "sculpty-streak-reminder"
+    }
+    
+    private init() {}
     
     func checkNotificationStatus(completion: @escaping (NotificationStatus) -> Void) {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
@@ -41,8 +51,15 @@ class NotificationManager {
         checkNotificationStatus { status in
             switch status {
             case .notDetermined:
-                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in // swiftlint:disable:this line_length
-                    completion(granted)
+                UNUserNotificationCenter.current().requestAuthorization(
+                    options: [.alert, .badge, .sound]
+                ) { granted, error in
+                    DispatchQueue.main.async {
+                        if let error = error {
+                            debugLog("Notification permission error: \(error.localizedDescription)")
+                        }
+                        completion(granted)
+                    }
                 }
             case .authorized, .provisional:
                 completion(true)
@@ -53,18 +70,15 @@ class NotificationManager {
     }
     
     func scheduleAllNotifications() {
-        if CloudSettings.shared.enableNotifications {
+        guard CloudSettings.shared.enableNotifications else { return }
+        
+        if CloudSettings.shared.enableCaloriesNotifications {
             scheduleDailyCalorieReminders()
+        }
+        
+        if CloudSettings.shared.enableMeasurementsNotifications {
             scheduleWeeklyMeasurementReminders()
         }
-    }
-    
-    func cancelTodaysCalorieReminder() {
-        let calendar = Calendar.current
-        let today = calendar.dateComponents([.year, .month, .day], from: Date())
-        let identifier = "sculpty-daily-calorie-reminder-\(today.year!)-\(today.month!)-\(today.day!)" // swiftlint:disable:this line_length force_unwrapping
-        
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
     }
     
     func enableNotifications() {
@@ -75,22 +89,117 @@ class NotificationManager {
         cancelAllNotifications()
     }
     
-    func disableCaloriesNotifications() {
-        cancelCalorieNotifications()
-    }
-
-    func disableMeasurementsNotifications() {
-        cancelMeasurementNotifications()
-    }
-
     func enableCaloriesNotifications() {
         cancelCalorieNotifications()
         scheduleDailyCalorieReminders()
     }
-
+    
+    func disableCaloriesNotifications() {
+        cancelCalorieNotifications()
+    }
+    
     func enableMeasurementsNotifications() {
         cancelMeasurementNotifications()
         scheduleWeeklyMeasurementReminders()
+    }
+    
+    func disableMeasurementsNotifications() {
+        cancelMeasurementNotifications()
+    }
+    
+    private func scheduleDailyCalorieReminders() {
+        guard CloudSettings.shared.enableCaloriesNotifications else { return }
+        
+        let calendar = Calendar.current
+        let settings = CloudSettings.shared
+        
+        let hour = settings.calorieReminderHour ?? 19
+        let minute = settings.calorieReminderMinute ?? 0
+        
+        for i in 0..<30 {
+            guard let date = calendar.date(byAdding: .day, value: i, to: Date()) else { continue }
+            
+            var dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
+            dateComponents.hour = hour
+            dateComponents.minute = minute
+            
+            let content = UNMutableNotificationContent()
+            content.title = "Calories Check-In"
+            content.body = "Log your nutrition and stay consistent!"
+            content.sound = .default
+            content.categoryIdentifier = "CALORIE_REMINDER"
+            
+            let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+            let identifier = "\(NotificationIdentifiers.dailyCaloriePrefix)-\(dateComponents.year!)-\(dateComponents.month!)-\(dateComponents.day!)" // swiftlint:disable:this line_length force_unwrapping
+            let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+            
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error = error {
+                    debugLog("Failed to schedule daily calorie reminder: \(error.localizedDescription)")
+                }
+            }
+        }
+        
+        scheduleGentleReminder()
+    }
+    
+    func cancelTodaysCalorieReminder() {
+        let calendar = Calendar.current
+        let today = calendar.dateComponents([.year, .month, .day], from: Date())
+        let identifier = "\(NotificationIdentifiers.dailyCaloriePrefix)-\(today.year!)-\(today.month!)-\(today.day!)" // swiftlint:disable:this line_length force_unwrapping
+        
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
+    }
+    
+    private func scheduleWeeklyMeasurementReminders() {
+        guard CloudSettings.shared.enableMeasurementsNotifications else { return }
+        
+        let settings = CloudSettings.shared
+        
+        let content = UNMutableNotificationContent()
+        content.title = "Progress Check"
+        content.body = "See how far you've come - record your measurements!"
+        content.sound = .default
+        content.categoryIdentifier = "MEASUREMENT_REMINDER"
+        
+        var dateComponents = DateComponents()
+        dateComponents.weekday = settings.measurementReminderWeekday ?? 1
+        dateComponents.hour = settings.measurementReminderHour ?? 9
+        dateComponents.minute = settings.measurementReminderMinute ?? 0
+        
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+        let request = UNNotificationRequest(
+            identifier: NotificationIdentifiers.weeklyMeasurement,
+            content: content,
+            trigger: trigger
+        )
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                debugLog("Failed to schedule weekly measurement reminder: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    private func scheduleGentleReminder() {
+        let content = UNMutableNotificationContent()
+        content.title = "How's your fitness journey going?"
+        content.body = "Check your progress and start your next workout! 💪"
+        content.sound = .default
+        content.categoryIdentifier = "GENTLE_REMINDER"
+        
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2678400, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: NotificationIdentifiers.gentleReminder,
+            content: content,
+            trigger: trigger
+        )
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                debugLog("Failed to schedule gentle reminder: \(error.localizedDescription)")
+            }
+        }
     }
     
     private func cancelCalorieNotifications() {
@@ -100,90 +209,19 @@ class NotificationManager {
         for i in 0..<30 {
             guard let date = calendar.date(byAdding: .day, value: i, to: Date()) else { continue }
             let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
-            let identifier = "sculpty-daily-calorie-reminder-\(dateComponents.year!)-\(dateComponents.month!)-\(dateComponents.day!)" // swiftlint:disable:this line_length force_unwrapping
+            let identifier = "\(NotificationIdentifiers.dailyCaloriePrefix)-\(dateComponents.year!)-\(dateComponents.month!)-\(dateComponents.day!)" // swiftlint:disable:this line_length force_unwrapping
             identifiers.append(identifier)
         }
         
+        identifiers.append(NotificationIdentifiers.gentleReminder)
+        
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
     }
-
+    
     private func cancelMeasurementNotifications() {
-        UNUserNotificationCenter
-            .current()
-            .removePendingNotificationRequests(withIdentifiers: ["sculpty-weekly-measurement"])
-    }
-    
-    private func scheduleWeeklyMeasurementReminders() {
-        if CloudSettings.shared.enableMeasurementsNotifications {
-            UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-            
-            let content = UNMutableNotificationContent()
-            content.title = "Progress Check!"
-            content.body = "See how far you've come - record your measurements 💪"
-            content.sound = .default
-            
-            var dateComponents = DateComponents()
-            dateComponents.weekday = 1
-            /*
-             1 = Sunday
-             2 = Monday
-             3 = Tuesday
-             4 = Wednesday
-             5 = Thursday
-             6 = Friday
-             7 = Saturday
-             */
-            dateComponents.hour = 9
-            dateComponents.minute = 0
-            
-            let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
-            let request = UNNotificationRequest(
-                identifier: "sculpty-weekly-measurement",
-                content: content,
-                trigger: trigger
-            )
-            
-            UNUserNotificationCenter.current().add(request)
-        }
-    }
-    
-    private func scheduleDailyCalorieReminders() {
-        if CloudSettings.shared.enableCaloriesNotifications {
-            let calendar = Calendar.current
-            
-            for i in 0..<30 {
-                guard let date = calendar.date(byAdding: .day, value: i, to: Date()) else { continue }
-                
-                var dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
-                dateComponents.hour = 19
-                dateComponents.minute = 0
-                
-                let content = UNMutableNotificationContent()
-                content.title = "Calorie Check-In"
-                content.body = "Log your nutrition and stay consistent! 📝"
-                content.sound = .default
-                
-                let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
-                let identifier = "sculpty-daily-calorie-reminder-\(dateComponents.year!)-\(dateComponents.month!)-\(dateComponents.day!)" // swiftlint:disable:this line_length force_unwrapping
-                let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
-                
-                UNUserNotificationCenter.current().add(request)
-            }
-            
-            scheduleGentleReminder()
-        }
-    }
-    
-    private func scheduleGentleReminder() {
-        let content = UNMutableNotificationContent()
-        content.title = "How's your fitness journey going?"
-        content.body = "Check your progress and start your next workout! 💪"
-        content.sound = .default
-        
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2678400, repeats: false)
-        let request = UNNotificationRequest(identifier: "sculpty-gentle-checkin", content: content, trigger: trigger)
-        
-        UNUserNotificationCenter.current().add(request)
+        UNUserNotificationCenter.current().removePendingNotificationRequests(
+            withIdentifiers: [NotificationIdentifiers.weeklyMeasurement]
+        )
     }
     
     private func cancelAllNotifications() {

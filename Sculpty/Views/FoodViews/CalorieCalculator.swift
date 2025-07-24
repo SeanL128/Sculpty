@@ -80,7 +80,7 @@ struct CalorieCalculator: View {
                 }
             
             // Gender
-            LabeledTypeSegmentedControl(
+            LabeledTypedSegmentedControl(
                 label: "Geneder",
                 size: 12,
                 selection: $settings.gender,

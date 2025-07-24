@@ -13,6 +13,8 @@ struct OptionsPickerRow<PopupContent: View>: View {
     
     let popup: PopupContent
     
+    var onDismiss: (() -> Void)?
+    
     var body: some View {
         HStack {
             Text(title)
@@ -23,7 +25,7 @@ struct OptionsPickerRow<PopupContent: View>: View {
             Button {
                 Popup.show(content: {
                     popup
-                })
+                }, onDismiss: { onDismiss?() })
             } label: {
                 HStack(alignment: .center) {
                     Text(text)
