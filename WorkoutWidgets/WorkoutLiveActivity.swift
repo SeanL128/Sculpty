@@ -54,13 +54,11 @@ struct WorkoutLiveActivity: Widget {
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                             
-                            if !context.state.currentSetText.isEmpty {
-                                Text(context.state.currentSetText)
-                                    .font(.custom("PublicSans-Regular", size: 16))
-                                    .foregroundStyle(ColorManager.text)
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
-                            }
+                            Text(context.state.currentSetText.isEmpty ? "No remaining \(context.state.currentExerciseName) sets" : context.state.currentSetText)
+                                .font(.custom("PublicSans-Regular", size: 16))
+                                .foregroundStyle(ColorManager.text)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
                             
                             if !context.state.nextSetText.isEmpty {
                                 Text(context.state.nextSetText)
@@ -71,7 +69,7 @@ struct WorkoutLiveActivity: Widget {
                             }
                         }
                     }
-                    .padding(4)
+                    .padding(.horizontal, 4)
                 }
             } compactLeading: {
                 Image("TransparentIcon")

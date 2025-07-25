@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import UIKit
 
 struct OptionsNotificationsSection: View {
     @EnvironmentObject private var settings: CloudSettings
@@ -112,12 +111,6 @@ struct OptionsNotificationsSection: View {
                     openSettings()
                 }
             }
-        }
-    }
-    
-    private func openSettings() {
-        if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
-            UIApplication.shared.open(settingsUrl)
         }
     }
     

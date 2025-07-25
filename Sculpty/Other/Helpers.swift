@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 // MARK: Variables
 let defaultExercises = [
@@ -162,4 +163,10 @@ func dismissKeyboard() {
 
 func round(_ number: Double, _ places: Double) -> Double {
     return round(number * pow(10, places)) / pow(10, places)
+}
+
+func openSettings() {
+    if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+        UIApplication.shared.open(settingsUrl)
+    }
 }

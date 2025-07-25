@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSCameraReactionEffectGesturesEnabledDefault</key>
-	<false/>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -18,6 +16,8 @@
 		</dict>
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NSCameraReactionEffectGesturesEnabledDefault</key>
 	<false/>
 	<key>UIAppFonts</key>
 	<array>
@@ -57,9 +57,5 @@
 			</dict>
 		</dict>
 	</array>
-    <key>NSCameraUsageDescription</key>
-    <string>Sculpty needs camera access to scan food barcodes for nutrition tracking.</string>
-    <key>NSSupportsLiveActivities</key>
-    <true/>
 </dict>
 </plist>

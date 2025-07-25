@@ -196,6 +196,19 @@ struct PerformWorkout: View {
                 activityUpdateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
                     activityManager.updateWorkoutActivity(for: log)
                 }
+                
+                NotificationManager.shared.requestPermissionIfNeeded { granted in
+                    DispatchQueue.main.async {
+                        if !granted {
+                            Popup.show(content: {
+                                InfoPopup(
+                                    title: "Enable Notifications",
+                                    text: "To receive rest time reminders, please enable notifications in Settings > Sculpty > Notifications" // swiftlint:disable:this line_length
+                                )
+                            })
+                        }
+                    }
+                }
             }
             .onDisappear {
                 totalTimer?.invalidate()

@@ -43,19 +43,15 @@ struct WorkoutListRow: View {
             
             VStack {
                 HStack {
-                    Text(workout.name)
-                        .bodyText(size: 18)
-                    
                     Button {
                         Popup.show(content: {
                             WorkoutPreviewPopup(workout: workout)
                         })
                     } label: {
-                        Image(systemName: "eye.fill")
-                            .padding(.horizontal, 4)
-                            .font(Font.system(size: 12))
+                        Text(workout.name)
+                            .bodyText(size: 18)
                     }
-                    .animatedButton(feedback: .selection)
+                    .animatedButton(scale: 1, feedback: .selection)
                     
                     Spacer()
                     
