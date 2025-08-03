@@ -63,7 +63,14 @@ class WorkoutLog: Identifiable {
         started = true
     }
     
-    func finishWorkout(date: Date = Date()) {
+    func finishWorkout() {
+        let date = max(
+            exerciseLogs.compactMap {
+                $0.setLogs.compactMap { $0.end }.max() ?? start
+            }.max() ?? start,
+            start
+        )
+        
         for exerciseLog in exerciseLogs where !exerciseLog.completed {
             exerciseLog.completed = true
             

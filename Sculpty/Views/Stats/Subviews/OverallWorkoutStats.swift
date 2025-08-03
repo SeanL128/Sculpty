@@ -175,159 +175,167 @@ struct OverallWorkoutStats: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     // Consistency
-                    Text("CONSISTENCY")
-                        .headingText(size: 24)
-                        .textColor()
-                        .padding(.bottom, -16)
-                    
-                    // swiftlint:disable line_length
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Current Streak: \(workoutStreak) week\(workoutStreak != 1 ? "s" : "") in a row with \(settings.targetWeeklyWorkouts)+ workouts")
-                            .bodyText(size: 16)
-                            .monospacedDigit()
-                            .contentTransition(.numericText())
-                            .animation(.easeInOut(duration: 0.3), value: workoutStreak)
+                    VStack(alignment: .leading, spacing: .spacingXS) {
+                        Text("CONSISTENCY")
+                            .subheadingText()
+                            .textColor()
                         
-                        Spacer()
-                            .frame(height: 2)
-                        
-                        Text("Longest Streak: \(settings.longestWorkoutStreak) week\(settings.longestWorkoutStreak != 1 ? "s" : "")")
-                            .bodyText(size: 14)
-                            .monospacedDigit()
-                            .contentTransition(.numericText())
-                            .animation(.easeInOut(duration: 0.3), value: settings.longestWorkoutStreak)
-                        
-                        Text("Keep going!")
-                            .bodyText(size: 14)
+                        // swiftlint:disable line_length
+                        VStack(alignment: .leading, spacing: .spacingXS) {
+                            Text("Current Streak: \(workoutStreak) week\(workoutStreak != 1 ? "s" : "") in a row with \(settings.targetWeeklyWorkouts)+ workouts")
+                                .bodyText(weight: .regular)
+                                .textColor()
+                                .monospacedDigit()
+                                .contentTransition(.numericText())
+                                .animation(.easeInOut(duration: 0.3), value: workoutStreak)
+                            
+                            Text("Longest Streak: \(settings.longestWorkoutStreak) week\(settings.longestWorkoutStreak != 1 ? "s" : "")")
+                                .secondaryText()
+                                .secondaryColor()
+                                .monospacedDigit()
+                                .contentTransition(.numericText())
+                                .animation(.easeInOut(duration: 0.3), value: settings.longestWorkoutStreak)
+                        }
+                        // swiftlint:enable line_length
                     }
-                    .textColor()
-                    // swiftlint:enable line_length
                     
                     // Training Frequency
-                    Text("TRAINING FREQUENCY")
-                        .headingText(size: 24)
-                        .textColor()
-                        .padding(.bottom, -16)
-                    
-                    ZStack(alignment: .top) {
-                        Chart {
-                            ForEach(data, id: \.date) { item in
-                                BarMark(
-                                    x: .value(
-                                        "Week",
-                                        selectedRangeIndex <= 1 ? formatDateNoYear(item.date) : formatMonth(item.date)
-                                    ),
-                                    y: .value("Value", item.value)
-                                )
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
-                                )
-                            }
-                            
-                            if let selectedDate = selectedDate {
-                                RuleMark(
-                                    x: .value(
-                                        "Selected Date",
-                                        selectedRangeIndex <= 1 ? formatDateNoYear(selectedDate) : formatMonth(selectedDate) // swiftlint:disable:this line_length
-                                    )
-                                )
-                                .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                                .foregroundStyle(ColorManager.text)
-                            }
-                        }
-                        .frame(height: 250)
-                        .chartXAxis {
-                            AxisMarks { value in
-                                AxisGridLine()
-                                AxisValueLabel {
-                                    if let date = value.as(String.self),
-                                       let index = data
-                                        .map({
-                                            selectedRangeIndex <= 1 ? formatDateNoYear($0.date) : formatMonth($0.date)
-                                        })
-                                        .firstIndex(of: date),
-                                       labelIndexes.contains(index) {
-                                        Text(date)
-                                            .bodyText(size: 12)
-                                            .textColor()
-                                    }
-                                }
-                            }
-                        }
-                        .chartYAxis {
-                            AxisMarks(position: .leading) { value in
-                                AxisGridLine()
-                                AxisValueLabel {
-                                    if let numericValue = value.as(Double.self) {
-                                        Text("\(numericValue.formatted())x")
-                                            .bodyText(size: 12)
-                                            .textColor()
-                                    }
-                                }
-                            }
-                        }
-                        .chartGesture { proxy in
-                            DragGesture(minimumDistance: 8)
-                                .onChanged { value in
-                                    if !isInteracting {
-                                        isInteracting = true
+                    VStack(alignment: .leading, spacing: .spacingXS) {
+                        Text("TRAINING FREQUENCY")
+                            .subheadingText()
+                            .textColor()
+                        
+                        VStack(alignment: .leading, spacing: .spacingM) {
+                            ZStack(alignment: .top) {
+                                Chart {
+                                    ForEach(data, id: \.date) { item in
+                                        BarMark(
+                                            x: .value(
+                                                "Week",
+                                                selectedRangeIndex <= 1 ? formatDateNoYear(item.date) : formatMonth(item.date) // swiftlint:disable:this line_length
+                                            ),
+                                            y: .value("Value", item.value)
+                                        )
+                                        .foregroundStyle(
+                                            LinearGradient(
+                                                colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+                                                startPoint: .top,
+                                                endPoint: .bottom
+                                            )
+                                        )
                                     }
                                     
-                                    if let dateString: String = proxy.value(atX: value.location.x) {
-                                        let newSelectedDate = findClosestDataPointFromString(dateString)
-                                        
-                                        if newSelectedDate != selectedDate {
-                                            selectedDate = newSelectedDate
-                                            
-                                            selectedValue = findClosestDataPointValue(to: newSelectedDate)
+                                    if let selectedDate = selectedDate {
+                                        RuleMark(
+                                            x: .value(
+                                                "Selected Date",
+                                                selectedRangeIndex <= 1 ? formatDateNoYear(selectedDate) : formatMonth(selectedDate) // swiftlint:disable:this line_length
+                                            )
+                                        )
+                                        .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                                        .foregroundStyle(ColorManager.text)
+                                    }
+                                }
+                                .frame(height: 250)
+                                .chartXAxis {
+                                    AxisMarks { value in
+                                        AxisGridLine()
+                                        AxisValueLabel {
+                                            if let date = value.as(String.self),
+                                               let index = data
+                                                .map({
+                                                    selectedRangeIndex <= 1 ? formatDateNoYear($0.date) : formatMonth($0.date) // swiftlint:disable:this line_length
+                                                })
+                                                .firstIndex(of: date),
+                                               labelIndexes.contains(index) {
+                                                Text(date)
+                                                    .captionText()
+                                                    .textColor()
+                                            }
                                         }
                                     }
                                 }
-                                .onEnded { _ in
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                        isInteracting = false
-                                        selectedDate = nil
-                                        selectedValue = nil
+                                .chartYAxis {
+                                    AxisMarks(position: .leading) { value in
+                                        AxisGridLine()
+                                        AxisValueLabel {
+                                            if let numericValue = value.as(Double.self) {
+                                                Text("\(numericValue.formatted())x")
+                                                    .captionText()
+                                                    .textColor()
+                                            }
+                                        }
                                     }
                                 }
-                        }
-                        .animation(.easeInOut(duration: 0.5), value: selectedRangeIndex)
-                        .animation(.easeInOut(duration: 0.3), value: data.count)
-                        
-                        if isInteracting,
-                           let date = selectedDate,
-                           let value = selectedValue,
-                           !data.isEmpty {
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(selectedRangeIndex <= 1 ? "Week of \(formatDateNoYear(date))" : formatMonth(date))
-                                    .bodyText(size: 12)
-                                Text("\(value.formatted())x")
-                                    .bodyText(size: 12, weight: .bold)
+                                .chartGesture { proxy in
+                                    DragGesture(minimumDistance: 8)
+                                        .onChanged { value in
+                                            if !isInteracting {
+                                                isInteracting = true
+                                            }
+                                            
+                                            if let dateString: String = proxy.value(atX: value.location.x) {
+                                                let newSelectedDate = findClosestDataPointFromString(dateString)
+                                                
+                                                if newSelectedDate != selectedDate {
+                                                    selectedDate = newSelectedDate
+                                                    
+                                                    selectedValue = findClosestDataPointValue(to: newSelectedDate)
+                                                }
+                                            }
+                                        }
+                                        .onEnded { _ in
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                                isInteracting = false
+                                                selectedDate = nil
+                                                selectedValue = nil
+                                            }
+                                        }
+                                }
+                                .animation(.easeInOut(duration: 0.5), value: selectedRangeIndex)
+                                .animation(.easeInOut(duration: 0.3), value: data.count)
+                                
+                                if isInteracting,
+                                   let date = selectedDate,
+                                   let value = selectedValue,
+                                   !data.isEmpty {
+                                    
+                                    VStack(alignment: .leading, spacing: .spacingXS) {
+                                        Text(selectedRangeIndex <= 1 ? "Week of \(formatDateNoYear(date))" : formatMonth(date)) // swiftlint:disable:this line_length
+                                            .captionText()
+                                        
+                                        Text("\(value.formatted())x")
+                                            .captionText()
+                                    }
+                                    .padding(.spacingS)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(ColorManager.surface)
+                                            .stroke(ColorManager.border)
+                                    )
+                                    .transition(.opacity)
+                                    .animation(.easeInOut(duration: 0.2), value: isInteracting)
+                                    .offset(x: 0, y: 5)
+                                }
                             }
-                            .padding(8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(ColorManager.background)
+                            .padding()
+                            .animation(.easeInOut(duration: 0.4), value: data.count)
+                            .animation(.easeInOut(duration: 0.3), value: selectedRangeIndex)
+                            .drawingGroup()
+                            
+                            TypedSegmentedControl(
+                                selection: $selectedRangeIndex,
+                                options: [0, 1, 2, 3, 4],
+                                displayNames: [
+                                    "Last 4 Weeks",
+                                    "Last 12 Weeks",
+                                    "Last 6 Months",
+                                    "Last Year",
+                                    "Last 5 Years"
+                                ]
                             )
-                            .transition(.opacity)
-                            .animation(.easeInOut(duration: 0.2), value: isInteracting)
-                            .offset(x: 0)
                         }
                     }
-                    .padding()
-                    .animation(.easeInOut(duration: 0.5), value: selectedRangeIndex)
-                    .drawingGroup()
-                    
-                    TypedSegmentedControl(
-                        selection: $selectedRangeIndex,
-                        options: [0, 1, 2, 3, 4],
-                        displayNames: ["Last 4 Weeks", "Last 12 Weeks", "Last 6 Months", "Last Year", "Last 5 Years"]
-                    )
                 }
             }
             .scrollBounceBehavior(.basedOnSize, axes: [.vertical])

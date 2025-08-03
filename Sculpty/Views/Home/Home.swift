@@ -9,13 +9,12 @@ import SwiftUI
 
 struct Home: View {
     var body: some View {
-        ContainerView(title: "Home", spacing: 16, showBackButton: false, trailingItems: {
+        ContainerView(title: "Home", spacing: .spacingXL, showBackButton: false, trailingItems: {
             NavigationLink {
                 Options()
             } label: {
                 Image(systemName: "gear")
-                    .padding(.horizontal, 5)
-                    .font(Font.system(size: 20))
+                    .pageTitleImage()
             }
             .textColor()
             .animatedButton()
@@ -23,20 +22,11 @@ struct Home: View {
             // MARK: Workout Section
             HomeWorkoutSection()
 
-            Spacer()
-                .frame(height: 5)
-
             // MARK: Calories Section
             HomeCaloriesSection()
 
-            Spacer()
-                .frame(height: 5)
-
             // MARK: Measurement Section
             HomeMeasurementSection()
-            
-            Spacer()
-                .frame(height: 5)
             
             // MARK: Insights Link
 //            NavigationLink {

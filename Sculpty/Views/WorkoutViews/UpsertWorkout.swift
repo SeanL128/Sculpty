@@ -25,10 +25,8 @@ struct UpsertWorkout: View {
     @FocusState private var isNameFocused: Bool
     @FocusState private var isNotesFocused: Bool
     
-    @State private var editing: Bool = false
-    
     private var isValid: Bool {
-        !workoutName.isEmpty && exercises.filter { $0.exercise != nil }.count > 0
+        !workoutName.isEmpty && !exercises.filter { $0.exercise != nil }.isEmpty
     }
     
     @State private var hasUnsavedChanges: Bool = false
@@ -53,7 +51,7 @@ struct UpsertWorkout: View {
     var body: some View {
         CustomActionContainerView(
             title: "\(workout == nil ? "Add" : "Edit") Workout",
-            spacing: 20,
+            spacing: .spacingXXL,
             onDismiss: {
                 if hasUnsavedChanges {
                     dismissTrigger += 1
@@ -64,23 +62,29 @@ struct UpsertWorkout: View {
                             promptText: "Unsaved Changes",
                             resultText: "Are you sure you want to leave without saving?",
                             cancelText: "Discard Changes",
-                            confirmText: "Stay on Page"
+                            cancelColor: ColorManager.destructive,
+                            confirmText: "Stay on Page",
+                            confirmColor: ColorManager.text
                         )
                     })
                 } else {
+                    cleanExercises()
+                    
                     dismiss()
                 }
             }, trailingItems: {
                 if let workout = workout {
                     Button {
                         cleanExercises()
+                        
                         copyWorkout()
+                        
                         hasUnsavedChanges = false
+                        
                         dismiss()
                     } label: {
                         Image(systemName: "document.on.document")
-                            .padding(.horizontal, 5)
-                            .font(Font.system(size: 20))
+                            .pageTitleImage()
                     }
                     .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
                     .disabled(!isValid)
@@ -99,8 +103,7 @@ struct UpsertWorkout: View {
                         })
                     } label: {
                         Image(systemName: "trash")
-                            .padding(.horizontal, 5)
-                            .font(Font.system(size: 20))
+                            .pageTitleImage()
                     }
                     .textColor()
                     .animatedButton(feedback: .warning)
@@ -109,6 +112,13 @@ struct UpsertWorkout: View {
                             workout.hide()
                             
                             do {
+                                let logs = try context.fetch(FetchDescriptor<WorkoutLog>())
+                                    .filter { $0.workout == workout && $0.started }
+                                
+                                if logs.isEmpty {
+                                    context.delete(workout)
+                                }
+                                
                                 try context.save()
                             } catch {
                                 debugLog("Error: \(error.localizedDescription)")
@@ -122,160 +132,125 @@ struct UpsertWorkout: View {
                 }
             }
         ) {
-            Input(
-                title: "Name",
-                text: $workoutName,
-                isFocused: _isNameFocused,
-                autoCapitalization: .words
-            )
-            .frame(maxWidth: 250)
-            
-            if sortedExercises.count > 0 {
-                HStack(alignment: .center) {
-                    Spacer()
-                    
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            editing.toggle()
-                        }
-                    } label: {
-                        Image(systemName: "chevron.up.chevron.down")
-                            .padding(.horizontal, 8)
-                            .font(Font.system(size: 18))
-                    }
-                    .foregroundStyle(editing ? Color.accentColor : ColorManager.text)
-                }
-            }
-            
-            VStack(alignment: .leading, spacing: 20) {
-                ForEach(exercises.sorted { $0.index < $1.index }, id: \.id) { exercise in
-                    if let index = exercises.firstIndex(of: exercise) {
-                        HStack(alignment: .center) {
-                            if editing {
-                                ReorderControls(
-                                    moveUp: {
-                                        if let above = sortedExercises.last(where: { $0.index < exercise.index }) {
-                                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            VStack(alignment: .leading, spacing: .spacingXL) {
+                Input(
+                    title: "Name",
+                    text: $workoutName,
+                    isFocused: _isNameFocused,
+                    autoCapitalization: .words
+                )
+                
+                if !exercises.isEmpty {
+                    VStack(alignment: .leading, spacing: .listSpacing) {
+                        ForEach(exercises.sorted { $0.index < $1.index }, id: \.id) { exercise in
+                            if let index = exercises.firstIndex(of: exercise) {
+                                HStack(alignment: .center, spacing: .spacingM) {
+                                    ReorderControls(
+                                        moveUp: {
+                                            if let above = sortedExercises.last(where: { $0.index < exercise.index }) { // swiftlint:disable:this line_length
                                                 let index = exercise.index
                                                 exercise.index = above.index
                                                 above.index = index
+                                                
+                                                hasUnsavedChanges = true
                                             }
-                                            
-                                            hasUnsavedChanges = true
-                                        }
-                                    },
-                                    moveDown: {
-                                        if let below = sortedExercises.first(where: { $0.index > exercise.index }) {
-                                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                        },
+                                        moveDown: {
+                                            if let below = sortedExercises.first(where: { $0.index > exercise.index }) { // swiftlint:disable:this line_length
                                                 let index = exercise.index
                                                 exercise.index = below.index
                                                 below.index = index
+                                                
+                                                hasUnsavedChanges = true
                                             }
-                                            
-                                            hasUnsavedChanges = true
+                                        },
+                                        canMoveUp: sortedExercises.last(where: { $0.index < exercise.index }) != nil, // swiftlint:disable:this line_length
+                                        canMoveDown: sortedExercises.first(where: { $0.index > exercise.index }) != nil // swiftlint:disable:this line_length
+                                    )
+                                    
+                                    NavigationLink {
+                                        ExerciseInfo(
+                                            exercise: exercise.exercise,
+                                            workoutExercise: exercise,
+                                            onChangesMade: {
+                                                hasUnsavedChanges = true
+                                            }
+                                        )
+                                    } label: {
+                                        HStack(alignment: .center, spacing: .spacingXS) {
+                                            Text(exercise.exercise?.name ?? "Select Exercise")
+                                                .bodyText()
+                                                .lineLimit(1)
+                                                .minimumScaleFactor(0.8)
+                                                .multilineTextAlignment(.leading)
+                                                .animation(.easeInOut(duration: 0.3), value: exercise.exercise?.name)
+                                                
+                                            Image(systemName: "chevron.right")
+                                                .bodyImage()
                                         }
-                                    },
-                                    canMoveUp: sortedExercises.last(where: { $0.index < exercise.index }) != nil,
-                                    canMoveDown: sortedExercises.first(where: { $0.index > exercise.index }) != nil
-                                )
-                            }
-                            
-                            NavigationLink {
-                                ExerciseInfo(
-                                    workout: workout ?? Workout(
-                                        name: workoutName,
-                                        exercises: exercises,
-                                        notes: workoutNotes
-                                    ),
-                                    exercise: exercise.exercise,
-                                    workoutExercise: exercise,
-                                    onChangesMade: {
-                                        hasUnsavedChanges = true
                                     }
-                                )
-                            } label: {
-                                HStack(alignment: .center) {
-                                    Text(exercise.exercise?.name ?? "Select Exercise")
-                                        .bodyText(size: 18, weight: .bold)
-                                        .multilineTextAlignment(.leading)
-                                        .animation(.easeInOut(duration: 0.3), value: exercise.exercise?.name)
+                                    .textColor()
+                                    .animatedButton()
+                                    
+                                    Spacer()
+                                    
+                                    Button {
+                                        _ = withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                            exercises.remove(at: index)
+                                        }
                                         
-                                    Image(systemName: "chevron.right")
-                                        .padding(.leading, -2)
-                                        .font(Font.system(size: 12, weight: .bold))
+                                        hasUnsavedChanges = true
+                                    } label: {
+                                        Image(systemName: "xmark")
+                                            .bodyText(weight: .regular)
+                                    }
+                                    .textColor()
+                                    .animatedButton(feedback: .impact(weight: .medium))
                                 }
                             }
-                            .textColor()
-                            .animatedButton(scale: 0.98)
-                            
-                            Spacer()
-                            
-                            Button {
-                                _ = withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    exercises.remove(at: index)
-                                }
-                                
-                                hasUnsavedChanges = true
-                            } label: {
-                                Image(systemName: "xmark")
-                                    .padding(.horizontal, 8)
-                                    .font(Font.system(size: 16))
-                            }
-                            .textColor()
-                            .animatedButton(feedback: .impact(weight: .medium))
                         }
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .move(edge: .leading)),
+                            removal: .opacity.combined(with: .move(edge: .trailing))
+                        ))
                     }
                 }
-                .transition(.asymmetric(
-                    insertion: .opacity.combined(with: .move(edge: .leading)),
-                    removal: .opacity.combined(with: .move(edge: .trailing))
-                ))
-            }
-            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: editing)
-            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: exercises.count)
-            
-            Button {
-                let nextIndex = (exercises.map { $0.index }.max() ?? -1) + 1
-                let newExercise = WorkoutExercise(index: nextIndex)
                 
-                if let existingWorkout = workout {
-                    newExercise.workout = existingWorkout
-                }
-                
-                context.insert(newExercise)
-                
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                    exercises.append(newExercise)
-                }
-                
-                hasUnsavedChanges = true
-            } label: {
-                HStack(alignment: .center) {
-                    Image(systemName: "plus")
-                        .font(Font.system(size: 12, weight: .bold))
+                Button {
+                    let nextIndex = (exercises.map { $0.index }.max() ?? -1) + 1
+                    let newExercise = WorkoutExercise(index: nextIndex)
                     
-                    Text("Add Exercise")
-                        .bodyText(size: 16, weight: .bold)
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        exercises.append(newExercise)
+                    }
+                    
+                    hasUnsavedChanges = true
+                } label: {
+                    HStack(alignment: .center, spacing: .spacingXS) {
+                        Image(systemName: "plus")
+                            .secondaryImage(weight: .bold)
+                        
+                        Text("Add Exercise")
+                            .secondaryText()
+                    }
                 }
+                .textColor()
+                .animatedButton(feedback: .impact(weight: .light))
+                
+                Input(title: "Notes", text: $workoutNotes, isFocused: _isNotesFocused, axis: .vertical)
             }
-            .textColor()
-            .animatedButton(feedback: .impact(weight: .light))
             
-            Spacer()
-                .frame(height: 5)
-            
-            Input(title: "Notes", text: $workoutNotes, isFocused: _isNotesFocused, axis: .vertical)
-            
-            Spacer()
-                .frame(height: 5)
-            
-            SaveButton(save: save, isValid: isValid, size: 20)
+            HStack(alignment: .center) {
+                Spacer()
+                
+                SaveButton(save: save, isValid: isValid)
+                
+                Spacer()
+            }
         }
         .onAppear {
             if exercises.isEmpty && workout == nil {
                 let newExercise = WorkoutExercise(index: 0)
-                
-                context.insert(newExercise)
                 
                 exercises.append(newExercise)
             }
@@ -311,24 +286,11 @@ struct UpsertWorkout: View {
     }
     
     private func save() {
-        var blanks: [Int] = []
-        var exercisesToSave = exercises
-        
-        for exercise in exercisesToSave where exercise.exercise == nil {
-            blanks.append(exercise.index)
+        let validExercises = exercises.filter { $0.exercise != nil }
             
-            if let index = exercisesToSave.firstIndex(of: exercise) {
-                exercisesToSave.remove(at: index)
-            }
-        }
+        guard !validExercises.isEmpty else { return }
         
-        guard exercisesToSave.count > 0 else {
-            for index in blanks {
-                exercises.append(WorkoutExercise(index: index))
-            }
-            
-            return
-        }
+        cleanExercises()
         
         if let workout = workout {
             workout.name = workoutName
@@ -340,8 +302,6 @@ struct UpsertWorkout: View {
             workout.exercises.removeAll(where: { !updatedIds.contains($0.id) })
             
             for exercise in exercises where !existingIds.contains(exercise.id) {
-                exercise.workout = workout
-                
                 context.insert(exercise)
                 
                 workout.exercises.append(exercise)
@@ -359,7 +319,7 @@ struct UpsertWorkout: View {
             
             let workout = Workout(
                 name: workoutName,
-                exercises: exercisesToSave,
+                exercises: validExercises,
                 notes: workoutNotes
             )
             workout.index = index
@@ -376,6 +336,7 @@ struct UpsertWorkout: View {
         originalExerciseIndices = Dictionary(uniqueKeysWithValues: exercises.map { ($0.id, $0.index) })
         
         hasUnsavedChanges = false
+        
         dismiss()
     }
     

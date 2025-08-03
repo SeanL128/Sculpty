@@ -37,13 +37,12 @@ struct ExerciseList: View {
     }
     
     var body: some View {
-        ContainerView(title: "Exercises", spacing: 16, showScrollBar: true, lazy: true, trailingItems: {
+        ContainerView(title: "Exercises", spacing: .spacingL, lazy: true, trailingItems: {
             NavigationLink {
                 PageRenderer(page: .upsertExercise)
             } label: {
                 Image(systemName: "plus")
-                    .padding(.horizontal, 5)
-                    .font(Font.system(size: 20))
+                    .pageTitleImage()
             }
             .textColor()
             .animatedButton()
@@ -58,24 +57,22 @@ struct ExerciseList: View {
                         ),
                         text: $searchText)
                 )
-                .padding(.bottom, 5)
+                .padding(.bottom, .spacingXS)
             
             if filteredExercises.isEmpty {
-                HStack(alignment: .center) {
-                    Spacer()
-                    
-                    Text("No results")
-                        .bodyText(size: 18)
-                        .textColor()
-                    
-                    Spacer()
-                }
-                .transition(.scale.combined(with: .opacity))
+                EmptyState(
+                    image: "magnifyingglass",
+                    text: "No exercises found",
+                    subtext: "Try adjusting your search"
+                )
             } else {
-                ForEach(MuscleGroup.displayOrder, id: \.id) { muscleGroup in
-                    if let exercisesForGroup = groupedExercises[muscleGroup], !exercisesForGroup.isEmpty {
-                        ExerciseListGroup(muscleGroup: muscleGroup, exercises: exercisesForGroup)
+                VStack(alignment: .leading, spacing: .spacingXL) {
+                    ForEach(MuscleGroup.displayOrder, id: \.id) { muscleGroup in
+                        if let exercisesForGroup = groupedExercises[muscleGroup], !exercisesForGroup.isEmpty {
+                            ExerciseListGroup(muscleGroup: muscleGroup, exercises: exercisesForGroup)
+                        }
                     }
+                    .animation(.easeInOut(duration: 0.3), value: groupedExercises)
                 }
             }
         }

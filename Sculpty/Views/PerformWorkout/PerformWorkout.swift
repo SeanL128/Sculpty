@@ -52,7 +52,7 @@ struct PerformWorkout: View {
                 ColorManager.background
                     .ignoresSafeArea(edges: .all)
                 
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: .spacingXS) {
                     ContainerViewHeader(title: log.workout?.name ?? "Workout", trailingItems: {
                         Button {
                             Popup.show(content: {
@@ -66,8 +66,7 @@ struct PerformWorkout: View {
                             })
                         } label: {
                             Image(systemName: "xmark")
-                                .padding(.horizontal, 5)
-                                .font(Font.system(size: 20))
+                                .pageTitleImage()
                         }
                         .textColor()
                         .animatedButton(feedback: .warning)
@@ -116,68 +115,61 @@ struct PerformWorkout: View {
                                         promptText: "Finish \(log.workout?.name ?? "Workout")?",
                                         resultText: "This will skip all remaining sets.",
                                         cancelText: "Cancel",
-                                        confirmText: "Finish"
+                                        confirmText: "Finish",
+                                        confirmColor: ColorManager.text
                                     )
                                 })
                             }
                         } label: {
                             Image(systemName: log.completed ? "checkmark.circle.fill" : "checkmark.circle")
-                                .padding(.horizontal, 5)
-                                .font(Font.system(size: 20))
+                                .pageTitleImage()
                         }
                         .textColor()
                         .animatedButton(feedback: .warning)
                         .animation(.easeInOut(duration: 0.3), value: log.completed)
                     })
                     
-                    ProgressView(value: log.getProgress())
-                        .padding(.horizontal)
-                        .frame(height: 5)
-                        .progressViewStyle(.linear)
-                        .accentColor(ColorManager.text)
-                        .scaleEffect(x: 1, y: 1.5, anchor: .center)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                    
-                    Spacer()
-                        .frame(height: 0)
-                    
-                    TabView {
-                        ForEach(sortedExerciseLogs, id: \.id) { exerciseLog in
-                            VStack {
-                                PerformExercise(workoutLog: log, exerciseLog: exerciseLog, restTimer: restTimer)
+                    VStack(alignment: .leading, spacing: .spacingS) {
+                        TabView {
+                            ForEach(sortedExerciseLogs, id: \.id) { exerciseLog in
+                                VStack {
+                                    PerformExercise(workoutLog: log, exerciseLog: exerciseLog, restTimer: restTimer)
+                                }
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
                             }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
-                    }
-                    .tabViewStyle(.page(indexDisplayMode: .always))
-                    .indexViewStyle(.page(backgroundDisplayMode: .interactive))
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack(spacing: 0) {
-                            Text("Rest Time: ")
-                                .bodyText(size: 16)
-                            
-                            Text(restTimer.timeString())
-                                .statsText(size: 16)
-                                .monospacedDigit()
-                                .contentTransition(.numericText())
-                                .animation(.easeInOut(duration: 0.2), value: restTimer.timeString())
-                        }
+                        .tabViewStyle(.page(indexDisplayMode: .always))
+                        .indexViewStyle(.page(backgroundDisplayMode: .interactive))
                         
-                        HStack(spacing: 0) {
-                            Text("Total Time: ")
-                                .bodyText(size: 16)
+                        VStack(alignment: .leading, spacing: .spacingM) {
+                            VStack(alignment: .leading, spacing: .spacingS) {
+                                Text("Rest Time: \(restTimer.timeString())")
+                                    .bodyText()
+                                    .monospacedDigit()
+                                    .contentTransition(.numericText())
+                                    .animation(.easeInOut(duration: 0.2), value: restTimer.timeString())
+                                
+                                Text("Total Time: \(timeIntervalToString(totalTime))")
+                                    .bodyText()
+                                    .monospacedDigit()
+                                    .contentTransition(.numericText())
+                                    .animation(.easeInOut(duration: 0.2), value: totalTime)
+                            }
+                            .secondaryColor()
                             
-                            Text(timeIntervalToString(totalTime))
-                                .statsText(size: 16)
-                                .monospacedDigit()
-                                .contentTransition(.numericText())
-                                .animation(.easeInOut(duration: 0.2), value: totalTime)
+                            ProgressView(value: log.getProgress())
+                                .frame(height: 5)
+                                .progressViewStyle(.linear)
+                                .accentColor(ColorManager.text)
+                                .scaleEffect(x: 1, y: 1.5, anchor: .center)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                                .animation(.easeInOut(duration: 0.3), value: log.getProgress())
                         }
                     }
-                    .secondaryColor()
                 }
-                .padding()
+                .padding(.top, .spacingM)
+                .padding(.bottom, .spacingXS)
+                .padding(.horizontal, .spacingL)
             }
             .toolbar(.hidden, for: .navigationBar)
             .onAppear {
@@ -233,7 +225,8 @@ struct PerformWorkout: View {
                                 selection: $finishWorkoutSelection,
                                 promptText: "Finish \(workoutName)?",
                                 cancelText: "Continue",
-                                confirmText: "Finish"
+                                confirmText: "Finish",
+                                confirmColor: ColorManager.text
                             )
                         })
                     }

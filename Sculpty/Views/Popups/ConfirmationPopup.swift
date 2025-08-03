@@ -9,66 +9,87 @@ import SwiftUI
 
 struct ConfirmationPopup: View {
     @Binding private var selection: Bool
-    private var promptText: String
-    private var resultText: String?
-    private var cancelText: String
-    private var confirmText: String
+    private let promptText: String
+    private let resultText: String?
+    private let cancelText: String
+    private let cancelColor: Color
+    private let confirmText: String
+    private let confirmColor: Color
     
     init(
         selection: Binding<Bool>,
         promptText: String = "Are you sure?",
         resultText: String? = nil,
         cancelText: String = "Cancel",
-        confirmText: String = "Confirm"
+        cancelColor: Color = ColorManager.text,
+        confirmText: String = "Confirm",
+        confirmColor: Color = ColorManager.destructive
     ) {
         self._selection = selection
         self.promptText = promptText
         self.resultText = resultText
         self.cancelText = cancelText
+        self.cancelColor = cancelColor
         self.confirmText = confirmText
+        self.confirmColor = confirmColor
     }
     
     var body: some View {
-        VStack(alignment: .center, spacing: 24) {
-            VStack(alignment: .center, spacing: 6) {
+        VStack(alignment: .center, spacing: .spacingL) {
+            VStack(alignment: .center, spacing: .spacingXS) {
                 Text(promptText)
-                    .bodyText(size: 16)
+                    .textColor()
+                    .subheadingText()
                     .multilineTextAlignment(.center)
                 
                 if let resultText {
                     Text(resultText)
-                        .bodyText(size: 14)
+                        .secondaryColor()
+                        .secondaryText()
                         .multilineTextAlignment(.center)
                 }
             }
             
-            HStack(spacing: 24) {
+            HStack(alignment: .center, spacing: .spacingM) {
                 Button {
-                    selection = false
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        selection = false
+                    }
                     
                     Popup.dismissLast()
                 } label: {
                     Text(cancelText)
-                        .bodyText(size: 18)
+                        .bodyText()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
                 }
-                .textColor()
+                .foregroundStyle(cancelColor)
                 .animatedButton()
                 
                 Divider()
                     .frame(width: 1, height: 24)
-                    .background(ColorManager.text)
+                    .background(ColorManager.border)
                 
                 Button {
-                    selection = true
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        selection = true
+                    }
                     
                     Popup.dismissLast()
                 } label: {
                     Text(confirmText)
-                        .bodyText(size: 18, weight: .bold)
+                        .bodyText(weight: .bold)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
                 }
-                .textColor()
+                .foregroundStyle(confirmColor)
                 .animatedButton(feedback: .impact(weight: .medium))
             }
+            .frame(maxWidth: .infinity)
         }
     }
 }

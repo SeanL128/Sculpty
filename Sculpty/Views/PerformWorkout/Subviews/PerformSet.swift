@@ -21,7 +21,44 @@ struct PerformSet: View {
     @State private var exerciseLogs: [ExerciseLog]
     
     private var isValid: Bool {
-        exerciseLog.setLogs.filter { $0.completed || $0.skipped }.count >= setLog.index
+        let exerciseLogIndex = exerciseLog.index
+        
+        if exercises[exerciseLogIndex].exercise?.type != nil,
+           let setLogIndex = exerciseLog.setLogs.firstIndex(where: { $0.id == setLog.id }),
+           exerciseLogs[exerciseLogIndex].setLogs[setLogIndex].set != nil {
+            return true
+        }
+        
+        return false
+    }
+    
+    private var showTextColor: Bool {
+        let exerciseLogIndex = exerciseLog.index
+        
+        guard exercises[exerciseLogIndex].exercise?.type != nil,
+              let setLogIndex = exerciseLog.setLogs.firstIndex(where: { $0.id == setLog.id }),
+              exerciseLogs[exerciseLogIndex].setLogs[setLogIndex].set != nil else {
+            return false
+        }
+        
+        if setLog.completed || setLog.skipped {
+            return true
+        }
+        
+        let currentSetIndex = setLog.index
+        let allSetsInExercise = exerciseLog.setLogs.sorted { $0.index < $1.index }
+        
+        for set in allSetsInExercise {
+            if set.index < currentSetIndex {
+                if !set.completed && !set.skipped {
+                    return false
+                }
+            } else if set.index == currentSetIndex {
+                return true
+            }
+        }
+        
+        return false
     }
     
     init(workoutLog: WorkoutLog, exerciseLog: ExerciseLog, setLog: SetLog, restTimer: RestTimer) {
@@ -69,7 +106,7 @@ struct PerformSet: View {
                     }
                 }
             } label: {
-                HStack {
+                HStack(alignment: .center) {
                     SetView(set: eSet, setLog: setLog)
                     
                     Spacer()
@@ -82,16 +119,16 @@ struct PerformSet: View {
                 }
                 .contentShape(Rectangle())
             }
-            .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
+            .foregroundStyle(showTextColor ? ColorManager.text : ColorManager.secondary)
             .disabled(!isValid)
-            .animatedButton(scale: 0.98, isValid: isValid)
+            .animatedButton(isValid: isValid)
             .animation(.easeInOut(duration: 0.2), value: isValid)
             .animation(.easeInOut(duration: 0.3), value: setLog.skipped)
             
             if setLog.index < (exerciseLog.setLogs.map({ $0.index }).max() ?? 0) {
                 Divider()
-                    .background(ColorManager.text)
-                    .padding(.horizontal)
+                    .background(ColorManager.border)
+                    .padding(.horizontal, .spacingXS)
             }
         }
     }

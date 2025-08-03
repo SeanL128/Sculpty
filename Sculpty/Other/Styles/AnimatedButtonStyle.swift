@@ -14,7 +14,7 @@ struct AnimatedButtonStyle: ButtonStyle {
     
     @State private var triggerCount: Int = 0
     
-    init(scale: Double = 0.95, feedback: SensoryFeedback? = nil, isValid: Bool = true) {
+    init(scale: Double = 0.98, feedback: SensoryFeedback? = nil, isValid: Bool = true) {
         self.feedback = feedback
         self.scale = scale
         self.isValid = isValid

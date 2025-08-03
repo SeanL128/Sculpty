@@ -38,49 +38,61 @@ struct DurationSelectionPopup: View {
     }
 
     var body: some View {
-        VStack(alignment: .center, spacing: 8) {
-            Text(title)
-                .font(.headline)
+        VStack(alignment: .center, spacing: .spacingL) {
+            VStack(alignment: .center, spacing: .spacingM) {
+                Text(title)
+                    .subheadingText()
+                    .textColor()
 
-            HStack(spacing: 20) {
-                if showHours {
-                    Picker("Hours", selection: $hours) {
-                        ForEach(0..<24, id: \.self) { Text("\($0) hr").tag($0) }
+                HStack(spacing: .spacingM) {
+                    if showHours {
+                        Picker("Hours", selection: $hours) {
+                            ForEach(0..<24, id: \.self) { Text("\($0) hr").tag($0) }
+                        }
+                        .pickerStyle(.wheel)
+                        .frame(maxWidth: 160)
+                        .clipped()
                     }
-                    .pickerStyle(.wheel)
-                    .frame(maxWidth: 150)
-                    .clipped()
-                }
 
-                if showMinutes {
-                    Picker("Minutes", selection: $minutes) {
-                        ForEach(0..<60, id: \.self) { Text("\($0) min").tag($0) }
+                    if showMinutes {
+                        Picker("Minutes", selection: $minutes) {
+                            ForEach(0..<60, id: \.self) { Text("\($0) min").tag($0) }
+                        }
+                        .pickerStyle(.wheel)
+                        .frame(maxWidth: 160)
+                        .clipped()
                     }
-                    .pickerStyle(.wheel)
-                    .frame(maxWidth: 150)
-                    .clipped()
-                }
 
-                if showSeconds {
-                    Picker("Seconds", selection: $seconds) {
-                        ForEach(0..<60, id: \.self) { Text("\($0) sec").tag($0) }
+                    if showSeconds {
+                        Picker("Seconds", selection: $seconds) {
+                            ForEach(0..<60, id: \.self) { Text("\($0) sec").tag($0) }
+                        }
+                        .pickerStyle(.wheel)
+                        .frame(maxWidth: 160)
+                        .clipped()
                     }
-                    .pickerStyle(.wheel)
-                    .frame(maxWidth: 150)
-                    .clipped()
                 }
+                .padding(.spacingXS)
+                .frame(maxHeight: 200)
             }
-            .padding()
-            .frame(maxHeight: 200)
             
-            Button {
-                Popup.dismissLast()
-            } label: {
-                Text("Done")
-                    .bodyText(size: 16, weight: .bold)
+            VStack(alignment: .center, spacing: .spacingM) {
+                Spacer()
+                    .frame(height: 0)
+                
+                Button {
+                    Popup.dismissLast()
+                } label: {
+                    Text("Done")
+                        .bodyText()
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, .spacingL)
+                }
+                .textColor()
+                .background(Color.accentColor)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .animatedButton()
             }
-            .textColor()
-            .animatedButton()
         }
     }
 }

@@ -12,8 +12,15 @@ struct FatSecretLink: View {
         HStack(alignment: .center) {
             Spacer()
             
-            Link("Powered by fatsecret", destination: URL(string: "https://www.fatsecret.com")!) // swiftlint:disable:this line_length force_unwrapping
-                .bodyText(size: 16)
+            Link(destination: URL(string: "https://www.fatsecret.com")!) { // swiftlint:disable:this force_unwrapping
+                HStack(alignment: .center, spacing: .spacingXS) {
+                    Text("Powered by fatsecret")
+                        .bodyText(weight: .regular)
+                    
+                    Image(systemName: "chevron.right")
+                        .bodyImage()
+                }
+            }
             
             Spacer()
         }

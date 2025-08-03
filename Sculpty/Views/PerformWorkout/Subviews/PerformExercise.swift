@@ -18,10 +18,10 @@ struct PerformExercise: View {
     var body: some View {
         if let exercise = exerciseLog.exercise {
             ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: .spacingM) {
+                    VStack(alignment: .leading, spacing: .spacingXS) {
                         Text(exercise.exercise?.name ?? "Exercise \(exercise.index + 1)")
-                            .bodyText(size: 18, weight: .bold)
+                            .subheadingText()
                             .textColor()
                         
                         if settings.showTempo {
@@ -32,17 +32,16 @@ struct PerformExercise: View {
                                     TempoPopup(tempo: exercise.tempo)
                                 })
                             } label: {
-                                HStack(alignment: .center) {
+                                HStack(alignment: .center, spacing: .spacingXS) {
                                     Text("Tempo: \(tempoArr[0])\(tempoArr[1])\(tempoArr[2])\(tempoArr[3])")
-                                        .bodyText(size: 14)
+                                        .secondaryText()
                                     
                                     Image(systemName: "chevron.right")
-                                        .padding(.leading, -2)
-                                        .font(Font.system(size: 8))
+                                        .secondaryImage()
                                 }
                             }
                             .textColor()
-                            .animatedButton(scale: 0.98)
+                            .animatedButton()
                         }
                         
                         if !exercise.specNotes.isEmpty {
@@ -54,34 +53,34 @@ struct PerformExercise: View {
                                     )
                                 })
                             } label: {
-                                HStack(alignment: .center) {
+                                HStack(alignment: .center, spacing: .spacingXS) {
                                     Text("Notes")
-                                        .bodyText(size: 14)
+                                        .secondaryText()
                                     
                                     Image(systemName: "chevron.right")
-                                        .padding(.leading, -2)
-                                        .font(Font.system(size: 8))
+                                        .secondaryImage()
                                 }
                             }
                             .textColor()
-                            .animatedButton(scale: 0.98)
+                            .animatedButton()
                         }
                     }
-                    .padding(.bottom, 6)
                     
-                    ForEach(exerciseLog.setLogs.sorted { $0.index < $1.index }, id: \.id) { setLog in
-                        PerformSet(
-                            workoutLog: workoutLog,
-                            exerciseLog: exerciseLog,
-                            setLog: setLog,
-                            restTimer: restTimer
-                        )
-                        .transition(.asymmetric(
-                            insertion: .opacity.combined(with: .move(edge: .leading)),
-                            removal: .opacity.combined(with: .move(edge: .trailing))
-                        ))
+                    VStack(alignment: .leading, spacing: .spacingXS) {
+                        ForEach(exerciseLog.setLogs.sorted { $0.index < $1.index }, id: \.id) { setLog in
+                            PerformSet(
+                                workoutLog: workoutLog,
+                                exerciseLog: exerciseLog,
+                                setLog: setLog,
+                                restTimer: restTimer
+                            )
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .move(edge: .leading)),
+                                removal: .opacity.combined(with: .move(edge: .trailing))
+                            ))
+                        }
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: exerciseLog.setLogs.count)
                     }
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: exerciseLog.setLogs.count)
                     
                     if exerciseLog.setLogs.allSatisfy({ $0.completed || $0.skipped }),
                        !workoutLog.completed {
@@ -100,19 +99,17 @@ struct PerformExercise: View {
                             
                             exerciseLog.setLogs.append(SetLog(from: newSet))
                         } label: {
-                            HStack(alignment: .center) {
+                            HStack(alignment: .center, spacing: .spacingXS) {
                                 Image(systemName: "plus")
-                                    .font(Font.system(size: 12, weight: .bold))
+                                    .secondaryImage(weight: .bold)
                                 
                                 Text("Add Set")
-                                    .bodyText(size: 16, weight: .bold)
+                                    .secondaryText()
                             }
                         }
                         .textColor()
-                        .animatedButton(scale: 0.98, feedback: .impact(weight: .light))
+                        .animatedButton(feedback: .impact(weight: .light))
                     }
-                    
-                    Spacer()
                 }
             }
             .scrollBounceBehavior(.basedOnSize, axes: [.vertical])

@@ -16,7 +16,7 @@ struct KeyboardDoneButton: View {
                 dismissKeyboard()
             } label: {
                 Text("Done")
-                    .bodyText(size: 18, weight: .bold)
+                    .bodyText()
             }
             .textColor()
             .animatedButton()

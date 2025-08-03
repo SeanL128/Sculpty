@@ -20,39 +20,45 @@ struct SmallMenuPopup: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .bodyText(size: 18, weight: .bold)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .multilineTextAlignment(.center)
+        VStack(alignment: .leading, spacing: .spacingM) {
+            HStack(alignment: .center) {
+                Spacer()
+                
+                Text(title)
+                    .subheadingText()
+                    .textColor()
+                    .multilineTextAlignment(.center)
+                
+                Spacer()
+            }
 
-            HStack(spacing: 0) {
+            HStack(spacing: .spacingXS) {
                 ForEach(Array(options.enumerated()), id: \.element.self) { index, option in
                     Button {
-                        selection = option
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            selection = option
+                        }
                         
                         Popup.dismissLast()
                     } label: {
-                        HStack(spacing: 6) {
+                        HStack(alignment: .center, spacing: .spacingXS) {
                             Text(option)
-                                .bodyText(size: 16, weight: selection == option ? .bold : .regular)
+                                .bodyText(weight: selection == option ? .bold : .regular)
                                 .textColor()
 
                             if selection == option {
                                 Image(systemName: "checkmark")
-                                    .font(.system(size: 16, weight: .medium))
+                                    .bodyImage(weight: .bold)
                             }
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
                     }
                     .textColor()
-                    .animatedButton(scale: 0.98, feedback: .selection)
+                    .animatedButton(feedback: .selection)
                     
                     if index < options.count - 1 {
                         Divider()
                             .frame(height: 24)
-                            .padding(.horizontal, 4)
                             .background(ColorManager.text)
                     }
                 }

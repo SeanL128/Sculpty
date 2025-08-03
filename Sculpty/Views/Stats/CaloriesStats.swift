@@ -56,68 +56,73 @@ struct CaloriesStats: View {
                 ColorManager.background
                     .ignoresSafeArea(edges: .all)
                 
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: .spacingXS) {
                     ContainerViewHeader(
-                        title: "Calories Stats",
+                        title: "Calories",
                         trailingItems: {
                             NavigationLink {
                                 CaloriesHistory()
                             } label: {
                                 Image(systemName: "list.bullet.clipboard")
-                                    .padding(.horizontal, 5)
-                                    .font(Font.system(size: 20))
+                                    .pageTitleImage()
                             }
                             .textColor()
                             .animatedButton()
                         }
                     )
                     
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: .spacingL) {
                         ChartDateRangeControl(selectedRangeIndex: $selectedRangeIndex)
                         
                         if show {
                             ScrollView {
-                                VStack(alignment: .leading, spacing: 20) {
+                                VStack(alignment: .leading, spacing: .spacingL) {
                                     // Calories
-                                    Text("CALORIES")
-                                        .headingText(size: 24)
-                                        .textColor()
-                                        .padding(.bottom, -16)
-                                    
-                                    LineChart(
-                                        selectedRangeIndex: $selectedRangeIndex,
-                                        data: caloriesData,
-                                        units: "cal",
-                                        showTime: false
-                                    )
+                                    VStack(alignment: .leading, spacing: .spacingXS) {
+                                        Text("CALORIES")
+                                            .subheadingText()
+                                            .textColor()
+                                        
+                                        LineChart(
+                                            selectedRangeIndex: $selectedRangeIndex,
+                                            data: caloriesData,
+                                            units: "cal",
+                                            showTime: false
+                                        )
+                                    }
                                     
                                     // Macros
-                                    Text("MACROS")
-                                        .headingText(size: 24)
-                                        .textColor()
-                                        .padding(.bottom, -16)
-                                    
-                                    MultiLineChart(
-                                        selectedRangeIndex: $selectedRangeIndex,
-                                        lineDataSets: macrosData,
-                                        units: "g"
-                                    )
+                                    VStack(alignment: .leading, spacing: .spacingXS) {
+                                        Text("MACROS")
+                                            .subheadingText()
+                                            .textColor()
+                                        
+                                        MultiLineChart(
+                                            selectedRangeIndex: $selectedRangeIndex,
+                                            lineDataSets: macrosData,
+                                            units: "g"
+                                        )
+                                    }
                                 }
                             }
                             .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
-                            .scrollIndicators(.visible)
+                            .scrollIndicators(.hidden)
                             .scrollContentBackground(.hidden)
                         } else {
                             EmptyState(
-                                message: "No Data",
-                                size: 18
+                                image: "fork.knife",
+                                text: "No food entries logged",
+                                subtext: "Log your first food"
                             )
                         }
                     }
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: show)
                     
                     Spacer()
                 }
-                .padding()
+                .padding(.top, .spacingM)
+                .padding(.bottom, .spacingXS)
+                .padding(.horizontal, .spacingL)
             }
             .toolbar(.hidden, for: .navigationBar)
         }

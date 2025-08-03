@@ -23,12 +23,7 @@ struct MeasurementStats: View {
     private var filteredMeasurements: [Measurement] {
         guard let type = type else { return [] }
         
-        let descriptor = FetchDescriptor<Measurement>(
-            predicate: #Predicate<Measurement> { $0.type == type },
-            sortBy: [SortDescriptor(\Measurement.date)]
-        )
-        
-        return (try? context.fetch(descriptor)) ?? []
+        return measurements.filter { $0.type == type }
     }
 
     private var data: [(date: Date, value: Double)] {
@@ -49,66 +44,67 @@ struct MeasurementStats: View {
                 ColorManager.background
                     .ignoresSafeArea(edges: .all)
                 
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: .spacingXS) {
                     ContainerViewHeader(
-                        title: "Measurement Stats",
+                        title: "Measurements",
                         trailingItems: {
                             NavigationLink {
                                 Measurements()
                             } label: {
                                 Image(systemName: "list.bullet.clipboard")
-                                    .padding(.trailing, 5)
-                                    .font(Font.system(size: 20))
+                                    .pageTitleImage()
                             }
                             .textColor()
                             .animatedButton()
                         }
                     )
                     
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: .spacingL) {
                         NavigationLink {
-                            SelectMeasurement(selectedMeasurementType: $type, forStats: true)
+                            SelectMeasurement(selectedMeasurementType: $type)
                         } label: {
-                            HStack(alignment: .center) {
+                            HStack(alignment: .center, spacing: .spacingXS) {
                                 Text(type?.rawValue ?? "Select Measurement")
-                                    .bodyText(size: 20, weight: .bold)
+                                    .bodyText(weight: .regular)
                                 
                                 Image(systemName: "chevron.right")
-                                    .padding(.leading, -2)
-                                    .font(Font.system(size: 14, weight: .bold))
+                                    .bodyImage()
                             }
                         }
                         .textColor()
-                        .animatedButton(scale: 0.98)
+                        .animatedButton()
                         
                         ChartDateRangeControl(selectedRangeIndex: $selectedRangeIndex)
                         
                         if show {
                             ScrollView {
-                                VStack(alignment: .leading, spacing: 20) {
+                                VStack(alignment: .leading, spacing: .spacingXS) {
                                     // Measurement
                                     Text("MEASUREMENT")
-                                        .headingText(size: 24)
+                                        .subheadingText()
                                         .textColor()
-                                        .padding(.bottom, -16)
                                     
                                     LineChart(selectedRangeIndex: $selectedRangeIndex, data: data, units: units)
                                 }
                             }
                             .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
-                            .scrollIndicators(.visible)
+                            .scrollIndicators(.hidden)
                             .scrollContentBackground(.hidden)
                         } else {
                             EmptyState(
-                                message: "No Data",
-                                size: 18
+                                image: "ruler",
+                                text: "No measurements logged",
+                                subtext: "Log your first measurement"
                             )
                         }
                     }
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: show)
                     
                     Spacer()
                 }
-                .padding()
+                .padding(.top, .spacingM)
+                .padding(.bottom, .spacingXS)
+                .padding(.horizontal, .spacingL)
             }
             .toolbar(.hidden, for: .navigationBar)
         }

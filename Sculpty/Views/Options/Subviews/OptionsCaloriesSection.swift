@@ -13,10 +13,10 @@ struct OptionsCaloriesSection: View {
     @FocusState private var isDailyCaloriesFocused: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: .spacingS) {
             OptionsSectionHeader(title: "Calories", image: "fork.knife")
             
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: .spacingXS) {
                 OptionsInputRow(
                     title: "Daily Calories Goal",
                     unit: "cal",
@@ -26,18 +26,18 @@ struct OptionsCaloriesSection: View {
                 NavigationLink {
                     CalorieCalculator()
                 } label: {
-                    HStack(alignment: .center) {
+                    HStack(alignment: .center, spacing: .spacingXS) {
                         Text("Not sure? Calculate it here")
-                            .bodyText(size: 14, weight: .bold)
+                            .secondaryText()
                         
                         Image(systemName: "chevron.right")
-                            .padding(.leading, -2)
-                            .font(Font.system(size: 10, weight: .bold))
+                            .secondaryImage()
                     }
                 }
                 .textColor()
-                .animatedButton(scale: 0.98)
+                .animatedButton()
             }
+            .card()
         }
         .frame(maxWidth: .infinity)
     }

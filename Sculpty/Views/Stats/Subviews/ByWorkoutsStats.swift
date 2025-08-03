@@ -104,74 +104,77 @@ struct ByWorkoutStats: View {
     private var showDurationData: Bool { !durationData.isEmpty }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: .spacingL) {
             NavigationLink {
-                SelectWorkout(selectedWorkout: $workout, forStats: true)
+                SelectWorkout(selectedWorkout: $workout)
             } label: {
-                HStack(alignment: .center) {
+                HStack(alignment: .center, spacing: .spacingXS) {
                     Text(workout?.name ?? "Select Workout")
-                        .bodyText(size: 20, weight: .bold)
+                        .bodyText(weight: .regular)
                     
                     Image(systemName: "chevron.right")
-                        .padding(.leading, -2)
-                        .font(Font.system(size: 14, weight: .bold))
+                        .bodyImage()
                 }
             }
             .textColor()
-            .animatedButton(scale: 0.98)
+            .animatedButton()
             
             ChartDateRangeControl(selectedRangeIndex: $selectedRangeIndex)
             
             if showWeightData || showDistanceData || showDurationData {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: .spacingL) {
                         if showWeightData {
                             // Weight
-                            Text("TOTAL WEIGHT")
-                                .headingText(size: 24)
-                                .textColor()
-                                .padding(.bottom, -16)
-                            
-                            LineChart(
-                                selectedRangeIndex: $selectedRangeIndex,
-                                data: weightData,
-                                units: UnitsManager.weight
-                            )
+                            VStack(alignment: .leading, spacing: .spacingXS) {
+                                Text("TOTAL WEIGHT")
+                                    .subheadingText()
+                                    .textColor()
+                                
+                                LineChart(
+                                    selectedRangeIndex: $selectedRangeIndex,
+                                    data: weightData,
+                                    units: UnitsManager.weight
+                                )
+                            }
                             
                             // Reps
-                            Text("TOTAL REPS")
-                                .headingText(size: 24)
-                                .textColor()
-                                .padding(.bottom, -16)
-                            
-                            LineChart(selectedRangeIndex: $selectedRangeIndex, data: repsData, units: "reps")
+                            VStack(alignment: .leading, spacing: .spacingXS) {
+                                Text("TOTAL REPS")
+                                    .subheadingText()
+                                    .textColor()
+                                
+                                LineChart(selectedRangeIndex: $selectedRangeIndex, data: repsData, units: "reps")
+                            }
                         }
                         
                         if showDistanceData {
                             // Distance
-                            Text("TOTAL DISTANCE")
-                                .headingText(size: 24)
-                                .textColor()
-                                .padding(.bottom, -16)
-                            
-                            LineChart(
-                                selectedRangeIndex: $selectedRangeIndex,
-                                data: distanceData,
-                                units: UnitsManager.longLength
-                            )
+                            VStack(alignment: .leading, spacing: .spacingXS) {
+                                Text("TOTAL DISTANCE")
+                                    .subheadingText()
+                                    .textColor()
+                                
+                                LineChart(
+                                    selectedRangeIndex: $selectedRangeIndex,
+                                    data: distanceData,
+                                    units: UnitsManager.longLength
+                                )
+                            }
                             
                             // Time (Cardio)
-                            Text("TOTAL CARDIO TIME")
-                                .headingText(size: 24)
-                                .textColor()
-                                .padding(.bottom, -16)
-                            
-                            LineChart(selectedRangeIndex: $selectedRangeIndex, data: timeData, units: "min")
+                            VStack(alignment: .leading, spacing: .spacingXS) {
+                                Text("TOTAL CARDIO TIME")
+                                    .subheadingText()
+                                    .textColor()
+                                
+                                LineChart(selectedRangeIndex: $selectedRangeIndex, data: timeData, units: "min")
+                            }
                         }
                         
                         if showDurationData {
                             Text("TOTAL WORKOUT DURATION")
-                                .headingText(size: 24)
+                                .subheadingText()
                                 .textColor()
                                 .padding(.bottom, -16)
                             
@@ -185,35 +188,35 @@ struct ByWorkoutStats: View {
                                 .sorted(by: { $0.index < $1.index })
                                 .compactMap({ $0.exercise }).removingDuplicates()
                             
-                            Text("EXERCISES")
-                                .headingText(size: 24)
-                                .textColor()
-                                .padding(.bottom, -16)
-                            
-                            VStack(alignment: .leading, spacing: 9) {
-                                ForEach(exercises, id: \.id) { exercise in
-                                    Button {
-                                        self.exercise = exercise
-                                        
-                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                            selectedTab = 2
-                                        }
-                                    } label: {
-                                        HStack(alignment: .center) {
-                                            Text(exercise.name)
-                                                .bodyText(size: 18, weight: .bold)
-                                            
-                                            Image(systemName: "chevron.right")
-                                                .padding(.leading, -2)
-                                                .font(Font.system(size: 12))
-                                        }
-                                    }
+                            VStack(alignment: .leading, spacing: .spacingXS) {
+                                Text("EXERCISES")
+                                    .subheadingText()
                                     .textColor()
-                                    .animatedButton(scale: 0.98, feedback: .selection)
-                                    .transition(.asymmetric(
-                                        insertion: .opacity.combined(with: .move(edge: .leading)),
-                                        removal: .opacity.combined(with: .move(edge: .trailing))
-                                    ))
+                                
+                                VStack(alignment: .leading, spacing: .listSpacing) {
+                                    ForEach(exercises, id: \.id) { exercise in
+                                        Button {
+                                            self.exercise = exercise
+                                            
+                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                                selectedTab = 2
+                                            }
+                                        } label: {
+                                            HStack(alignment: .center, spacing: .spacingXS) {
+                                                Text(exercise.name)
+                                                    .bodyText(weight: .regular)
+                                                
+                                                Image(systemName: "chevron.right")
+                                                    .bodyImage()
+                                            }
+                                        }
+                                        .textColor()
+                                        .animatedButton(feedback: .selection)
+                                        .transition(.asymmetric(
+                                            insertion: .opacity.combined(with: .move(edge: .leading)),
+                                            removal: .opacity.combined(with: .move(edge: .trailing))
+                                        ))
+                                    }
                                 }
                             }
                         }
@@ -225,10 +228,14 @@ struct ByWorkoutStats: View {
                 .frame(maxWidth: .infinity)
             } else {
                 EmptyState(
-                    message: "No Data",
-                    size: 18
+                    image: "dumbbell",
+                    text: "No data found\(workout != nil ? " for \(workout?.name ?? "this workout")" : "")",
+                    subtext: "Try selecting a \(workout != nil ? "different" : "") workout"
                 )
             }
         }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showWeightData)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showDistanceData)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showDurationData)
     }
 }

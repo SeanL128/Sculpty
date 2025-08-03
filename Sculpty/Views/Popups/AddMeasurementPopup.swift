@@ -83,114 +83,112 @@ struct AddMeasurementPopup: View {
     }
     
     var body: some View {
-        VStack(alignment: .center, spacing: 20) {
-            Button {
-                Popup.show(content: {
-                    MeasurementMenuPopup(options: typeOptions, selection: $type)
-                })
-            } label: {
-                var selection: String {
-                    var output = type.rawValue
-                    
-                    if type == .bodyFat {
-                        output += " (%)"
-                    } else if settings.units == "Metric" {
-                        if type == .weight {
-                            output += " (kg)"
-                        } else if type != .other {
-                            output += " (cm)"
-                        }
-                    } else if settings.units == "Imperial" {
-                        if type == .weight {
-                            output += " (lbs)"
-                        } else if type == .height {
-                            output += " (ft, in)"
-                        } else if type != .other {
-                            output += " (in)"
-                        }
-                    }
-                    
-                    return output
-                }
-                
-                HStack(alignment: .center) {
-                    Text(selection)
-                        .bodyText(size: 16, weight: .bold)
-                    
-                    Image(systemName: "chevron.right")
-                        .padding(.leading, -2)
-                        .font(Font.system(size: 10, weight: .bold))
-                }
-            }
-            .textColor()
-            .padding(.bottom, 2)
-            .onChange(of: type) {
-                text = ""
-                heightFeet = ""
-                heightInches = ""
-            }
-            .animatedButton(scale: 0.98)
-            
-            // Unit Selector
-            if type != .bodyFat {
+        VStack(alignment: .center, spacing: .spacingL) {
+            VStack(alignment: .center, spacing: .spacingM) {
                 Button {
                     Popup.show(content: {
-                        UnitMenuPopup(selection: $settings.units)
+                        MeasurementMenuPopup(options: typeOptions, selection: $type)
                     })
                 } label: {
-                    HStack(alignment: .center) {
-                        Text(settings.units == "Imperial" ? "Imperial (mi, ft, in, lbs)" : "Metric (km, m, cm, kg)")
-                            .bodyText(size: 16, weight: .bold)
+                    var selection: String {
+                        var output = type.rawValue
+                        
+                        if type == .bodyFat {
+                            output += " (%)"
+                        } else if settings.units == "Metric" {
+                            if type == .weight {
+                                output += " (kg)"
+                            } else if type != .other {
+                                output += " (cm)"
+                            }
+                        } else if settings.units == "Imperial" {
+                            if type == .weight {
+                                output += " (lbs)"
+                            } else if type == .height {
+                                output += " (ft, in)"
+                            } else if type != .other {
+                                output += " (in)"
+                            }
+                        }
+                        
+                        return output
+                    }
+                    
+                    HStack(alignment: .center, spacing: .spacingXS) {
+                        Text(selection)
+                            .bodyText(weight: .regular)
                         
                         Image(systemName: "chevron.up.chevron.down")
-                            .font(Font.system(size: 10, weight: .bold))
+                            .bodyImage(weight: .medium)
                     }
                 }
                 .textColor()
-                .animatedButton(scale: 0.98)
-            }
-            
-            // Input
-            VStack(alignment: .leading) {
-                Text(type.rawValue)
-                    .bodyText(size: 12)
-                    .textColor()
+                .onChange(of: type) {
+                    text = ""
+                    heightFeet = ""
+                    heightInches = ""
+                }
+                .animatedButton()
                 
-                if type == .height && settings.units == "Imperial" {
-                    HStack(alignment: .bottom) {
-                        Input(
-                            title: "",
-                            text: $heightFeet,
-                            isFocused: _isHeightFeetFocused,
-                            unit: "ft",
-                            type: .numberPad
-                        )
-                        .onChange(of: heightFeet) {
-                            heightFeet = heightFeet.filteredNumericWithoutDecimalPoint()
+                // Unit Selector
+                if type != .bodyFat {
+                    Button {
+                        Popup.show(content: {
+                            UnitMenuPopup(selection: $settings.units)
+                        })
+                    } label: {
+                        HStack(alignment: .center, spacing: .spacingXS) {
+                            Text(settings.units == "Imperial" ? "Imperial (mi, ft, in, lbs)" : "Metric (km, m, cm, kg)")
+                                .bodyText(weight: .regular)
+                            
+                            Image(systemName: "chevron.up.chevron.down")
+                                .bodyImage(weight: .medium)
                         }
+                    }
+                    .textColor()
+                    .animatedButton()
+                }
+                
+                // Input
+                if type == .height && settings.units == "Imperial" {
+                    VStack(alignment: .leading, spacing: .spacingXS) {
+                        Text(type.rawValue)
+                            .captionText()
+                            .textColor()
                         
-                        Input(
-                            title: "",
-                            text: $heightInches,
-                            isFocused: _isHeightInchesFocused,
-                            unit: "in",
-                            type: .numberPad
-                        )
-                        .onChange(of: heightInches) {
-                            heightInches = heightInches.filteredNumeric()
+                        HStack(alignment: .bottom, spacing: .spacingS) {
+                            Input(
+                                title: "",
+                                text: $heightFeet,
+                                isFocused: _isHeightFeetFocused,
+                                unit: "ft",
+                                type: .numberPad
+                            )
+                            .onChange(of: heightFeet) {
+                                heightFeet = heightFeet.filteredNumericWithoutDecimalPoint()
+                            }
+                            
+                            Input(
+                                title: "",
+                                text: $heightInches,
+                                isFocused: _isHeightInchesFocused,
+                                unit: "in",
+                                type: .numberPad
+                            )
+                            .onChange(of: heightInches) {
+                                heightInches = heightInches.filteredNumeric()
+                            }
                         }
                     }
                 } else {
-                    Input(title: "", text: $text, isFocused: _isTextFocused, unit: units, type: .decimalPad)
+                    Input(title: type.rawValue, text: $text, isFocused: _isTextFocused, unit: units, type: .decimalPad)
                         .onChange(of: text) {
                             text = text.filteredNumeric()
                         }
                 }
             }
-            .padding(.horizontal)
-            .padding(.vertical, 5)
             
-            SaveButton(save: save, isValid: isValid, size: 18)
+            SaveButton(save: save, isValid: isValid)
         }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {

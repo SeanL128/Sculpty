@@ -12,29 +12,37 @@ struct InfoPopup: View {
     let text: String
     
     var body: some View {
-        VStack(alignment: .center, spacing: 24) {
-            VStack(alignment: .center, spacing: 8) {
+        VStack(alignment: .center, spacing: .spacingL) {
+            VStack(alignment: .center, spacing: .spacingXS) {
                 Text(title)
-                    .bodyText(size: 18, weight: .bold)
+                    .subheadingText()
                     .textColor()
                     .multilineTextAlignment(.center)
                 
                 Text(text)
-                    .bodyText(size: 16)
+                    .bodyText(weight: .regular)
                     .textColor()
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .frame(width: 300)
             
-            Button {
-                Popup.dismissLast()
-            } label: {
-                Text("OK")
-                    .bodyText(size: 18, weight: .bold)
+            VStack(alignment: .center, spacing: .spacingM) {
+                Spacer()
+                    .frame(height: 0)
+                
+                Button {
+                    Popup.dismissLast()
+                } label: {
+                    Text("OK")
+                        .bodyText()
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, .spacingL)
+                }
+                .textColor()
+                .background(Color.accentColor)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .animatedButton()
             }
-            .textColor()
-            .animatedButton()
         }
     }
 }

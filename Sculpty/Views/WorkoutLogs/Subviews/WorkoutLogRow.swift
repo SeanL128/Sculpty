@@ -21,18 +21,17 @@ struct WorkoutLogRow: View {
             NavigationLink {
                 WorkoutLogView(log: log)
             } label: {
-                HStack(alignment: .center) {
+                HStack(alignment: .center, spacing: .spacingXS) {
                     Text(formatDateWithTime(log.start))
-                        .bodyText(size: 16)
+                        .bodyText(weight: .regular)
                         .multilineTextAlignment(.leading)
                     
                     Image(systemName: "chevron.right")
-                        .padding(.leading, -2)
-                        .font(Font.system(size: 10))
+                        .bodyImage()
                 }
             }
             .textColor()
-            .animatedButton(scale: 0.98)
+            .animatedButton()
             
             Spacer()
             
@@ -50,8 +49,7 @@ struct WorkoutLogRow: View {
                 })
             } label: {
                 Image(systemName: "xmark")
-                    .padding(.horizontal, 8)
-                    .font(Font.system(size: 16))
+                    .bodyText(weight: .regular)
             }
             .textColor()
             .animatedButton(feedback: .warning)
@@ -71,6 +69,5 @@ struct WorkoutLogRow: View {
                 }
             }
         }
-        .padding(.trailing, 1)
     }
 }

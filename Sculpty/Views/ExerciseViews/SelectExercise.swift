@@ -15,7 +15,11 @@ struct SelectExercise: View {
     @Query(filter: #Predicate<Exercise> { !$0.hidden }) private var exercises: [Exercise]
     private var exerciseOptions: [Exercise] {
         if forStats {
-            return exercises.filter { !$0.workoutExercises.compactMap { $0.exerciseLogs }.isEmpty }
+            return exercises.filter { exercise in
+                exercise.workoutExercises.contains { workoutExercise in
+                    workoutExercise.exerciseLogs.contains { $0.completed } == true
+                }
+            }
         } else {
             return exercises
         }
@@ -30,7 +34,7 @@ struct SelectExercise: View {
     
     @State private var addButtonPressed: Bool = false
     
-    var filteredExercises: [Exercise] {
+    private var filteredExercises: [Exercise] {
         if searchText.isEmpty {
             return exercises
         } else {
@@ -40,7 +44,7 @@ struct SelectExercise: View {
         }
     }
     
-    var groupedExercises: [MuscleGroup: [Exercise]] {
+    private var groupedExercises: [MuscleGroup: [Exercise]] {
         Dictionary(grouping: filteredExercises, by: { exercise in
             exercise.muscleGroup ?? MuscleGroup.other
         })
@@ -50,14 +54,13 @@ struct SelectExercise: View {
     }
     
     var body: some View {
-        ContainerView(title: "Select Exercise", spacing: 16, showScrollBar: true, lazy: true, trailingItems: {
+        ContainerView(title: "Exercises", spacing: .spacingL, lazy: true, trailingItems: {
             if !forStats {
                 NavigationLink {
                     PageRenderer(page: .upsertExercise, selectedExercise: $selectedExercise)
                 } label: {
                     Image(systemName: "plus")
-                        .padding(.horizontal, 5)
-                        .font(Font.system(size: 20))
+                        .pageTitleImage()
                 }
                 .textColor()
                 .animatedButton()
@@ -71,39 +74,30 @@ struct SelectExercise: View {
                             get: { isSearchFocused },
                             set: { isSearchFocused = $0 }
                         ),
-                        text: $searchText
-                    )
+                        text: $searchText)
                 )
-                .padding(.bottom, 5)
+                .padding(.bottom, .spacingXS)
             
             if filteredExercises.isEmpty {
-                HStack(alignment: .center) {
-                    Spacer()
-                    
-                    Text("No results")
-                        .bodyText(size: 18)
-                        .textColor()
-                        .transition(.scale.combined(with: .opacity))
-                    
-                    Spacer()
-                }
+                EmptyState(
+                    image: "magnifyingglass",
+                    text: "No exercises found",
+                    subtext: "Try adjusting your search"
+                )
             } else {
-                ForEach(MuscleGroup.displayOrder, id: \.id) { muscleGroup in
-                    if let exercisesForGroup = groupedExercises[muscleGroup], !exercisesForGroup.isEmpty {
-                        ExerciseListGroup(
-                            muscleGroup: muscleGroup,
-                            exercises: exercisesForGroup,
-                            selectedExercise: $selectedExercise,
-                            exerciseOptions: exerciseOptions
-                        )
+                VStack(alignment: .leading, spacing: .spacingL) {
+                    ForEach(MuscleGroup.displayOrder, id: \.id) { muscleGroup in
+                        if let exercisesForGroup = groupedExercises[muscleGroup], !exercisesForGroup.isEmpty {
+                            ExerciseListGroup(
+                                muscleGroup: muscleGroup,
+                                exercises: exercisesForGroup,
+                                selectedExercise: $selectedExercise,
+                                exerciseOptions: exerciseOptions
+                            )
+                        }
                     }
+                    .animation(.easeInOut(duration: 0.3), value: groupedExercises)
                 }
-                .animation(.easeInOut(duration: 0.3), value: groupedExercises)
-            }
-        }
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                KeyboardDoneButton()
             }
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: searchText)
@@ -111,6 +105,11 @@ struct SelectExercise: View {
         .onChange(of: selectedExercise) {
             if selectedExercise != nil {
                 dismiss()
+            }
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                KeyboardDoneButton()
             }
         }
     }

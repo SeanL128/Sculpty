@@ -12,23 +12,18 @@ struct OptionsSectionHeader: View {
     let image: String
     
     var body: some View {
-        HStack(alignment: .center) {
-            HStack(alignment: .center) {
-                Spacer()
-                
-                Image(systemName: image)
-                    .font(Font.system(size: 18))
-                
-                Spacer()
-            }
-            .frame(width: 25)
+        HStack(alignment: .center, spacing: .spacingS) {
+            Image(systemName: image)
+                .headingImage()
+                .textColor()
+                .frame(width: 25, alignment: .center)
             
             Text(title.uppercased())
-                .headingText(size: 24)
+                .headingText()
+                .textColor()
             
             Spacer()
         }
-        .textColor()
         .transition(.asymmetric(
             insertion: .move(edge: .leading).combined(with: .opacity),
             removal: .move(edge: .trailing).combined(with: .opacity)

@@ -9,14 +9,16 @@ import SwiftUI
 
 struct OptionsMiscSection: View {
     var body: some View {
-        VStack(alignment: .center, spacing: 8) {
+        VStack(alignment: .center, spacing: .spacingS) {
             Link("Website", destination: URL(string: "https://sculpty.app")!) // swiftlint:disable:this line_length force_unwrapping
-                .bodyText(size: 18)
+                .bodyText()
+                .accentColor()
             
             if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
                let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
                 Text("Sculpty Version \(version) Build \(build)")
-                    .statsText(size: 14)
+                    .secondaryText()
+                    .secondaryColor()
             }
         }
         .frame(maxWidth: .infinity)

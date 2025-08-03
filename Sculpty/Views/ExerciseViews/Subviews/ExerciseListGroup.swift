@@ -26,20 +26,25 @@ struct ExerciseListGroup: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 9) {
+        VStack(alignment: .leading, spacing: .spacingS) {
             Text(muscleGroup.rawValue.uppercased())
-                .headingText(size: 14)
+                .subheadingText()
                 .textColor()
-                .padding(.bottom, -2)
             
-            ForEach(exercises, id: \.id) { exercise in
-                ExerciseListRow(
-                    exercise: exercise,
-                    selectedExercise: selectedExercise,
-                    exerciseOptions: exerciseOptions
-                )
+            VStack(alignment: .leading, spacing: .listSpacing) {
+                ForEach(exercises, id: \.id) { exercise in
+                    ExerciseListRow(
+                        exercise: exercise,
+                        selectedExercise: selectedExercise,
+                        exerciseOptions: exerciseOptions
+                    )
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .move(edge: .leading)),
+                        removal: .opacity.combined(with: .move(edge: .trailing))
+                    ))
+                }
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: exercises)
             }
         }
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: exercises.count)
     }
 }

@@ -16,9 +16,9 @@ struct OptionsPickerRow<PopupContent: View>: View {
     var onDismiss: (() -> Void)?
     
     var body: some View {
-        HStack {
+        HStack(alignment: .center) {
             Text(title)
-                .bodyText(size: 18)
+                .bodyText()
             
             Spacer()
             
@@ -27,16 +27,16 @@ struct OptionsPickerRow<PopupContent: View>: View {
                     popup
                 }, onDismiss: { onDismiss?() })
             } label: {
-                HStack(alignment: .center) {
+                HStack(alignment: .center, spacing: .spacingXS) {
                     Text(text)
-                        .bodyText(size: 18, weight: .bold)
+                        .bodyText()
                     
                     Image(systemName: "chevron.up.chevron.down")
-                        .font(Font.system(size: 12, weight: .bold))
+                        .captionText(weight: .bold)
                 }
             }
             .textColor()
-            .animatedButton(scale: 0.98)
+            .animatedButton()
         }
     }
 }

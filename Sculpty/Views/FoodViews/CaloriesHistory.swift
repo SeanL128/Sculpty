@@ -9,29 +9,39 @@ import SwiftUI
 import SwiftData
 
 struct CaloriesHistory: View {
+    @Environment(\.modelContext) private var context
+    
     @Query(sort: \CaloriesLog.date, order: .reverse) private var logs: [CaloriesLog]
+    
     private var caloriesLogs: [CaloriesLog] {
         logs.filter { !$0.entries.isEmpty }
     }
     
     var body: some View {
-        ContainerView(title: "Calories History", spacing: 30, lazy: true) {
+        ContainerView(title: "Calories History", spacing: .spacingL, lazy: true) {
             if !caloriesLogs.isEmpty {
                 ForEach(caloriesLogs, id: \.id) { log in
                     CaloriesHistorySection(log: log)
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .move(edge: .top)),
+                            removal: .opacity.combined(with: .move(edge: .trailing))
+                        ))
                 }
+                .animation(.easeInOut(duration: 0.4), value: caloriesLogs.count)
+                .animation(.easeInOut(duration: 0.3), value: caloriesLogs.map { $0.entries.count })
                 
                 Spacer()
-                    .frame(height: 16)
+                    .frame(height: 0)
                 
                 FatSecretLink()
             } else {
                 EmptyState(
-                    message: "No Data",
-                    size: 18
+                    image: "fork.knife",
+                    text: "No food entries logged",
+                    subtext: "Log your first food"
                 )
             }
         }
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: caloriesLogs.count)
+        .animation(.easeInOut(duration: 0.3), value: caloriesLogs.isEmpty)
     }
 }

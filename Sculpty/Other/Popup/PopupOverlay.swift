@@ -84,10 +84,11 @@ struct PopupOverlay: View {
             .frame(maxWidth: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: popup.config.cornerRadius)
+                    .stroke(popup.config.popupBorderColor, lineWidth: 1)
                     .fill(popup.config.popupBackgroundColor)
                     .shadow(color: Color.black.opacity(0.1), radius: 20, x: 0, y: 10)
             )
-            .shadow(color: Color.black.opacity(0.15), radius: 30, x: 0, y: 15) // Outer shadow
+            .shadow(color: Color.black.opacity(0.15), radius: 30, x: 0, y: 15)
             .offset(y: dragOffset.height + animationOffset)
             .scaleEffect(isVisible ? (isDragging ? 0.98 : 1.0) : 0.9)
             .opacity(isVisible ? 1.0 : 0.0)

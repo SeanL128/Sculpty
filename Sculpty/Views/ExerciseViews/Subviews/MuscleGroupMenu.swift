@@ -11,9 +11,9 @@ struct MuscleGroupMenu: View {
     @Binding var selectedMuscleGroup: String?
     
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: .spacingXS) {
             Text("Muscle Group")
-                .bodyText(size: 12)
+                .captionText()
                 .textColor()
             
             Button {
@@ -25,17 +25,16 @@ struct MuscleGroupMenu: View {
                     )
                 })
             } label: {
-                HStack(alignment: .center) {
+                HStack(alignment: .center, spacing: .spacingXS) {
                     Text(selectedMuscleGroup ?? "Select")
-                        .bodyText(size: 18, weight: .bold)
+                        .bodyText()
                     
                     Image(systemName: "chevron.right")
-                        .padding(.leading, -2)
-                        .font(Font.system(size: 12, weight: .bold))
+                        .bodyImage()
                 }
             }
             .textColor()
-            .animatedButton(scale: 0.98, feedback: .selection)
+            .animatedButton(feedback: .selection)
         }
     }
 }

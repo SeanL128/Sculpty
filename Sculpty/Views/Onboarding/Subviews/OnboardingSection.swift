@@ -14,11 +14,11 @@ struct OnboardingSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(title.uppercased())
-                .headingText(size: 18)
+                .bodyText()
                 .textColor()
             
             Text(description)
-                .bodyText(size: 14)
+                .secondaryText()
                 .secondaryColor()
                 .padding(.leading, 10)
                 .multilineTextAlignment(.leading)

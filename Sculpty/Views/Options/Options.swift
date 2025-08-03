@@ -9,15 +9,12 @@ import SwiftUI
 
 struct Options: View {
     var body: some View {
-        ContainerView(title: "Options", spacing: 24) {
+        ContainerView(title: "Options", spacing: .spacingXXL) {
             OptionsDefaultsSection()
                 .transition(.asymmetric(
                     insertion: .move(edge: .top).combined(with: .opacity),
                     removal: .opacity
                 ))
-
-            Spacer()
-                .frame(height: 5)
             
             OptionsCustomizationSection()
                 .transition(.asymmetric(
@@ -25,17 +22,11 @@ struct Options: View {
                     removal: .opacity
                 ))
 
-            Spacer()
-                .frame(height: 5)
-
             OptionsWorkoutsSection()
                 .transition(.asymmetric(
                     insertion: .move(edge: .leading).combined(with: .opacity),
                     removal: .opacity
                 ))
-
-            Spacer()
-                .frame(height: 5)
 
             OptionsCaloriesSection()
                 .transition(.asymmetric(
@@ -43,17 +34,11 @@ struct Options: View {
                     removal: .opacity
                 ))
 
-            Spacer()
-                .frame(height: 5)
-
             OptionsStatsSection()
                 .transition(.asymmetric(
                     insertion: .move(edge: .leading).combined(with: .opacity),
                     removal: .opacity
                 ))
-
-            Spacer()
-                .frame(height: 5)
 
             OptionsNotificationsSection()
                 .transition(.asymmetric(
@@ -61,23 +46,18 @@ struct Options: View {
                     removal: .opacity
                 ))
 
-            Spacer()
-                .frame(height: 5)
-
             OptionsDataSection()
                 .transition(.asymmetric(
                     insertion: .move(edge: .bottom).combined(with: .opacity),
                     removal: .opacity
                 ))
 
-            Spacer()
-                .frame(height: 5)
-
             OptionsMiscSection()
                 .transition(.asymmetric(
                     insertion: .move(edge: .bottom).combined(with: .opacity),
                     removal: .opacity
                 ))
+                .padding(.bottom, -.spacingXXL)
         }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {

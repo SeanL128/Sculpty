@@ -25,51 +25,46 @@ struct WorkoutLiveActivity: Widget {
                 
                 DynamicIslandExpandedRegion(.bottom) {
                     HStack(alignment: .top) {
-                        VStack(alignment:.leading, spacing: 2) {
+                        VStack(alignment:.leading, spacing: .spacingXS) {
                             Text(context.state.workoutName)
-                                .font(.custom("PublicSans-Bold", size: 20))
-                                .foregroundStyle(ColorManager.text)
+                                .bodyText()
+                                .textColor()
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                             
-                            HStack(spacing: 0) {
-                                Text("Progress: ")
-                                    .font(.custom("PublicSans-Regular", size: 14))
-                                
-                                Text("\(round(context.state.workoutProgress * 100).formatted())%")
-                                    .font(.custom("IBMPlexMono-Regular", size: 14))
-                                    .monospacedDigit()
-                                    .contentTransition(.numericText())
-                                    .animation(.easeInOut(duration: 0.2), value: context.state.workoutProgress)
-                            }
-                            .foregroundStyle(ColorManager.secondary)
+                            Text("Progress: \(round(context.state.workoutProgress * 100).formatted())%")
+                                .secondaryText()
+                                .secondaryColor()
+                                .monospacedDigit()
+                                .contentTransition(.numericText())
+                                .animation(.easeInOut(duration: 0.2), value: context.state.workoutProgress)
                         }
                         
                         Spacer()
                         
-                        VStack(alignment: .trailing, spacing: 2) {
+                        VStack(alignment: .trailing, spacing: .spacingXS) {
                             Text(context.state.currentExerciseName)
-                                .font(.custom("PublicSans-Regular", size: 12))
-                                .foregroundStyle(ColorManager.text)
+                                .captionText()
+                                .textColor()
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                             
                             Text(context.state.currentSetText.isEmpty ? "No remaining \(context.state.currentExerciseName) sets" : context.state.currentSetText)
-                                .font(.custom("PublicSans-Regular", size: 16))
-                                .foregroundStyle(ColorManager.text)
+                                .bodyText()
+                                .textColor()
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                             
                             if !context.state.nextSetText.isEmpty {
                                 Text(context.state.nextSetText)
-                                    .font(.custom("PublicSans-Regular", size: 14))
-                                    .foregroundStyle(ColorManager.secondary)
+                                    .bodyText(weight: .regular)
+                                    .secondaryColor()
                                     .lineLimit(1)
                                     .truncationMode(.tail)
                             }
                         }
                     }
-                    .padding(.horizontal, 4)
+                    .padding(.horizontal, .spacingXS)
                 }
             } compactLeading: {
                 Image("TransparentIcon")
@@ -78,8 +73,8 @@ struct WorkoutLiveActivity: Widget {
                     .frame(width: 24, height: 24)
             } compactTrailing: {
                 Text("\(round(context.state.workoutProgress * 100).formatted())%")
-                    .font(.custom("IBMPlexMono-Regular", size: 16))
-                    .foregroundStyle(ColorManager.text)
+                    .bodyText()
+                    .textColor()
                     .monospacedDigit()
                     .contentTransition(.numericText())
                     .animation(.easeInOut(duration: 0.2), value: context.state.workoutProgress)
@@ -98,38 +93,33 @@ struct WorkoutLockScreenView: View {
     
     var body: some View {
         HStack(alignment: .top) {
-            VStack(alignment:.leading, spacing: 2) {
+            VStack(alignment:.leading, spacing: .spacingXS) {
                 Text(context.state.workoutName)
-                    .font(.custom("PublicSans-Bold", size: 20))
-                    .foregroundStyle(ColorManager.text)
+                    .subheadingText()
+                    .textColor()
                     .lineLimit(1)
                     .truncationMode(.tail)
                 
-                HStack(spacing: 0) {
-                    Text("Progress: ")
-                        .font(.custom("PublicSans-Regular", size: 14))
-                    
-                    Text("\(round(context.state.workoutProgress * 100).formatted())%")
-                        .font(.custom("IBMPlexMono-Regular", size: 14))
-                        .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .animation(.easeInOut(duration: 0.2), value: context.state.workoutProgress)
-                }
-                .foregroundStyle(ColorManager.secondary)
+                Text("Progress: \(round(context.state.workoutProgress * 100).formatted())%")
+                    .secondaryText()
+                    .secondaryColor()
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                    .animation(.easeInOut(duration: 0.2), value: context.state.workoutProgress)
             }
             
             Spacer()
             
-            VStack(alignment: .trailing, spacing: 2) {
+            VStack(alignment: .trailing, spacing: .spacingXS) {
                 Text(context.state.currentExerciseName)
-                    .font(.custom("PublicSans-Regular", size: 12))
-                    .foregroundStyle(ColorManager.text)
+                    .captionText()
+                    .textColor()
                     .lineLimit(1)
                     .truncationMode(.tail)
                 
                 if !context.state.currentSetText.isEmpty {
                     Text(context.state.currentSetText)
-                        .font(.custom("PublicSans-Regular", size: 16))
+                        .bodyText()
                         .foregroundStyle(ColorManager.text)
                         .lineLimit(1)
                         .truncationMode(.tail)
@@ -137,14 +127,14 @@ struct WorkoutLockScreenView: View {
                 
                 if !context.state.nextSetText.isEmpty {
                     Text(context.state.nextSetText)
-                        .font(.custom("PublicSans-Regular", size: 14))
-                        .foregroundStyle(ColorManager.secondary)
+                        .bodyText(weight: .regular)
+                        .secondaryColor()
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
             }
         }
-        .padding()
+        .padding(.spacingM)
         .background(ColorManager.background)
         .cornerRadius(12)
     }

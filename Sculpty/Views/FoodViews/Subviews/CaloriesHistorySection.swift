@@ -13,24 +13,26 @@ struct CaloriesHistorySection: View {
     @State private var open: Bool = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: .spacingXS) {
+            VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .center) {
                     Button {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             open.toggle()
                         }
                     } label: {
-                        HStack(alignment: .center) {
+                        HStack(alignment: .center, spacing: .spacingS) {
                             Text(formatDate(log.date))
-                                .headingText(size: 16)
+                                .subheadingText()
+                                .multilineTextAlignment(.leading)
                             
                             Image(systemName: "chevron.down")
-                                .font(Font.system(size: 10, weight: .bold))
+                                .subheadingImage(weight: .medium)
                                 .rotationEffect(.degrees(open ? -180 : 0))
                         }
                     }
                     .animatedButton()
+                    .textColor()
                     
                     Spacer()
                     
@@ -38,27 +40,34 @@ struct CaloriesHistorySection: View {
                         SearchFood(log: log)
                     } label: {
                         Image(systemName: "plus")
-                            .padding(.horizontal, 5)
-                            .font(Font.system(size: 16))
+                            .bodyText()
                     }
                     .animatedButton()
                 }
-                .textColor()
                 
-                Text("\(log.getTotalCalories().formatted())cal")
-                    .statsText(size: 12)
+                Text("\(Int(log.getTotalCalories()))cal")
+                    .bodyText(weight: .regular)
                     .secondaryColor()
+                    .monospacedDigit()
             }
-            .padding(.bottom, -8)
+            .padding(.bottom, open ? .spacingXS : 0)
             
             if open {
-                ForEach(log.entries.sorted { $0.date < $1.date }, id: \.id) { entry in
-                    FoodEntryRow(
-                        entry: entry,
-                        log: log
-                    )
+                VStack(alignment: .leading, spacing: .listSpacing) {
+                    ForEach(log.entries.sorted { $0.date < $1.date }, id: \.id) { entry in
+                        FoodEntryRow(
+                            entry: entry,
+                            log: log
+                        )
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .move(edge: .top)),
+                            removal: .opacity.combined(with: .move(edge: .bottom))
+                        ))
+                    }
+                    .animation(.easeInOut(duration: 0.3), value: log.entries)
                 }
             }
         }
+        .padding(.bottom, open ? 0 : -.listSpacing)
     }
 }

@@ -15,65 +15,72 @@ struct UnitMenuPopup: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: .spacingM) {
             HStack {
                 Spacer()
                 
                 Text("Units")
-                    .bodyText(size: 18, weight: .bold)
+                    .subheadingText()
+                    .textColor()
                     .multilineTextAlignment(.center)
                 
                 Spacer()
             }
             
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: .spacingM) {
                 // Imperial
                 Button {
-                    selection = "Imperial"
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        selection = "Imperial"
+                    }
                     
                     Popup.dismissLast()
                 } label: {
-                    HStack(alignment: .center) {
+                    HStack(alignment: .center, spacing: .spacingXS) {
                         Text("Imperial (mi, ft, in, lbs)")
-                            .bodyText(size: 16, weight: selection == "Imperial" ? .bold : .regular)
-                            .textColor()
+                            .bodyText(weight: selection == "Imperial" ? .bold : .regular)
                             .multilineTextAlignment(.leading)
                         
+                        Image(systemName: "chevron.right")
+                            .bodyImage(weight: selection == "Imperial" ? .bold : .medium)
+                        
+                        Spacer()
+                        
                         if selection == "Imperial" {
-                            Spacer()
-                            
                             Image(systemName: "checkmark")
-                                .padding(.horizontal, 8)
-                                .font(Font.system(size: 16))
+                                .bodyText()
                         }
                     }
                 }
                 .textColor()
-                .animatedButton(scale: 0.98, feedback: .selection)
+                .animatedButton(feedback: .selection)
                 
                 // Metric
                 Button {
-                    selection = "Metric"
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        selection = "Metric"
+                    }
                     
                     Popup.dismissLast()
                 } label: {
-                    HStack(alignment: .center) {
+                    HStack(alignment: .center, spacing: .spacingXS) {
                         Text("Metric (km, m, cm, kg)")
-                            .bodyText(size: 16, weight: selection == "Metric" ? .bold : .regular)
-                            .textColor()
+                            .bodyText(weight: selection == "Metric" ? .bold : .regular)
                             .multilineTextAlignment(.leading)
                         
+                        Image(systemName: "chevron.right")
+                            .bodyImage(weight: selection == "Metric" ? .bold : .medium)
+                        
+                        Spacer()
+                        
                         if selection == "Metric" {
-                            Spacer()
-                            
                             Image(systemName: "checkmark")
-                                .padding(.horizontal, 8)
-                                .font(Font.system(size: 16))
+                                .bodyText()
                         }
                     }
                 }
                 .textColor()
-                .animatedButton(scale: 0.98, feedback: .selection)
+                .animatedButton(feedback: .selection)
             }
         }
     }

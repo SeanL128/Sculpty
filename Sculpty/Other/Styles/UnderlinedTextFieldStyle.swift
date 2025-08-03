@@ -85,5 +85,6 @@ struct UnderlinedTextFieldStyle: TextFieldStyle {
                 }
             }
         }
+        .contentShape(.rect)
     }
 }

@@ -34,26 +34,30 @@ struct CustomActionContainerViewHeader<TrailingItems: View>: View {
     }
     
     var body: some View {
-        HStack(alignment: .center) {
+        HStack(alignment: .center, spacing: 12) {
             Button {
                 onDismiss()
             } label: {
                 Image(systemName: "chevron.left")
-                    .padding(.trailing, 6)
-                    .font(Font.system(size: 22))
+                    .pageTitleImage()
             }
             .textColor()
             
             Text(title.uppercased())
-                .headingText(size: 32)
+                .pageTitleText()
                 .textColor()
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .multilineTextAlignment(.leading)
             
             Spacer()
             
             if let trailingItems = trailingItems {
-                trailingItems
+                HStack(alignment: .center, spacing: .spacingL) {
+                    trailingItems
+                }
             }
         }
-        .padding(.bottom)
+        .padding(.bottom, .spacingXS)
     }
 }

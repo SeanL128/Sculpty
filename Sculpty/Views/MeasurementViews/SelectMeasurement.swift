@@ -14,55 +14,55 @@ struct SelectMeasurement: View {
     
     @Query private var measurements: [Measurement]
     private var measurementOptions: [MeasurementType] {
-        if forStats {
-            return MeasurementType.displayOrder.filter { type in
-                measurements.contains(where: { $0.type == type })
-            }
-        } else {
-            return MeasurementType.displayOrder
+        return MeasurementType.displayOrder.filter { type in
+            measurements.contains(where: { $0.type == type })
         }
     }
     
     @Binding var selectedMeasurementType: MeasurementType?
     
-    var forStats: Bool = false
-    
     var body: some View {
-        ContainerView(title: "Select Measurement", spacing: 16) {
+        ContainerView(title: "Measurements", spacing: .listSpacing, lazy: true) {
             ForEach(MeasurementType.displayOrder, id: \.id) { type in
                 Button {
-                    selectedMeasurementType = type
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        selectedMeasurementType = type
+                    }
                 } label: {
-                    HStack(alignment: .center) {
+                    HStack(alignment: .center, spacing: .spacingXS) {
                         Text(type.rawValue)
-                            .bodyText(size: 16, weight: selectedMeasurementType == type ? .bold : .regular)
+                            .bodyText(weight: selectedMeasurementType == type ? .bold : .regular)
                             .multilineTextAlignment(.leading)
-                            .animation(.easeInOut(duration: 0.2), value: selectedMeasurementType == type)
                         
                         if measurementOptions.contains(where: { $0 == type }) {
                             Image(systemName: "chevron.right")
-                                .padding(.leading, -2)
-                                .font(Font.system(size: 10, weight: selectedMeasurementType == type ? .bold : .regular))
-                                .animation(.easeInOut(duration: 0.2), value: selectedMeasurementType == type)
+                                .bodyImage(weight: selectedMeasurementType == type ? .bold : .medium)
                         }
                         
+                        Spacer()
+                        
                         if selectedMeasurementType == type {
-                            Spacer()
-                            
                             Image(systemName: "checkmark")
-                                .padding(.horizontal, 8)
-                                .font(Font.system(size: 16))
-                                .transition(.scale.combined(with: .opacity))
+                                .bodyText()
+                                .transition(.asymmetric(
+                                    insertion: .opacity.combined(with: .scale(scale: 0.8)),
+                                    removal: .opacity.combined(with: .scale(scale: 0.8))
+                                ))
                         }
                     }
                 }
-                .foregroundStyle(forStats && !measurementOptions.contains(where: { $0 == type }) ? ColorManager.secondary : ColorManager.text) // swiftlint:disable:this line_length
-                .disabled(forStats && !measurementOptions.contains(where: { $0 == type }))
-                .animatedButton(scale: 0.98, isValid: !forStats || measurementOptions.contains(where: { $0 == type }))
+                .foregroundStyle(measurementOptions.contains(where: { $0 == type }) ? ColorManager.text : ColorManager.secondary) // swiftlint:disable:this line_length
+                .disabled(!measurementOptions.contains(where: { $0 == type }))
+                .animatedButton(feedback: .selection, isValid: measurementOptions.contains(where: { $0 == type })) // swiftlint:disable:this line_length
                 .transition(.asymmetric(
-                    insertion: .move(edge: .leading).combined(with: .opacity),
-                    removal: .move(edge: .trailing).combined(with: .opacity)
+                    insertion: .opacity.combined(with: .move(edge: .leading)),
+                    removal: .opacity.combined(with: .move(edge: .trailing))
                 ))
+            }
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                KeyboardDoneButton()
             }
         }
         .onChange(of: selectedMeasurementType) {
@@ -70,7 +70,5 @@ struct SelectMeasurement: View {
                 dismiss()
             }
         }
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedMeasurementType)
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: measurementOptions.count)
     }
 }

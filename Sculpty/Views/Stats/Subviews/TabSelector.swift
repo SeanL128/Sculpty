@@ -13,12 +13,12 @@ struct TabSelector: View {
     var animation: Namespace.ID
 
     var body: some View {
-        GeometryReader { geometry in
+        GeometryReader { geo in
             HStack(spacing: 0) {
                 ForEach(tabs.indices, id: \.self) { index in
-                    VStack(spacing: 4) {
+                    VStack(spacing: .spacingXS) {
                         Text(tabs[index])
-                            .headingText(size: 16)
+                            .secondaryText(weight: .bold)
                             .foregroundStyle(selected == index ? ColorManager.text : ColorManager.secondary)
                             .frame(maxWidth: .infinity)
 
@@ -33,7 +33,7 @@ struct TabSelector: View {
                                 .frame(height: 3)
                         }
                     }
-                    .frame(width: geometry.size.width / CGFloat(tabs.count))
+                    .frame(width: geo.size.width / CGFloat(tabs.count))
                     .onTapGesture {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                             selected = index

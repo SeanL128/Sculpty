@@ -28,50 +28,50 @@ struct WorkoutLogView: View {
     }
     
     var body: some View {
-        ContainerView(title: log.workout?.name ?? "Workout") {
-            Text(formatDate(log.start))
-                .bodyText(size: 20, weight: .bold)
-                .textColor()
-            
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Total Time: \(lengthToString(length: log.getLength()))")
-                    .bodyText(size: 16)
+        ContainerView(title: log.workout?.name ?? "Workout", spacing: .spacingXL) {
+            VStack(alignment: .leading, spacing: .spacingL) {
+                Text(formatDate(log.start))
+                    .headingText()
                     .textColor()
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .animation(.easeInOut(duration: 0.3), value: log.getLength())
                 
-                Text("Total Reps: \(reps) reps")
-                    .bodyText(size: 16)
-                    .textColor()
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .animation(.easeInOut(duration: 0.3), value: reps)
+                VStack(alignment: .leading, spacing: .spacingS) {
+                    Text("Total Time: \(lengthToString(length: log.getLength()))")
+                        .bodyText()
+                        .textColor()
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                        .animation(.easeInOut(duration: 0.3), value: log.getLength())
+                    
+                    Text("Total Reps: \(reps) reps")
+                        .bodyText()
+                        .textColor()
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                        .animation(.easeInOut(duration: 0.3), value: reps)
+                    
+                    Text("Total Weight: \(weight)\(UnitsManager.weight)")
+                        .bodyText()
+                        .textColor()
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                        .animation(.easeInOut(duration: 0.3), value: weight)
+                }
                 
-                Text("Total Weight: \(weight)\(UnitsManager.weight)")
-                    .bodyText(size: 16)
-                    .textColor()
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .animation(.easeInOut(duration: 0.3), value: weight)
-                
-                Spacer()
-                    .frame(height: 5)
-                
-                MuscleGroupDisplay(groups: muscleGroups)
+                if !muscleGroups.isEmpty {
+                    MuscleGroupDisplay(groups: muscleGroups)
+                }
             }
             
-            Spacer()
-                .frame(height: 5)
-            
-            ForEach(log.exerciseLogs.sorted { $0.index < $1.index }, id: \.id) { exerciseLog in
-                ExerciseLogGroup(exerciseLog: exerciseLog, workoutLog: log)
-                    .transition(.asymmetric(
-                        insertion: .opacity.combined(with: .move(edge: .leading)),
-                        removal: .opacity.combined(with: .move(edge: .trailing))
-                    ))
+            VStack(alignment: .leading, spacing: .spacingXL) {
+                ForEach(log.exerciseLogs.sorted { $0.index < $1.index }, id: \.id) { exerciseLog in
+                    ExerciseLogGroup(exerciseLog: exerciseLog, workoutLog: log)
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .move(edge: .leading)),
+                            removal: .opacity.combined(with: .move(edge: .trailing))
+                        ))
+                }
+                .animation(.easeInOut(duration: 0.3), value: log.exerciseLogs)
             }
-            .animation(.easeInOut(duration: 0.3), value: log.exerciseLogs.count)
         }
     }
 }

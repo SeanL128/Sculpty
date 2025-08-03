@@ -25,47 +25,57 @@ struct WorkoutSummaryPopup: View {
     }
     
     var body: some View {
-        VStack(alignment: .center, spacing: 24) {
-            VStack(alignment: .center, spacing: 8) {
+        VStack(alignment: .center, spacing: .spacingL) {
+            VStack(alignment: .center, spacing: .spacingM) {
                 Text(log.workout?.name ?? "")
-                    .bodyText(size: 18, weight: .bold)
+                    .subheadingText()
                     .multilineTextAlignment(.center)
                 
-                Text("Total Time: \(time)")
-                    .bodyText(size: 16)
-                    .textColor()
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .animation(.easeInOut(duration: 0.3), value: time)
+                VStack(alignment: .center, spacing: .spacingXS) {
+                    Text("Total Time: \(time)")
+                        .bodyText()
+                        .textColor()
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                        .animation(.easeInOut(duration: 0.3), value: time)
+                    
+                    Text("Total Reps: \(reps) reps")
+                        .bodyText()
+                        .textColor()
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                        .animation(.easeInOut(duration: 0.3), value: reps)
+                    
+                    Text("Total Weight: \(weight)\(UnitsManager.weight)")
+                        .bodyText()
+                        .textColor()
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                        .animation(.easeInOut(duration: 0.3), value: weight)
+                }
                 
-                Text("Total Reps: \(reps) reps")
-                    .bodyText(size: 16)
-                    .textColor()
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .animation(.easeInOut(duration: 0.3), value: reps)
-                
-                Text("Total Weight: \(weight)\(UnitsManager.weight)")
-                    .bodyText(size: 16)
-                    .textColor()
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .animation(.easeInOut(duration: 0.3), value: weight)
-                
-                Spacer()
-                    .frame(height: 5)
-                
-                MuscleGroupDisplay(groups: muscleGroups)
+                if !muscleGroups.isEmpty {
+                    MuscleGroupDisplay(groups: muscleGroups, alignment: .center)
+                }
             }
             
-            Button {
-                Popup.dismissLast()
-            } label: {
-                Text("OK")
-                    .bodyText(size: 18, weight: .bold)
+            VStack(alignment: .center, spacing: .spacingM) {
+                Spacer()
+                    .frame(height: 0)
+                
+                Button {
+                    Popup.dismissLast()
+                } label: {
+                    Text("OK")
+                        .bodyText()
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, .spacingL)
+                }
+                .textColor()
+                .background(Color.accentColor)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .animatedButton()
             }
-            .textColor()
-            .animatedButton()
         }
     }
 }

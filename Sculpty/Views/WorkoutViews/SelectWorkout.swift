@@ -12,11 +12,9 @@ struct SelectWorkout: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     
-    @Query(filter: #Predicate<Workout> { $0.index >= 0 && !$0.hidden }, sort: \.index) private var workouts: [Workout]
+    @Query(filter: #Predicate<Workout> { $0.index >= 0 && !$0.hidden }) private var workouts: [Workout]
     
     @Binding var selectedWorkout: Workout?
-    
-    var forStats: Bool = false
     
     @State private var searchText: String = ""
     @FocusState private var isSearchFocused: Bool
@@ -24,27 +22,18 @@ struct SelectWorkout: View {
     var filteredWorkouts: [Workout] {
         if searchText.isEmpty {
             return workouts
+                .sorted { $0.index < $1.index }
         } else {
-            return workouts.filter { workout in
-                workout.name.lowercased().contains(searchText.lowercased())
-            }
+            return workouts
+                .filter { workout in
+                    workout.name.lowercased().contains(searchText.lowercased())
+                }
+                .sorted { $0.index < $1.index }
         }
     }
     
     var body: some View {
-        ContainerView(title: "Select Workout", spacing: 16, showScrollBar: true, lazy: true, trailingItems: {
-            if !forStats {
-                NavigationLink {
-                    UpsertWorkout()
-                } label: {
-                    Image(systemName: "plus")
-                        .padding(.horizontal, 5)
-                        .font(Font.system(size: 20))
-                }
-                .textColor()
-                .animatedButton()
-            }
-        }) {
+        ContainerView(title: "Workouts", spacing: .spacingL, lazy: true) {
             TextField("Search Workouts", text: $searchText)
                 .focused($isSearchFocused)
                 .textFieldStyle(
@@ -55,17 +44,28 @@ struct SelectWorkout: View {
                         ),
                         text: $searchText)
                 )
-                .padding(.bottom, 5)
+                .padding(.bottom, .spacingXS)
             
-            ForEach(filteredWorkouts.sorted { $0.index < $1.index }, id: \.id) { workout in
-                SelectWorkoutRow(workout: workout, forStats: forStats, selectedWorkout: $selectedWorkout)
-                    .transition(.asymmetric(
-                        insertion: .opacity.combined(with: .move(edge: .leading)),
-                        removal: .opacity.combined(with: .move(edge: .trailing))
-                    ))
+            if filteredWorkouts.isEmpty {
+                EmptyState(
+                    image: "magnifyingglass",
+                    text: "No workouts found",
+                    subtext: searchText.isEmpty ? "Log your first workout to view stats" : "Try adjusting your search"
+                )
+            } else {
+                VStack(alignment: .leading, spacing: .listSpacing) {
+                    ForEach(filteredWorkouts, id: \.id) { workout in
+                        SelectWorkoutRow(workout: workout, selectedWorkout: $selectedWorkout)
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .move(edge: .leading)),
+                                removal: .opacity.combined(with: .move(edge: .trailing))
+                            ))
+                    }
+                    .animation(.easeInOut(duration: 0.3), value: filteredWorkouts.count)
+                }
             }
-            .animation(.easeInOut(duration: 0.3), value: filteredWorkouts.count)
         }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: searchText)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 KeyboardDoneButton()

@@ -8,9 +8,19 @@
 import SwiftUI
 
 final class ColorManager {
-    static let background = Color("BackgroundColor")
-    static let secondaryBackground = Color("SecondaryBackgroundColor")
+    static let background: Color = Color("BackgroundColor")
     
-    static let text = Color("TextColor")
-    static let secondary = Color("SecondaryTextColor")
+    static let text: Color = Color("TextColor")
+    static let secondary: Color = Color("SecondaryTextColor")
+    
+    static let surface: Color = Color("SurfaceColor")
+    static let raisedSurface: Color = Color("RaisedSurfaceColor")
+    static let border: Color = Color("BorderColor")
+    
+    static let accent: Color = Color(hex: CloudSettings.shared.accentColorHex)
+    static let destructive: Color = Color("DestructiveColor")
+    
+    static let carbs: Color = Color("CarbsColor")
+    static let protein: Color = Color("ProteinColor")
+    static let fat: Color = Color("FatColor")
 }

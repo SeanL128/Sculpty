@@ -17,17 +17,6 @@ struct SculptyApp: App {
     
     @StateObject private var settings = CloudSettings()
     
-    var colorScheme: ColorScheme? {
-        switch settings.appearance {
-        case .light:
-            return .light
-        case .dark:
-            return .dark
-        case .automatic:
-            return nil
-        }
-    }
-    
     init() {
         IQKeyboardManager.shared.resignOnTouchOutside = true
     }
@@ -35,7 +24,7 @@ struct SculptyApp: App {
     var body: some Scene {
         WindowGroup {
             Main()
-                .preferredColorScheme(colorScheme)
+                .preferredColorScheme(.dark)
                 .accentColor(Color(hex: settings.accentColorHex))
                 .dynamicTypeSize(.medium ... .xxxLarge)
                 .modelContainer(for: [Workout.self, Exercise.self, WorkoutLog.self, CaloriesLog.self, Measurement.self])

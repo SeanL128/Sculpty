@@ -60,7 +60,7 @@ struct MultiLineChart: View {
     
     var body: some View {
         VStack {
-            GeometryReader { geometry in
+            GeometryReader { geo in
                 ZStack(alignment: .topLeading) {
                     Chart {
                         ForEach(Array(allChartData.enumerated()), id: \.offset) { _, lineData in
@@ -111,7 +111,7 @@ struct MultiLineChart: View {
                             AxisValueLabel {
                                 if let date = value.as(Date.self) {
                                     Text(selectedRangeIndex <= 1 ? formatDateNoYear(date) : formatMonth(date))
-                                        .bodyText(size: 12)
+                                        .captionText()
                                         .textColor()
                                 }
                             }
@@ -123,7 +123,7 @@ struct MultiLineChart: View {
                             AxisValueLabel {
                                 if let numericValue = value.as(Double.self) {
                                     Text("\(numericValue.formatted())\(units)")
-                                        .bodyText(size: 12)
+                                        .captionText()
                                         .textColor()
                                 }
                             }
@@ -158,34 +158,37 @@ struct MultiLineChart: View {
                        !selectedValues.isEmpty,
                        !allDataPoints.isEmpty {
                         
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: .spacingXS) {
                             Text(formatDate(date))
-                                .bodyText(size: 12)
+                                .captionText()
                                 .textColor()
                             
-                            ForEach(Array(selectedValues.enumerated()), id: \.offset) { _, item in
-                                HStack(spacing: 4) {
-                                    Circle()
-                                        .fill(item.color)
-                                        .frame(width: 8, height: 8)
-                                    
-                                    Text("\(item.name): \(item.value.formatted())\(units)")
-                                        .bodyText(size: 12, weight: .bold)
-                                        .foregroundStyle(item.color)
+                            VStack(alignment: .leading, spacing: 0) {
+                                ForEach(Array(selectedValues.enumerated()), id: \.offset) { _, item in
+                                    HStack(spacing: .spacingXS) {
+                                        Circle()
+                                            .fill(item.color)
+                                            .frame(width: 8, height: 8)
+                                        
+                                        Text("\(item.name): \(item.value.formatted())\(units)")
+                                            .captionText()
+                                            .foregroundStyle(item.color)
+                                    }
                                 }
                             }
                         }
-                        .padding(8)
+                        .padding(.spacingS)
                         .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(ColorManager.background)
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(ColorManager.surface)
+                                .stroke(ColorManager.border)
                         )
                         .transition(.asymmetric(
                             insertion: .scale.combined(with: .opacity),
                             removal: .opacity
                         ))
                         .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isInteracting)
-                        .position(tooltipPosition(in: geometry))
+                        .position(tooltipPosition(in: geo))
                     }
                 }
             }
@@ -230,9 +233,9 @@ struct MultiLineChart: View {
         return data.first { $0.date == date }?.value
     }
     
-    private func tooltipPosition(in geometry: GeometryProxy) -> CGPoint {
+    private func tooltipPosition(in geo: GeometryProxy) -> CGPoint {
         guard let selectedDate = selectedDate else {
-            return CGPoint(x: geometry.size.width / 2, y: 50)
+            return CGPoint(x: geo.size.width / 2, y: 50)
         }
         
         let totalTimeInterval = endDate.timeIntervalSince(startDate)
@@ -240,13 +243,13 @@ struct MultiLineChart: View {
         let relativePosition = max(0, min(1, selectedTimeInterval / totalTimeInterval))
         
         let chartPadding: CGFloat = 40
-        let availableWidth = geometry.size.width - (chartPadding * 2)
+        let availableWidth = geo.size.width - (chartPadding * 2)
         let xPosition = chartPadding + (availableWidth * relativePosition)
         
         let tooltipWidth: CGFloat = 150
         let clampedX = max(tooltipWidth / 2 + 10,
-                          min(geometry.size.width - tooltipWidth / 2 - 10, xPosition))
+                           min(geo.size.width - tooltipWidth / 2 - 10, xPosition))
         
-        return CGPoint(x: clampedX, y: 20)
+        return CGPoint(x: clampedX, y: 30)
     }
 }

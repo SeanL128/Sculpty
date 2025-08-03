@@ -14,8 +14,6 @@ struct ExerciseInfo: View {
     
     @EnvironmentObject private var settings: CloudSettings
     
-    private var workout: Workout
-    
     @State private var workoutExercise: WorkoutExercise
     @State private var exercise: Exercise?
     @State private var type: ExerciseType?
@@ -29,16 +27,13 @@ struct ExerciseInfo: View {
     @FocusState private var isNotesFocused: Bool
     @FocusState private var isTempoFocused: Bool
     
-    @State private var editing: Bool = false
-    
     private var onChangesMade: (() -> Void)?
     
     private var isValid: Bool {
         !workoutExercise.sets.isEmpty && exercise != nil
     }
     
-    init(workout: Workout, exercise: Exercise?, workoutExercise: WorkoutExercise, onChangesMade: (() -> Void)? = nil) {
-        self.workout = workout
+    init(exercise: Exercise?, workoutExercise: WorkoutExercise, onChangesMade: (() -> Void)? = nil) {
         self.exercise = exercise
         self._workoutExercise = State(initialValue: workoutExercise)
         self.onChangesMade = onChangesMade
@@ -64,184 +59,177 @@ struct ExerciseInfo: View {
     }
 
     var body: some View {
-        ContainerView(title: "Exercise Info", spacing: 20, onDismiss: { save(false) }) {
-            VStack(alignment: .leading, spacing: 20) {
-                NavigationLink {
-                    SelectExercise(selectedExercise: $exercise)
-                } label: {
-                    HStack(alignment: .center) {
-                        Text(exercise?.name ?? "Select Exercise")
-                            .bodyText(size: 20, weight: .bold)
-                            .animation(.easeInOut(duration: 0.3), value: exercise?.name)
-                        
-                        Image(systemName: "chevron.right")
-                            .padding(.leading, -2)
-                            .font(Font.system(size: 14, weight: .bold))
+        ContainerView(title: "Exercise Info", spacing: .spacingXXL, onDismiss: {
+            if !workoutExercise.sets.isEmpty {
+                save(false)
+            }
+        }) {
+            VStack(alignment: .leading, spacing: .spacingXL) {
+                VStack(alignment: .leading, spacing: .spacingM) {
+                    NavigationLink {
+                        SelectExercise(selectedExercise: $exercise)
+                    } label: {
+                        HStack(alignment: .center, spacing: .spacingXS) {
+                            Text(exercise?.name ?? "Select Exercise")
+                                .subheadingText()
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                                .multilineTextAlignment(.leading)
+                                .animation(.easeInOut(duration: 0.3), value: exercise?.name)
+                            
+                            Image(systemName: "chevron.right")
+                                .subheadingImage()
+                        }
                     }
-                }
-                .textColor()
-                .animatedButton(scale: 0.98)
-                .onChange(of: exercise) {
-                    if exercise?.type != type {
-                        workoutExercise.sets.removeAll()
+                    .textColor()
+                    .animatedButton()
+                    .onChange(of: exercise) {
+                        if exercise?.type != type {
+                            workoutExercise.sets.removeAll()
+                        }
+                        
+                        type = exercise?.type
+                        
+                        if workoutExercise.sets.isEmpty {
+                            let newSet = ExerciseSet(index: 0, type: type ?? .weight)
+                            
+                            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                                var updatedSets = workoutExercise.sets
+                                
+                                updatedSets.append(newSet)
+                                
+                                workoutExercise.sets = updatedSets
+                            }
+                        }
                     }
                     
-                    type = exercise?.type
+                    if let notes = workoutExercise.exercise?.notes, !notes.isEmpty {
+                        Text(notes)
+                            .bodyText()
+                            .textColor()
+                            .multilineTextAlignment(.leading)
+                    }
                 }
                 
-                if let notes = workoutExercise.exercise?.notes, !notes.isEmpty {
-                    Text(notes)
-                        .bodyText(size: 16)
-                        .textColor()
-                }
-            }
-            
-            if sortedSets.count > 0 {
-                HStack(alignment: .center) {
-                    Spacer()
+                if exercise != nil {
+                    if !workoutExercise.sets.isEmpty {
+                        VStack(alignment: .leading, spacing: .listSpacing) {
+                            ForEach(workoutExercise.sets.sorted { $0.index < $1.index }, id: \.id) { set in
+                                EditSetRow(
+                                    set: set,
+                                    sortedSets: sortedSets,
+                                    type: type,
+                                    workoutExercise: $workoutExercise
+                                )
+                                .transition(.asymmetric(
+                                    insertion: .opacity.combined(with: .move(edge: .leading)),
+                                    removal: .opacity.combined(with: .move(edge: .trailing))
+                                ))
+                            }
+                        }
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: sortedSets.count)
+                    }
                     
                     Button {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            editing.toggle()
+                        let nextIndex = workoutExercise.sets.isEmpty ? 0 : (workoutExercise.sets.map { $0.index }.max() ?? -1) + 1 // swiftlint:disable:this line_length
+                        
+                        let newSet = ExerciseSet(index: nextIndex, type: type ?? .weight)
+                        
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                            var updatedSets = workoutExercise.sets
+                            
+                            updatedSets.append(newSet)
+                            
+                            workoutExercise.sets = updatedSets
                         }
                     } label: {
-                        Image(systemName: "chevron.up.chevron.down")
-                            .padding(.horizontal, 8)
-                            .font(Font.system(size: 18))
+                        HStack(alignment: .center, spacing: .spacingXS) {
+                            Image(systemName: "plus")
+                                .secondaryImage(weight: .bold)
+                            
+                            Text("Add Set")
+                                .secondaryText()
+                        }
                     }
-                    .foregroundStyle(editing ? Color.accentColor : ColorManager.text)
-                    .animatedButton()
-                    .animation(.easeInOut(duration: 0.3), value: editing)
+                    .textColor()
+                    .animatedButton(feedback: .impact(weight: .light))
                 }
-            }
-            
-            VStack(alignment: .leading, spacing: 20) {
-                ForEach(workoutExercise.sets.sorted { $0.index < $1.index }, id: \.id) { set in
-                    EditSetRow(
-                        set: set,
-                        sortedSets: sortedSets,
-                        editing: editing,
-                        type: type,
-                        workoutExercise: $workoutExercise
-                    )
-                    .transition(.asymmetric(
-                        insertion: .opacity.combined(with: .move(edge: .leading)),
-                        removal: .opacity.combined(with: .move(edge: .trailing))
-                    ))
-                }
-            }
-            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: sortedSets.count)
-            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: editing)
-            
-            Button {
-                let nextIndex = workoutExercise.sets.isEmpty ? 0 : (workoutExercise.sets.map { $0.index }.max() ?? -1) + 1 // swiftlint:disable:this line_length
                 
-                let newSet = ExerciseSet(index: nextIndex, type: type ?? .weight)
-                
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                    var updatedSets = workoutExercise.sets
-                    updatedSets.append(newSet)
-                    workoutExercise.sets = updatedSets
-                }
-            } label: {
-                HStack(alignment: .center) {
-                    Image(systemName: "plus")
-                        .font(Font.system(size: 12, weight: .bold))
-                    
-                    Text("Add Set")
-                        .bodyText(size: 16, weight: .bold)
-                }
-            }
-            .textColor()
-            .animatedButton(scale: 0.98, feedback: .impact(weight: .light))
-            
-            Spacer()
-                .frame(height: 5)
-            
-            Button {
-                Popup.show(content: {
-                    DurationSelectionPopup(title: "Rest Time", minutes: $restMinutes, seconds: $restSeconds)
-                })
-            } label: {
-                HStack(alignment: .center) {
-                    HStack(alignment: .center, spacing: 0) {
-                        Text("Rest Time:")
-                            .bodyText(size: 18, weight: .bold)
-                        
-                        Text(" \(restMinutes)min \(restSeconds)sec")
-                            .bodyText(size: 18)
+                Button {
+                    Popup.show(content: {
+                        DurationSelectionPopup(title: "Rest Time", minutes: $restMinutes, seconds: $restSeconds)
+                    })
+                } label: {
+                    HStack(alignment: .center, spacing: .spacingXS) {
+                        Text("Rest Time: \(restMinutes)min \(restSeconds)sec")
+                            .bodyText()
                             .monospacedDigit()
                             .contentTransition(.numericText())
                             .animation(.easeInOut(duration: 0.3), value: restMinutes)
                             .animation(.easeInOut(duration: 0.3), value: restSeconds)
+                        
+                        Image(systemName: "chevron.right")
+                            .bodyImage()
                     }
-                    
-                    Image(systemName: "chevron.right")
-                        .padding(.leading, -2)
-                        .font(Font.system(size: 12, weight: .bold))
                 }
-            }
-            .textColor()
-            .animatedButton(scale: 0.98)
-            
-            Spacer()
-                .frame(height: 5)
-            
-            if settings.showTempo {
-                VStack(alignment: .leading) {
-                    Button {
-                        Popup.show(content: {
-                            TempoPopup(tempo: tempo)
-                        })
-                    } label: {
-                        HStack {
-                            Text("Tempo")
-                                .bodyText(size: 12)
-                            
-                            Image(systemName: "chevron.right")
-                                .padding(.leading, -2)
-                                .font(Font.system(size: 6))
-                        }
-                    }
-                    .textColor()
-                    .animatedButton(scale: 0.98)
-                    
-                    HStack(alignment: .bottom) {
-                        TextField("", text: $tempo, prompt: Text("0000"))
-                            .keyboardType(.numberPad)
-                            .focused($isTempoFocused)
-                            .textFieldStyle(
-                                UnderlinedTextFieldStyle(
-                                    isFocused: Binding<Bool>(
-                                        get: { isTempoFocused },
-                                        set: { isTempoFocused = $0 }
-                                    ),
-                                    text: $tempo
-                                )
-                            )
-                            .onChange(of: tempo) {
-                                if tempo.count > 4 {
-                                    tempo = String(tempo.prefix(4))
-                                }
+                .textColor()
+                .animatedButton()
+                
+                if settings.showTempo {
+                    VStack(alignment: .leading, spacing: .spacingXS) {
+                        Button {
+                            Popup.show(content: {
+                                TempoPopup(tempo: tempo)
+                            })
+                        } label: {
+                            HStack(alignment: .center, spacing: .spacingXS) {
+                                Text("Tempo")
+                                    .captionText()
+                                
+                                Image(systemName: "chevron.right")
+                                    .captionImage()
                             }
+                        }
+                        .textColor()
+                        .animatedButton()
+                        
+                        HStack(alignment: .bottom) {
+                            TextField("", text: $tempo, prompt: Text("0000"))
+                                .keyboardType(.numberPad)
+                                .focused($isTempoFocused)
+                                .textFieldStyle(
+                                    UnderlinedTextFieldStyle(
+                                        isFocused: Binding<Bool>(
+                                            get: { isTempoFocused },
+                                            set: { isTempoFocused = $0 }
+                                        ),
+                                        text: $tempo
+                                    )
+                                )
+                                .onChange(of: tempo) {
+                                    if tempo.count > 4 {
+                                        tempo = String(tempo.prefix(4))
+                                    }
+                                }
+                        }
+                        .frame(maxWidth: 50)
                     }
-                    .frame(maxWidth: 50)
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .move(edge: .top)),
+                        removal: .opacity.combined(with: .move(edge: .top))
+                    ))
                 }
-                .transition(.asymmetric(
-                    insertion: .opacity.combined(with: .move(edge: .top)),
-                    removal: .opacity.combined(with: .move(edge: .top))
-                ))
+                
+                Input(title: "Notes", text: $specNotes, isFocused: _isNotesFocused, axis: .vertical)
             }
             
-            Spacer()
-                .frame(height: 5)
-            
-            Input(title: "Workout-Specific Notes", text: $specNotes, isFocused: _isNotesFocused, axis: .vertical)
-            
-            Spacer()
-                .frame(height: 5)
-            
-            SaveButton(save: save, isValid: isValid, size: 20)
+            HStack(alignment: .center) {
+                Spacer()
+                
+                SaveButton(save: save, isValid: isValid)
+                
+                Spacer()
+            }
         }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {

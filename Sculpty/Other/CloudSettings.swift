@@ -31,8 +31,7 @@ class CloudSettings: ObservableObject {
     
     private func registerDefaults() {
         let defaults: [String: Any] = [
-            UserKeys.accentColorHex.rawValue: "#2B7EFF",
-            UserKeys.appearance.rawValue: "Automatic",
+            UserKeys.accentColorHex.rawValue: "#2563EB",
             UserKeys.dailyCalories.rawValue: 2000,
             UserKeys.gender.rawValue: "Male",
             UserKeys.includeWarmUp.rawValue: true,
@@ -102,19 +101,8 @@ class CloudSettings: ObservableObject {
         store.set(value, forKey: key.rawValue)
     }
     
-    var appearance: Appearance {
-        get {
-            let rawValue = userDefaults.string(forKey: UserKeys.appearance.rawValue) ?? Appearance.automatic.rawValue
-            return Appearance(rawValue: rawValue) ?? .automatic
-        }
-        set {
-            objectWillChange.send()
-            setValue(newValue.rawValue, for: .appearance)
-        }
-    }
-    
     var accentColorHex: String {
-        get { userDefaults.string(forKey: UserKeys.accentColorHex.rawValue) ?? "#2B7EFF" }
+        get { userDefaults.string(forKey: UserKeys.accentColorHex.rawValue) ?? "#2563EB" }
         set {
             objectWillChange.send()
             setValue(newValue, for: .accentColorHex)

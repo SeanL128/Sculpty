@@ -52,165 +52,160 @@ struct LogFoodEntryPopup: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: .spacingL) {
             if servingOptions.isEmpty {
                 HStack(alignment: .center) {
                     Spacer()
                     
                     Text("Loading...")
-                        .bodyText(size: 18)
+                        .bodyText()
                         .textColor()
                     
                     Spacer()
                 }
-                .padding(.vertical)
+                .padding(.vertical, .spacingXS)
             } else {
-                HStack {
-                    Spacer()
-                    
-                    Text(formatFoodName(food))
-                        .bodyText(size: 18, weight: .bold)
-                        .multilineTextAlignment(.center)
-                    
-                    Spacer()
-                }
-                
-                Input(title: "Servings", text: $servingsInput, isFocused: _isServingsFocused, type: .decimalPad)
-                    .padding(.vertical, 5)
-                    .padding(.horizontal)
-                    .onChange(of: servingsInput) {
-                        servingsInput = servingsInput.filteredNumeric()
+                VStack(alignment: .leading, spacing: .spacingM) {
+                    HStack {
+                        Spacer()
+                        
+                        Text(formatFoodName(food))
+                            .subheadingText()
+                            .textColor()
+                            .multilineTextAlignment(.center)
+                        
+                        Spacer()
                     }
-                
-                if servingOptions.count > 1 {
-                    Button {
-                        Popup.show(content: {
-                            MenuPopup(
-                                title: "Serving",
-                                options: servingOptions.compactMap { $0.fullServingDescription },
-                                selection: $selectedServingString
-                            )
-                        })
-                    } label: {
-                        HStack(alignment: .center) {
-                            Text(selectedServing?.fullServingDescription ?? "1 serving")
-                                .bodyText(size: 18, weight: .bold)
-                                .multilineTextAlignment(.leading)
-                            
-                            Image(systemName: "chevron.up.chevron.down")
-                                .font(Font.system(size: 12, weight: .bold))
+                    
+                    Input(title: "Servings", text: $servingsInput, isFocused: _isServingsFocused, type: .decimalPad)
+                        .onChange(of: servingsInput) {
+                            servingsInput = servingsInput.filteredNumeric()
                         }
-                    }
-                    .textColor()
-                    .padding(.horizontal)
-                    .onChange(of: selectedServingString) {
-                        selectedServing = servingOptions.first(where: { $0.fullServingDescription == selectedServingString }) // swiftlint:disable:this line_length
-                    }
-                    .animatedButton()
-                } else {
-                    Text(selectedServing?.fullServingDescription ?? "1 serving")
-                        .bodyText(size: 18, weight: .bold)
+                    
+                    if servingOptions.count > 1 {
+                        Button {
+                            Popup.show(content: {
+                                MenuPopup(
+                                    title: "Serving",
+                                    options: servingOptions.compactMap { $0.fullServingDescription },
+                                    selection: $selectedServingString
+                                )
+                            })
+                        } label: {
+                            HStack(alignment: .center, spacing: .spacingXS) {
+                                Text(selectedServing?.fullServingDescription ?? "1 serving")
+                                    .bodyText(weight: .regular)
+                                    .multilineTextAlignment(.leading)
+                                
+                                Image(systemName: "chevron.up.chevron.down")
+                                    .bodyImage(weight: .bold)
+                            }
+                        }
                         .textColor()
-                        .padding(.horizontal)
+                        .onChange(of: selectedServingString) {
+                            selectedServing = servingOptions.first(where: { $0.fullServingDescription == selectedServingString }) // swiftlint:disable:this line_length
+                        }
+                        .animatedButton()
+                    } else {
+                        Text(selectedServing?.fullServingDescription ?? "1 serving")
+                            .bodyText()
+                            .textColor()
+                    }
                 }
                 
-                Spacer()
-                    .frame(height: 0)
-                
-                VStack(spacing: 1) {
-                    Divider()
-                        .background(ColorManager.text)
-                    
-                    HStack(alignment: .center) {
-                        Text("Calories")
-                            .bodyText(size: 16)
-                            .textColor()
+                VStack(alignment: .leading, spacing: .spacingM) {
+                    VStack(spacing: 0) {
+                        Divider()
+                            .background(ColorManager.text)
                         
-                        Spacer()
+                        HStack(alignment: .center) {
+                            Text("Calories")
+                                .bodyText()
+                                .textColor()
+                            
+                            Spacer()
+                            
+                            Text("\(calories.formatted())cal")
+                                .bodyText()
+                                .textColor()
+                                .monospacedDigit()
+                                .contentTransition(.numericText())
+                                .animation(.easeInOut(duration: 0.3), value: calories)
+                        }
+                        .padding(.spacingXS)
                         
-                        Text("\(calories.formatted())cal")
-                            .bodyText(size: 16, weight: .bold)
-                            .textColor()
-                            .monospacedDigit()
-                            .contentTransition(.numericText())
-                            .animation(.easeInOut(duration: 0.3), value: calories)
+                        Divider()
+                            .background(ColorManager.text)
+                        
+                        HStack(alignment: .center) {
+                            Text("Carbs")
+                                .bodyText()
+                                .textColor()
+                            
+                            Spacer()
+                            
+                            Text("\(carbs.formatted())g")
+                                .bodyText()
+                                .textColor()
+                                .monospacedDigit()
+                                .contentTransition(.numericText())
+                                .animation(.easeInOut(duration: 0.3), value: carbs)
+                        }
+                        .padding(.spacingXS)
+                        .background(ColorManager.secondary.opacity(0.1))
+                        
+                        Divider()
+                            .background(ColorManager.text)
+                        
+                        HStack(alignment: .center) {
+                            Text("Protein")
+                                .bodyText()
+                                .textColor()
+                            
+                            Spacer()
+                            
+                            Text("\(protein.formatted())g")
+                                .bodyText()
+                                .textColor()
+                                .monospacedDigit()
+                                .contentTransition(.numericText())
+                                .animation(.easeInOut(duration: 0.3), value: protein)
+                        }
+                        .padding(.spacingXS)
+                        
+                        Divider()
+                            .background(ColorManager.text)
+                        
+                        HStack(alignment: .center) {
+                            Text("Fat")
+                                .bodyText()
+                                .textColor()
+                            
+                            Spacer()
+                            
+                            Text("\(fat.formatted())g")
+                                .bodyText()
+                                .textColor()
+                                .monospacedDigit()
+                                .contentTransition(.numericText())
+                                .animation(.easeInOut(duration: 0.3), value: fat)
+                        }
+                        .padding(.spacingXS)
+                        .background(ColorManager.secondary.opacity(0.1))
+                        
+                        Divider()
+                            .background(ColorManager.text)
                     }
-                    .padding(1)
-                    
-                    Divider()
-                        .background(ColorManager.text)
-                    
-                    HStack(alignment: .center) {
-                        Text("Carbs")
-                            .bodyText(size: 16)
-                            .textColor()
-                        
-                        Spacer()
-                        
-                        Text("\(carbs.formatted())g")
-                            .bodyText(size: 16, weight: .bold)
-                            .textColor()
-                            .monospacedDigit()
-                            .contentTransition(.numericText())
-                            .animation(.easeInOut(duration: 0.3), value: carbs)
-                    }
-                    .padding(1)
-                    .background(ColorManager.secondary.opacity(0.1))
-                    
-                    Divider()
-                        .background(ColorManager.text)
-                    
-                    HStack(alignment: .center) {
-                        Text("Protein")
-                            .bodyText(size: 16)
-                            .textColor()
-                        
-                        Spacer()
-                        
-                        Text("\(protein.formatted())g")
-                            .bodyText(size: 16, weight: .bold)
-                            .textColor()
-                            .monospacedDigit()
-                            .contentTransition(.numericText())
-                            .animation(.easeInOut(duration: 0.3), value: protein)
-                    }
-                    .padding(1)
-                    
-                    Divider()
-                        .background(ColorManager.text)
-                    
-                    HStack(alignment: .center) {
-                        Text("Fat")
-                            .bodyText(size: 16)
-                            .textColor()
-                        
-                        Spacer()
-                        
-                        Text("\(fat.formatted())g")
-                            .bodyText(size: 16, weight: .bold)
-                            .textColor()
-                            .monospacedDigit()
-                            .contentTransition(.numericText())
-                            .animation(.easeInOut(duration: 0.3), value: fat)
-                    }
-                    .padding(1)
-                    .background(ColorManager.secondary.opacity(0.1))
-                    
-                    Divider()
-                        .background(ColorManager.text)
+                    .padding(.horizontal, .spacingXS)
                 }
-                .padding(.horizontal)
                 
                 HStack(alignment: .center) {
                     Spacer()
                     
-                    SaveButton(save: save, isValid: isValid, size: 18)
+                    SaveButton(save: save, isValid: isValid)
                     
                     Spacer()
                 }
-                
-                Spacer()
-                    .frame(height: 12)
                 
                 FatSecretLink()
             }

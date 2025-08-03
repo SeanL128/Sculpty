@@ -9,37 +9,30 @@ import SwiftUI
 
 struct SelectWorkoutRow: View {
     let workout: Workout
-    let forStats: Bool
     
     @Binding var selectedWorkout: Workout?
-    
-    private var isValid: Bool {
-        !forStats || !workout.workoutLogs.isEmpty
-    }
 
     var body: some View {
         Button {
-            selectedWorkout = workout
+            withAnimation(.easeInOut(duration: 0.3)) {
+                selectedWorkout = workout
+            }
         } label: {
-            HStack(alignment: .center) {
+            HStack(alignment: .center, spacing: .spacingXS) {
                 Text(workout.name)
-                    .bodyText(size: 16, weight: selectedWorkout == workout ? .bold : .regular)
+                    .bodyText(weight: selectedWorkout == workout ? .bold : .regular)
                     .multilineTextAlignment(.leading)
-                    .animation(.easeInOut(duration: 0.2), value: selectedWorkout == workout)
                 
                 if !workout.workoutLogs.isEmpty {
                     Image(systemName: "chevron.right")
-                        .padding(.leading, -2)
-                        .font(Font.system(size: 10, weight: selectedWorkout == workout ? .bold : .regular))
-                        .animation(.easeInOut(duration: 0.2), value: selectedWorkout == workout)
+                        .bodyImage(weight: selectedWorkout == workout ? .bold : .medium)
                 }
                 
+                Spacer()
+                
                 if selectedWorkout == workout {
-                    Spacer()
-                    
                     Image(systemName: "checkmark")
-                        .padding(.horizontal, 8)
-                        .font(Font.system(size: 16))
+                        .bodyText()
                         .transition(.asymmetric(
                             insertion: .opacity.combined(with: .scale(scale: 0.8)),
                             removal: .opacity.combined(with: .scale(scale: 0.8))
@@ -47,9 +40,8 @@ struct SelectWorkoutRow: View {
                 }
             }
         }
-        .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
-        .disabled(!isValid)
-        .animatedButton(scale: 0.98, feedback: .selection, isValid: isValid)
-        .animation(.easeInOut(duration: 0.3), value: selectedWorkout == workout)
+        .foregroundStyle(!workout.workoutLogs.isEmpty ? ColorManager.text : ColorManager.secondary)
+        .disabled(workout.workoutLogs.isEmpty)
+        .animatedButton(feedback: .selection, isValid: !workout.workoutLogs.isEmpty)
     }
 }

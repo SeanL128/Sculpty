@@ -11,20 +11,49 @@ import SwiftData
 struct WorkoutList: View {
     @Environment(\.modelContext) private var context
     
-    @Query(filter: #Predicate<Workout> { $0.index >= 0 && !$0.hidden }, sort: \.index) private var workouts: [Workout]
+    @Query(filter: #Predicate<Workout> { $0.index >= 0 && !$0.hidden }) private var workouts: [Workout]
     
     @Binding var workoutToStart: WorkoutLog?
     
+    @State private var searchText: String = ""
+    @FocusState private var isSearchFocused: Bool
+    
     @State private var editing: Bool = false
     
+    var filteredWorkouts: [Workout] {
+        if searchText.isEmpty {
+            return workouts
+                .sorted { $0.index < $1.index }
+        } else {
+            return workouts
+                .filter { workout in
+                    workout.name.lowercased().contains(searchText.lowercased())
+                }
+                .sorted { $0.index < $1.index }
+        }
+    }
+    
     var body: some View {
-        ContainerView(title: "Workouts", spacing: 16, showScrollBar: true, lazy: true, trailingItems: {
+        ContainerView(title: "Workouts", spacing: .spacingL, lazy: true, trailingItems: {
+            if searchText.isEmpty {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        editing.toggle()
+                    }
+                } label: {
+                    Image(systemName: "chevron.up.chevron.down")
+                        .bodyText()
+                }
+                .foregroundStyle(editing ? Color.accentColor : ColorManager.text)
+                .animatedButton()
+                .animation(.easeInOut(duration: 0.3), value: editing)
+            }
+            
             NavigationLink {
                 PageRenderer(page: .exerciseList)
             } label: {
                 Image(systemName: "figure.run")
-                    .padding(.horizontal, 5)
-                    .font(Font.system(size: 20))
+                    .pageTitleImage()
             }
             .textColor()
             .animatedButton()
@@ -33,45 +62,47 @@ struct WorkoutList: View {
                 PageRenderer(page: .upsertWorkout)
             } label: {
                 Image(systemName: "plus")
-                    .padding(.horizontal, 5)
-                    .font(Font.system(size: 20))
+                    .pageTitleImage()
             }
             .textColor()
             .animatedButton()
         }) {
-            HStack(alignment: .center) {
-                Spacer()
-                
-                Button {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        editing.toggle()
-                    }
-                } label: {
-                    Image(systemName: "chevron.up.chevron.down")
-                        .padding(.horizontal, 8)
-                        .font(Font.system(size: 18))
-                }
-                .foregroundStyle(editing ? Color.accentColor : ColorManager.text)
-                .animatedButton()
-                .animation(.easeInOut(duration: 0.3), value: editing)
-            }
+            TextField("Search Workouts", text: $searchText)
+                .focused($isSearchFocused)
+                .textFieldStyle(
+                    UnderlinedTextFieldStyle(
+                        isFocused: Binding<Bool>(
+                            get: { isSearchFocused },
+                            set: { isSearchFocused = $0 }
+                        ),
+                        text: $searchText)
+                )
+                .padding(.bottom, .spacingXS)
             
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(workouts, id: \.id) { workout in
-                    WorkoutListRow(
-                        workout: workout,
-                        workouts: workouts,
-                        workoutToStart: $workoutToStart,
-                        editing: editing
-                    )
-                    .transition(.asymmetric(
-                        insertion: .opacity.combined(with: .move(edge: .leading)),
-                        removal: .opacity.combined(with: .move(edge: .trailing))
-                    ))
+            if filteredWorkouts.isEmpty {
+                EmptyState(
+                    image: "magnifyingglass",
+                    text: "No workouts found",
+                    subtext: workouts.isEmpty ? "Press the + to create one" : "Try adjusting your search"
+                )
+            } else {
+                VStack(alignment: .leading, spacing: .listSpacing) {
+                    ForEach(filteredWorkouts, id: \.id) { workout in
+                        WorkoutListRow(
+                            workout: workout,
+                            workouts: workouts,
+                            workoutToStart: $workoutToStart,
+                            editing: editing
+                        )
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .move(edge: .leading)),
+                            removal: .opacity.combined(with: .move(edge: .trailing))
+                        ))
+                    }
                 }
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: filteredWorkouts.count)
             }
-            .animation(.easeInOut(duration: 0.4), value: workouts.count)
-            .animation(.easeInOut(duration: 0.3), value: workouts.sorted(by: { $0.index < $1.index }).map { $0.id })
         }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: searchText)
     }
 }

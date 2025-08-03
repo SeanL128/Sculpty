@@ -35,89 +35,100 @@ struct OptionsDataSection: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: .spacingS) {
             OptionsSectionHeader(title: "Data Management", image: "folder")
             
-            OptionsButtonRow(
-                title: isCreatingBackup ? "Creating Backup..." : "Back Up All Data",
-                isValid: !isCreating,
-                action: shareBackup,
-                feedback: .impact(weight: .medium)
-            )
-            
-            OptionsButtonRow(
-                title: isCreatingWorkoutLogsCSV ? "Creating CSV..." : "Export Workout Logs to CSV",
-                isValid: hasWorkoutLogs && !isCreating,
-                action: { shareCSV(csvString: getWorkoutLogsCSV(), name: "SculptyWorkoutLogs") },
-                feedback: .impact(weight: .medium)
-            )
-            
-            OptionsButtonRow(
-                title: isCreatingCaloriesLogsCSV ? "Creating CSV..." : "Export Calories Data to CSV",
-                isValid: hasCaloriesLogs && !isCreating,
-                action: { shareCSV(csvString: getCaloriesCSV(), name: "SculptyCaloriesLogs") },
-                feedback: .impact(weight: .medium)
-            )
-            
-            OptionsButtonRow(
-                title: "Reset Data",
-                isValid: !isCreating,
-                action: {
-                    Popup.show(content: {
-                        ConfirmationPopup(
-                            selection: $resetConfirmation1,
-                            promptText: "Are you sure?",
-                            resultText: "This will reset all data.",
-                            cancelText: "Cancel",
-                            confirmText: "Reset"
-                        )
-                    })
-                },
-                feedback: .warning
-            )
-            .onChange(of: resetConfirmation1) {
-                if resetConfirmation1 {
-                    Popup.dismissAll()
+            HStack {
+                VStack(alignment: .leading, spacing: .spacingS) {
+                    OptionsButtonRow(
+                        title: isCreatingBackup ? "Creating Backup..." : "Back Up All Data",
+                        isValid: !isCreating,
+                        action: shareBackup,
+                        feedback: .impact(weight: .medium)
+                    )
                     
-                    Popup.show(content: {
-                        ConfirmationPopup(
-                            selection: $resetConfirmation2,
-                            promptText: "Are you 100% sure?",
-                            resultText: "This cannot be undone.",
-                            cancelText: "Cancel",
-                            confirmText: "Reset"
-                        )
-                    })
+                    OptionsButtonRow(
+                        title: isCreatingWorkoutLogsCSV ? "Creating CSV..." : "Export Workout Logs to CSV",
+                        isValid: hasWorkoutLogs && !isCreating,
+                        action: { shareCSV(csvString: getWorkoutLogsCSV(), name: "SculptyWorkoutLogs") },
+                        feedback: .impact(weight: .medium)
+                    )
                     
-                    resetConfirmation1 = false
+                    OptionsButtonRow(
+                        title: isCreatingCaloriesLogsCSV ? "Creating CSV..." : "Export Calories Data to CSV",
+                        isValid: hasCaloriesLogs && !isCreating,
+                        action: { shareCSV(csvString: getCaloriesCSV(), name: "SculptyCaloriesLogs") },
+                        feedback: .impact(weight: .medium)
+                    )
+                    
+                    OptionsButtonRow(
+                        title: "Reset Data",
+                        isValid: !isCreating,
+                        action: {
+                            Popup.show(content: {
+                                ConfirmationPopup(
+                                    selection: $resetConfirmation1,
+                                    promptText: "Are you sure?",
+                                    resultText: "This will reset all data.",
+                                    cancelText: "Cancel",
+                                    confirmText: "Reset"
+                                )
+                            })
+                        },
+                        feedback: .warning
+                    )
+                    .onChange(of: resetConfirmation1) {
+                        if resetConfirmation1 {
+                            Popup.dismissAll()
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                Popup.show(content: {
+                                    ConfirmationPopup(
+                                        selection: $resetConfirmation2,
+                                        promptText: "Are you 100% sure?",
+                                        resultText: "This cannot be undone.",
+                                        cancelText: "Cancel",
+                                        confirmText: "Reset"
+                                    )
+                                })
+                            }
+                            
+                            resetConfirmation1 = false
+                        }
+                    }
+                    .onChange(of: resetConfirmation2) {
+                        if resetConfirmation2 {
+                            Popup.dismissAll()
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                Popup.show(content: {
+                                    ConfirmationPopup(
+                                        selection: $resetConfirmation3,
+                                        promptText: "You should consider backing up your data before resetting.",
+                                        resultText: "If not, all data will be lost.",
+                                        cancelText: "Cancel",
+                                        confirmText: "Reset"
+                                    )
+                                })
+                            }
+                            
+                            resetConfirmation2 = false
+                        }
+                    }
+                    .onChange(of: resetConfirmation3) {
+                        if resetConfirmation3 {
+                            Popup.dismissAll()
+                            
+                            clearContext()
+                            
+                            resetConfirmation3 = false
+                        }
+                    }
                 }
+                
+                Spacer()
             }
-            .onChange(of: resetConfirmation2) {
-                if resetConfirmation2 {
-                    Popup.dismissAll()
-                    
-                    Popup.show(content: {
-                        ConfirmationPopup(
-                            selection: $resetConfirmation3,
-                            promptText: "You should consider backing up your data before resetting.",
-                            resultText: "If not, all data will be lost.",
-                            cancelText: "Cancel",
-                            confirmText: "Reset"
-                        )
-                    })
-                    
-                    resetConfirmation2 = false
-                }
-            }
-            .onChange(of: resetConfirmation3) {
-                if resetConfirmation3 {
-                    Popup.dismissAll()
-                    
-                    clearContext()
-                    
-                    resetConfirmation3 = false
-                }
-            }
+            .card()
         }
         .frame(maxWidth: .infinity)
     }
@@ -307,7 +318,7 @@ struct OptionsDataSection: View {
         do {
             try DataTransferManager.shared.clearAllData(in: context)
             
-            withAnimation {
+            withAnimation(.easeInOut(duration: 0.3)) {
                 settings.resetAllSettings()
                 
                 dismiss()

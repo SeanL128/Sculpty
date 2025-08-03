@@ -17,11 +17,13 @@ struct MeasurementPage: View {
     
     @State private var data: [Measurement] = []
     
+    @State private var loading: Bool = true
+    
     @State private var confirmDelete: Bool = false
     @State private var measurementToDelete: Measurement?
     
     var body: some View {
-        ContainerView(title: type.rawValue, spacing: 16, lazy: true) {
+        ContainerView(title: type.rawValue, spacing: .listSpacing, lazy: true) {
             if !data.isEmpty {
                 ForEach(data, id: \.id) { measurement in
                     MeasurementRow(
@@ -30,17 +32,20 @@ struct MeasurementPage: View {
                         confirmDelete: $confirmDelete
                     )
                     .transition(.asymmetric(
-                        insertion: .move(edge: .top).combined(with: .opacity),
-                        removal: .move(edge: .bottom).combined(with: .opacity)
+                        insertion: .opacity.combined(with: .move(edge: .top)),
+                        removal: .opacity.combined(with: .move(edge: .trailing))
                     ))
                 }
-            } else {
+                .animation(.easeInOut(duration: 0.4), value: data.count)
+            } else if !loading {
                 EmptyState(
-                    message: "No Data",
-                    size: 18
+                    image: "ruler",
+                    text: "No \(type.rawValue.lowercased()) measurements logged",
+                    subtext: "Log your first measurement"
                 )
             }
         }
+        .animation(.easeInOut(duration: 0.3), value: data.isEmpty)
         .onAppear {
             setData()
         }
@@ -61,7 +66,6 @@ struct MeasurementPage: View {
                 measurementToDelete = nil
             }
         }
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: data.count)
     }
     
     private func setData() {
@@ -71,6 +75,8 @@ struct MeasurementPage: View {
                 .sorted(by: { $0.date > $1.date })
             
             data = fetched
+            
+            loading = false
         } catch {
             debugLog(error.localizedDescription)
             

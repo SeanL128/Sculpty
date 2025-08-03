@@ -19,17 +19,16 @@ struct OptionsButtonRow: View {
         Button {
             action()
         } label: {
-            HStack(alignment: .center) {
+            HStack(alignment: .center, spacing: .spacingXS) {
                 Text(title)
-                    .bodyText(size: 18)
+                    .bodyText()
                 
                 Image(systemName: "chevron.right")
-                    .padding(.leading, -2)
-                    .font(Font.system(size: 12))
+                    .bodyImage()
             }
         }
         .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
         .disabled(!isValid)
-        .animatedButton(scale: 0.98, feedback: feedback)
+        .animatedButton(feedback: feedback)
     }
 }

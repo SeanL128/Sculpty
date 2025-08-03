@@ -16,14 +16,13 @@ struct HomeMeasurementSection: View {
     @State private var measurementToAdd: Measurement?
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .center, spacing: .spacingS) {
             HomeSectionHeader(icon: "ruler", title: "Measurements") {
                 NavigationLink {
                     MeasurementStats()
                 } label: {
                     Image(systemName: "chart.xyaxis.line")
-                        .padding(.horizontal, 5)
-                        .font(Font.system(size: 18))
+                        .headingImage()
                 }
                 .animatedButton()
                 
@@ -33,29 +32,32 @@ struct HomeMeasurementSection: View {
                     })
                 } label: {
                     Image(systemName: "plus")
-                        .padding(.horizontal, 5)
-                        .font(Font.system(size: 18))
+                        .headingImage()
                 }
                 .animatedButton()
             }
             
-            if !measurements.isEmpty {
-                VStack(alignment: .leading, spacing: 6) {
-                    HomeMeasusrementRow(
-                        measurement: measurements.first!, // swiftlint:disable:this force_unwrapping
-                        large: true
-                    )
-                    
-                    ForEach(1..<min(measurements.count, 3), id: \.self) { index in
-                        HomeMeasusrementRow(measurement: measurements[index], large: false)
+            VStack(alignment: .center, spacing: .spacingS) {
+                if !measurements.isEmpty {
+                    ForEach(0..<min(measurements.count, 3), id: \.self) { index in
+                        HomeMeasusrementRow(measurement: measurements[index])
                     }
+                } else {
+                    VStack(alignment: .center, spacing: .spacingXS) {
+                        Text("Ready to track your measurements")
+                            .bodyText(weight: .bold)
+                        
+                        Text("Click the + to get started")
+                            .secondaryText()
+                    }
+                    .textColor()
+                    .frame(maxWidth: .infinity)
+                    .transition(.opacity)
                 }
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: measurements.count)
-            } else {
-                HomeEmptySectionMessage(text: "measurements")
             }
+            .card()
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: measurements.count)
         }
-        .frame(maxWidth: .infinity)
         .onChange(of: measurementToAdd) {
             if let measurement = measurementToAdd {
                 context.insert(measurement)

@@ -18,7 +18,7 @@ struct WorkoutLogList: View {
     }
     
     var body: some View {
-        ContainerView(title: "Workout Logs", spacing: 16, showScrollBar: true, lazy: true) {
+        ContainerView(title: "Workout Logs", spacing: .spacingL, lazy: true) {
             if !validWorkouts.isEmpty {
                 ForEach(validWorkouts, id: \.id) { workout in
                     WorkoutLogGroup(workout: workout)
@@ -31,13 +31,10 @@ struct WorkoutLogList: View {
                 .animation(.easeInOut(duration: 0.3), value: validWorkouts.map { $0.workoutLogs.count })
             } else {
                 EmptyState(
-                    message: "No Data",
-                    size: 18
+                    image: "dumbbell",
+                    text: "No workouts logged",
+                    subtext: "Log your first workout"
                 )
-                .transition(.asymmetric(
-                    insertion: .opacity.combined(with: .scale(scale: 0.8)),
-                    removal: .opacity.combined(with: .scale(scale: 0.8))
-                ))
             }
         }
         .animation(.easeInOut(duration: 0.3), value: validWorkouts.isEmpty)

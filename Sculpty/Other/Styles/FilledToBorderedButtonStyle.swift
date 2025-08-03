@@ -17,7 +17,7 @@ struct FilledToBorderedButtonStyle: ButtonStyle {
     
     init(
         color: Color = ColorManager.text,
-        scale: Double = 0.97,
+        scale: Double = 0.98,
         feedback: SensoryFeedback? = nil,
         isValid: Bool = true
     ) {
@@ -29,7 +29,7 @@ struct FilledToBorderedButtonStyle: ButtonStyle {
     
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .padding(10)
+            .padding(.spacingS)
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(configuration.isPressed ? Color.clear : ColorManager.text)

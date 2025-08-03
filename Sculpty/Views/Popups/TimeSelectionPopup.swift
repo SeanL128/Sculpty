@@ -39,33 +39,45 @@ struct TimeSelectionPopup: View {
     }
 
     var body: some View {
-        VStack(alignment: .center, spacing: 8) {
-            Text(title)
-                .font(.headline)
+        VStack(alignment: .center, spacing: .spacingL) {
+            VStack(alignment: .center, spacing: .spacingM) {
+                Text(title)
+                    .subheadingText()
+                    .textColor()
+                    .multilineTextAlignment(.center)
 
-            VStack(spacing: 12) {
-                if showDay {
-                    TypedSegmentedControl(
-                        selection: $day,
-                        options: weekdays.sorted { $0.0 < $1.0 }.map { $0.0 },
-                        displayNames: weekdays.sorted { $0.0 < $1.0 }.map { $0.1 }
-                    )
+                VStack(spacing: .spacingS) {
+                    if showDay {
+                        TypedSegmentedControl(
+                            selection: $day,
+                            options: weekdays.sorted { $0.0 < $1.0 }.map { $0.0 },
+                            displayNames: weekdays.sorted { $0.0 < $1.0 }.map { $0.1 }
+                        )
+                    }
+                    
+                    DatePicker("", selection: $time, displayedComponents: [.hourAndMinute])
+                    .datePickerStyle(.wheel)
+                    .frame(maxWidth: 275)
                 }
-                
-                DatePicker("", selection: $time, displayedComponents: [.hourAndMinute])
-                .datePickerStyle(.wheel)
-                .frame(maxWidth: 275)
             }
-            .padding()
             
-            Button {
-                Popup.dismissLast()
-            } label: {
-                Text("Done")
-                    .bodyText(size: 16, weight: .bold)
+            VStack(alignment: .center, spacing: .spacingM) {
+                Spacer()
+                    .frame(height: 0)
+                
+                Button {
+                    Popup.dismissLast()
+                } label: {
+                    Text("Done")
+                        .bodyText()
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, .spacingL)
+                }
+                .textColor()
+                .background(Color.accentColor)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .animatedButton()
             }
-            .textColor()
-            .animatedButton()
         }
     }
 }

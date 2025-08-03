@@ -14,9 +14,26 @@ struct Main: View {
     @StateObject private var popupManager = PopupManager.shared
     
     @State private var hasPerformedLaunchTasks = false
+    
+    @State private var showLaunchScreen = true
 
     var body: some View {
         ZStack {
+            if showLaunchScreen {
+                LaunchScreen {
+                    withAnimation(.easeOut(duration: 0.5)) {
+                        showLaunchScreen = false
+                    }
+                }
+                .transition(
+                    .asymmetric(
+                        insertion: .opacity.combined(with: .scale(scale: 0.8)),
+                        removal: .opacity.combined(with: .scale(scale: 1.2))
+                    )
+                )
+                .zIndex(2)
+            }
+            
             if !settings.onboarded {
                 Onboarding()
                     .transition(
@@ -46,6 +63,7 @@ struct Main: View {
                 .zIndex(Double(index + 1000))
             }
         }
+        .background(ColorManager.background)
         .onAppear {
             if !hasPerformedLaunchTasks {
                 performAppLaunchTasks()
@@ -89,11 +107,10 @@ struct Main: View {
     private func performDataCleanup() {
         do {
             let workouts = try context.fetch(FetchDescriptor<Workout>())
-            for workout in workouts where workout.index == -1 {
-                debugLog(workout.name)
-            }
             
-            let invalidWorkouts = workouts.filter { $0.index < 0 }
+            let invalidWorkouts = workouts.filter { workout in
+                workout.index < 0 || workout.exercises.isEmpty || workout.exercises.allSatisfy { $0.exercise == nil }
+            }
             
             if !invalidWorkouts.isEmpty {
                 for workout in invalidWorkouts {
@@ -107,7 +124,7 @@ struct Main: View {
                 try context.save()
             }
             
-            for workout in workouts {
+            for workout in workouts where !invalidWorkouts.contains(workout) {
                 for exercise in workout.exercises where exercise.exercise == nil {
                     context.delete(exercise)
                     
@@ -121,11 +138,17 @@ struct Main: View {
                 .filter { ($0.started && !$0.completed && $0.start <= Date().addingTimeInterval(-86400)) }
             
             for log in logs {
-                let date = log.exerciseLogs.compactMap { log in
-                    log.setLogs.compactMap { $0.end }.max() ?? log.start
-                }.max() ?? log.start
+                guard !log.exerciseLogs.filter({ !$0.setLogs.filter { $0.completed }.isEmpty }).isEmpty else {
+                    for exerciseLog in log.exerciseLogs {
+                        context.delete(exerciseLog)
+                    }
+                    
+                    context.delete(log)
+                    
+                    continue
+                }
                 
-                log.finishWorkout(date: date)
+                log.finishWorkout()
             }
             
             try context.save()

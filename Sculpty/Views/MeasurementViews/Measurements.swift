@@ -12,29 +12,32 @@ struct Measurements: View {
     @Query private var measurements: [Measurement]
     
     var body: some View {
-        ContainerView(title: "Measurements", spacing: 16) {
+        ContainerView(title: "Measurements", spacing: .listSpacing, lazy: true) {
             ForEach(MeasurementType.displayOrder, id: \.id) { type in
                 let empty = measurements.filter { $0.type == type }.isEmpty
                 
                 NavigationLink {
                     MeasurementPage(type: type)
                 } label: {
-                    HStack(alignment: .center) {
+                    HStack(alignment: .center, spacing: .spacingXS) {
                         Text(type.rawValue)
-                            .bodyText(size: 16)
+                            .bodyText(weight: .regular)
+                            .multilineTextAlignment(.leading)
                         
                         if !empty {
                             Image(systemName: "chevron.right")
-                                .padding(.leading, -2)
-                                .font(Font.system(size: 12))
+                                .bodyImage()
                         }
                     }
                 }
+                .foregroundStyle(!empty ? ColorManager.text : ColorManager.secondary)
                 .disabled(empty)
-                .foregroundStyle(empty ? ColorManager.secondary : ColorManager.text)
-                .animatedButton(scale: 0.98, isValid: !empty)
+                .animatedButton(feedback: .selection, isValid: !empty)
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: .leading)),
+                    removal: .opacity.combined(with: .move(edge: .trailing))
+                ))
             }
         }
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: measurements.count)
     }
 }

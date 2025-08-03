@@ -15,8 +15,10 @@ struct MeasurementRow: View {
     
     var body: some View {
         HStack(alignment: .center) {
-            Text("\(formatDateWithTime(measurement.date))  -  \(measurement.measurement.formatted())\(measurement.unit)") // swiftlint:disable:this line_length
-                .bodyText(size: 16)
+            Text("\(formatDateWithTime(measurement.date)) - \(measurement.measurement.formatted())\(measurement.unit)") // swiftlint:disable:this line_length
+                .bodyText(weight: .regular)
+                .textColor()
+                .multilineTextAlignment(.leading)
                 .monospacedDigit()
                 .contentTransition(.numericText())
                 .animation(.easeInOut(duration: 0.3), value: measurement.measurement)
@@ -36,16 +38,11 @@ struct MeasurementRow: View {
                 })
             } label: {
                 Image(systemName: "xmark")
-                    .padding(.horizontal, 8)
-                    .font(Font.system(size: 16))
+                    .bodyText(weight: .regular)
             }
             .textColor()
             .animatedButton(feedback: .warning)
         }
-        .textColor()
-        .transition(.asymmetric(
-            insertion: .move(edge: .leading).combined(with: .opacity),
-            removal: .move(edge: .trailing).combined(with: .opacity)
-        ))
+        .frame(maxWidth: .infinity)
     }
 }

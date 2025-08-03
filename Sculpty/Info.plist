@@ -19,13 +19,6 @@
 	<false/>
 	<key>NSCameraReactionEffectGesturesEnabledDefault</key>
 	<false/>
-	<key>UIAppFonts</key>
-	<array>
-		<string>Oswald-Bold.ttf</string>
-		<string>IBMPlexMono-Regular.ttf</string>
-		<string>PublicSans-Regular.ttf</string>
-		<string>PublicSans-Bold.ttf</string>
-	</array>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

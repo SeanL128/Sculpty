@@ -17,14 +17,14 @@ struct Input: View {
     var axis: Axis = .horizontal
     
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: .spacingXS) {
             if !title.isEmpty {
                 Text(title)
-                    .bodyText(size: 12)
+                    .captionText()
                     .textColor()
             }
             
-            HStack(alignment: .bottom) {
+            HStack(alignment: .bottom, spacing: .spacingXS) {
                 TextField("", text: $text, axis: axis)
                     .keyboardType(type)
                     .textInputAutocapitalization(autoCapitalization)
@@ -41,7 +41,7 @@ struct Input: View {
                 
                 if let unit = unit {
                     Text(unit)
-                        .bodyText(size: 16)
+                        .bodyText()
                         .textColor()
                 }
             }

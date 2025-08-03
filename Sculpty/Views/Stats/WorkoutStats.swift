@@ -29,23 +29,22 @@ struct WorkoutStats: View {
                 ColorManager.background
                     .ignoresSafeArea(edges: .all)
                 
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: .spacingXS) {
                     ContainerViewHeader(
-                        title: "Workout Stats",
+                        title: "Workouts",
                         trailingItems: {
                             NavigationLink {
                                 WorkoutLogList()
                             } label: {
                                 Image(systemName: "list.bullet.clipboard")
-                                    .padding(.horizontal, 5)
-                                    .font(Font.system(size: 20))
+                                    .pageTitleImage()
                             }
                             .textColor()
                             .animatedButton()
                         }
                     )
                     
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: .spacingL) {
                         if show {
                             TabSelector(
                                 tabs: ["OVERALL", "BY WORKOUT", "BY EXERCISE"],
@@ -75,15 +74,19 @@ struct WorkoutStats: View {
                             )
                         } else {
                             EmptyState(
-                                message: "No Data",
-                                size: 18
+                                image: "dumbbell",
+                                text: "No workouts logged",
+                                subtext: "Log your first workout"
                             )
                         }
                     }
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: show)
                     
                     Spacer()
                 }
-                .padding()
+                .padding(.top, .spacingM)
+                .padding(.bottom, .spacingXS)
+                .padding(.horizontal, .spacingL)
             }
             .toolbar(.hidden, for: .navigationBar)
         }

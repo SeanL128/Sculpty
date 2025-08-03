@@ -58,7 +58,7 @@ struct UpsertExercise: View {
     var body: some View {
         CustomActionContainerView(
             title: "\(exercise == nil ? "Add" : "Edit") Exercise",
-            spacing: 20,
+            spacing: .spacingXXL,
             onDismiss: {
                 if hasUnsavedChanges {
                     dismissTrigger += 1
@@ -69,7 +69,9 @@ struct UpsertExercise: View {
                             promptText: "Unsaved Changes",
                             resultText: "Are you sure you want to leave without saving?",
                             cancelText: "Discard Changes",
-                            confirmText: "Stay on Page"
+                            cancelColor: ColorManager.destructive,
+                            confirmText: "Stay on Page",
+                            confirmColor: ColorManager.text
                         )
                     })
                 } else {
@@ -79,11 +81,11 @@ struct UpsertExercise: View {
                 if exercise != nil {
                     Button {
                         copyExercise()
+                        
                         dismiss()
                     } label: {
                         Image(systemName: "document.on.document")
-                            .padding(.horizontal, 5)
-                            .font(Font.system(size: 20))
+                            .pageTitleImage()
                     }
                     .textColor()
                     .animatedButton(feedback: .impact(weight: .light))
@@ -100,8 +102,7 @@ struct UpsertExercise: View {
                         })
                     } label: {
                         Image(systemName: "trash")
-                            .padding(.horizontal, 5)
-                            .font(Font.system(size: 20))
+                            .pageTitleImage()
                     }
                     .textColor()
                     .animatedButton(feedback: .warning)
@@ -123,33 +124,33 @@ struct UpsertExercise: View {
                 }
             }
         ) {
-            Input(
-                title: "Name",
-                text: $exerciseName,
-                isFocused: _isNameFocused,
-                autoCapitalization: .words
-            )
-            .frame(maxWidth: 250)
+            VStack(alignment: .leading, spacing: .spacingXL) {
+                Input(
+                    title: "Name",
+                    text: $exerciseName,
+                    isFocused: _isNameFocused,
+                    autoCapitalization: .words
+                )
+                
+                MuscleGroupMenu(selectedMuscleGroup: $selectedMuscleGroup)
+                
+                LabeledTypedSegmentedControl(
+                    label: "Tracking Type",
+                    selection: $selectedExerciseType,
+                    options: ExerciseType.displayOrder,
+                    displayNames: ExerciseType.stringDisplayOrder
+                )
+                
+                Input(title: "Notes", text: $exerciseNotes, isFocused: _isNotesFocused, axis: .vertical)
+            }
             
-            MuscleGroupMenu(selectedMuscleGroup: $selectedMuscleGroup)
-            
-            LabeledTypedSegmentedControl(
-                label: "Tracking Type",
-                size: 12,
-                selection: $selectedExerciseType,
-                options: ExerciseType.displayOrder,
-                displayNames: ExerciseType.stringDisplayOrder
-            )
-            
-            Spacer()
-                .frame(height: 5)
-            
-            Input(title: "Notes", text: $exerciseNotes, isFocused: _isNotesFocused, axis: .vertical)
-            
-            Spacer()
-                .frame(height: 5)
-            
-            SaveButton(save: save, isValid: isValid, size: 20)
+            HStack(alignment: .center) {
+                Spacer()
+                
+                SaveButton(save: save, isValid: isValid)
+                
+                Spacer()
+            }
         }
         .onChange(of: exerciseName) { hasUnsavedChanges = true }
         .onChange(of: exerciseNotes) { hasUnsavedChanges = true }

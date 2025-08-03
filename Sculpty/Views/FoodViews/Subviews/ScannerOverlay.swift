@@ -11,8 +11,8 @@ struct ScannerOverlay: View {
     @State private var animationOffset: CGFloat = 0
     
     var body: some View {
-        GeometryReader { geometry in
-            let scanAreaWidth: CGFloat = min(geometry.size.width * 0.8, 300)
+        GeometryReader { geo in
+            let scanAreaWidth: CGFloat = min(geo.size.width * 0.8, 300)
             let scanAreaHeight: CGFloat = scanAreaWidth * 0.6
             let cornerRadius: CGFloat = 12
             
@@ -23,7 +23,7 @@ struct ScannerOverlay: View {
                 
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .frame(width: scanAreaWidth, height: scanAreaHeight)
-                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
                     .blendMode(.destinationOut)
             }
             .compositingGroup()
@@ -77,36 +77,7 @@ struct ScannerOverlay: View {
                 }
             }
             .frame(width: scanAreaWidth, height: scanAreaHeight)
-            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-            
-            // Scanning Line
-            Rectangle()
-                .fill(
-                    LinearGradient(
-                        gradient: Gradient(colors: [
-                            .clear,
-                            ColorManager.text.dark.opacity(0.6),
-                            ColorManager.text.dark.opacity(0.9),
-                            ColorManager.text.dark.opacity(0.6),
-                            .clear
-                        ]),
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .frame(width: scanAreaWidth - 60, height: 2)
-                .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-                .offset(y: animationOffset)
-                .onAppear {
-                    animationOffset = (-scanAreaHeight / 2) + 30
-                    
-                    withAnimation(
-                        .easeInOut(duration: 2.5)
-                        .repeatForever(autoreverses: true)
-                    ) {
-                        animationOffset = (scanAreaHeight / 2) - 30
-                    }
-                }
+            .position(x: geo.size.width / 2, y: geo.size.height / 2)
         }
     }
 }

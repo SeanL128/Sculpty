@@ -72,7 +72,7 @@ struct CalorieCalculator: View {
     @FocusState private var isHeightCmFocused: Bool
     
     var body: some View {
-        ContainerView(title: "Calorie Calculator", spacing: 20) {
+        ContainerView(title: "Calculator", spacing: .spacingXL) {
             // Age
             Input(title: "Age", text: $age, isFocused: _isAgeFocused, type: .numberPad)
                 .onChange(of: age) {
@@ -82,7 +82,6 @@ struct CalorieCalculator: View {
             // Gender
             LabeledTypedSegmentedControl(
                 label: "Geneder",
-                size: 12,
                 selection: $settings.gender,
                 options: ["Male", "Female"],
                 displayNames: ["Male", "Female"]
@@ -91,70 +90,70 @@ struct CalorieCalculator: View {
             // Units
             LabeledButton(
                 label: "Units",
-                size: 12,
                 action: {
                     Popup.show(content: {
                         UnitMenuPopup(selection: $settings.units)
                     })
                 }
             ) {
-                HStack(alignment: .center) {
-                    Text(settings.units == "Imperial" ? "Imperial(mi, ft, in, lbs)" : "Metric (km, m, cm, kg)")
-                        .bodyText(size: 18, weight: .bold)
+                HStack(alignment: .center, spacing: .spacingXS) {
+                    Text(settings.units == "Imperial" ? "Imperial (mi, ft, in, lbs)" : "Metric (km, m, cm, kg)")
+                        .bodyText()
                     
                     Image(systemName: "chevron.up.chevron.down")
-                        .font(Font.system(size: 12, weight: .bold))
+                        .subheadingImage()
                 }
             }
             
-            // Weight
-            Input(
-                title: "Weight",
-                text: $weight,
-                isFocused: _isWeightFocused,
-                unit: settings.units == "Imperial" ? "lbs" : "kg",
-                type: .decimalPad
-            )
-            .onChange(of: weight) {
-                weight = weight.filteredNumeric()
-            }
-            
-            // Height Input
-            if settings.units == "Imperial" {
-                HStack(alignment: .bottom) {
-                    Input(
-                        title: "Height",
-                        text: $heightFeet,
-                        isFocused: _isHeightFeetFocused,
-                        unit: "ft",
-                        type: .numberPad
-                    )
-                    .onChange(of: heightFeet) {
-                        heightFeet = heightFeet.filteredNumericWithoutDecimalPoint()
-                    }
-                    
-                    Input(
-                        title: "",
-                        text: $heightInches,
-                        isFocused: _isHeightInchesFocused,
-                        unit: "in",
-                        type: .numberPad
-                    )
-                    .onChange(of: heightInches) {
-                        heightInches = heightInches.filteredNumeric()
-                    }
+            VStack(alignment: .leading, spacing: .spacingL) {
+                // Weight
+                Input(
+                    title: "Weight",
+                    text: $weight,
+                    isFocused: _isWeightFocused,
+                    unit: settings.units == "Imperial" ? "lbs" : "kg",
+                    type: .decimalPad
+                )
+                .onChange(of: weight) {
+                    weight = weight.filteredNumeric()
                 }
-            } else {
-                Input(title: "Height", text: $heightCm, isFocused: _isHeightCmFocused, unit: "cm", type: .numberPad)
-                    .onChange(of: heightCm) {
-                        heightCm = heightCm.filteredNumericWithoutDecimalPoint()
+                
+                // Height Input
+                if settings.units == "Imperial" {
+                    HStack(alignment: .bottom, spacing: .spacingXS) {
+                        Input(
+                            title: "Height",
+                            text: $heightFeet,
+                            isFocused: _isHeightFeetFocused,
+                            unit: "ft",
+                            type: .numberPad
+                        )
+                        .onChange(of: heightFeet) {
+                            heightFeet = heightFeet.filteredNumericWithoutDecimalPoint()
+                        }
+                        
+                        Input(
+                            title: "",
+                            text: $heightInches,
+                            isFocused: _isHeightInchesFocused,
+                            unit: "in",
+                            type: .numberPad
+                        )
+                        .onChange(of: heightInches) {
+                            heightInches = heightInches.filteredNumeric()
+                        }
                     }
+                } else {
+                    Input(title: "Height", text: $heightCm, isFocused: _isHeightCmFocused, unit: "cm", type: .numberPad)
+                        .onChange(of: heightCm) {
+                            heightCm = heightCm.filteredNumericWithoutDecimalPoint()
+                        }
+                }
             }
             
             // Activity Level Menu
             LabeledButton(
                 label: "Activity Level",
-                size: 12,
                 action: {
                     Popup.show(content: {
                         MenuPopup(
@@ -165,47 +164,41 @@ struct CalorieCalculator: View {
                     })
                 }
             ) {
-                HStack(alignment: .center) {
+                HStack(alignment: .center, spacing: .spacingXS) {
                     Text(activityLevelString ?? "Moderate (3-5 days/week)")
-                        .bodyText(size: 18, weight: .bold)
+                        .bodyText()
                         .multilineTextAlignment(.leading)
                     
                     Image(systemName: "chevron.up.chevron.down")
-                        .padding(.leading, -2)
-                        .font(Font.system(size: 12, weight: .bold))
+                        .subheadingImage()
                 }
             }
             
             // Goal
             LabeledButton(
                 label: "Goal",
-                size: 12,
                 action: {
                     Popup.show(content: {
                         MenuPopup(title: "Goal", options: Goal.stringDisplayOrder, selection: $goalString)
                     })
                 }
             ) {
-                HStack(alignment: .center) {
+                HStack(alignment: .center, spacing: .spacingXS) {
                     Text(goalString ?? "Maintain Weight")
-                        .bodyText(size: 18, weight: .bold)
+                        .bodyText()
                         .multilineTextAlignment(.leading)
                     
                     Image(systemName: "chevron.up.chevron.down")
-                        .padding(.leading, -2)
-                        .font(Font.system(size: 12, weight: .bold))
+                        .subheadingImage()
                 }
             }
             
             Spacer()
-                .frame(height: 5)
+                .frame(height: 0)
             
             HStack(spacing: 0) {
-                Text("Daily Calories: ")
-                    .bodyText(size: 16)
-                
-                Text(dailyCalories != nil ? "\(dailyCalories ?? 0)cal" : "N/A")
-                    .statsText(size: 16)
+                Text("Daily Calories: \(dailyCalories != nil ? "\(dailyCalories ?? 0)cal" : "N/A")")
+                    .bodyText()
                     .monospacedDigit()
                     .contentTransition(.numericText())
                     .animation(.easeInOut(duration: 0.3), value: dailyCalories)
@@ -213,7 +206,7 @@ struct CalorieCalculator: View {
             .textColor()
 
             Text("⚠️ The calorie estimates provided by this app are for reference purposes only and should not be considered medical advice. Consult a healthcare professional before making any significant changes to your diet or exercise routine.") // swiftlint:disable:this line_length
-                .bodyText(size: 14)
+                .secondaryText()
                 .secondaryColor()
         }
         .toolbar {

@@ -15,9 +15,9 @@ struct OptionsInputRow: View {
     @FocusState var isFocused: Bool
     
     var body: some View {
-        HStack {
+        HStack(alignment: .center) {
             Text(title)
-                .bodyText(size: 18)
+                .bodyText()
                 .textColor()
             
             Spacer()

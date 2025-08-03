@@ -20,45 +20,48 @@ struct MenuPopup: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
+        VStack(alignment: .leading, spacing: .spacingM) {
+            HStack(alignment: .center) {
                 Spacer()
                 
                 Text(title)
-                    .bodyText(size: 18, weight: .bold)
+                    .subheadingText()
+                    .textColor()
                     .multilineTextAlignment(.center)
                 
                 Spacer()
             }
             
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: .listSpacing) {
                 ForEach(options, id: \.self) { option in
                     Button {
-                        selection = option
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            selection = option
+                        }
                         
                         Popup.dismissLast()
                     } label: {
-                        HStack(alignment: .center) {
+                        HStack(alignment: .center, spacing: .spacingXS) {
                             Text(option)
-                                .bodyText(size: 16, weight: selection == option ? .bold : .regular)
-                                .textColor()
+                                .bodyText(weight: selection == option ? .bold : .regular)
                                 .multilineTextAlignment(.leading)
+                            
+                            Image(systemName: "chevron.right")
+                                .bodyImage(weight: selection == option ? .bold : .medium)
+                            
+                            Spacer()
                             
                             if let selection = selection,
                                selection == option {
-                                Spacer()
-                                
                                 Image(systemName: "checkmark")
-                                    .padding(.horizontal, 8)
-                                    .font(Font.system(size: 16))
+                                    .bodyText()
                             }
                         }
                     }
                     .textColor()
-                    .animatedButton(scale: 0.98, feedback: .selection)
+                    .animatedButton(feedback: .selection)
                 }
             }
-            .padding(.horizontal, 5)
         }
     }
 }

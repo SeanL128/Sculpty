@@ -28,6 +28,18 @@ struct SearchFood: View {
     
     @State private var looping: Bool = false
     
+    private var image: String {
+        if error {
+            return "exclamationmark.triangle"
+        } else {
+            if searchResults.isEmpty {
+                return "magnifyingglass"
+            } else {
+                return ""
+            }
+        }
+    }
+    
     private var text: String {
         if error {
             return "Error searching"
@@ -47,14 +59,13 @@ struct SearchFood: View {
     }
     
     var body: some View {
-        ContainerView(title: "Search Food", spacing: 16, showScrollBar: true, lazy: true, trailingItems: {
+        ContainerView(title: "Search Food", spacing: .spacingL, lazy: true, trailingItems: {
             NavigationLink {
-                BarcodeScannerView(log: log, foodAdded: $foodAdded, foodToAdd: $foodToAdd, foodsToAdd: $foodsToAdd)
+                BarcodeScanner(log: log, foodAdded: $foodAdded, foodToAdd: $foodToAdd, foodsToAdd: $foodsToAdd)
             } label: {
                 HStack(alignment: .center) {
                     Image(systemName: "barcode.viewfinder")
-                        .padding(.horizontal, 5)
-                        .font(Font.system(size: 20))
+                        .pageTitleImage()
                 }
             }
             .textColor()
@@ -71,69 +82,74 @@ struct SearchFood: View {
                         text: $searchInput
                     )
                 )
-                .padding(.bottom, 5)
+                .padding(.bottom, .spacingXS)
                 .onChange(of: searchInput) { searchFoods() }
             
             if !searchResults.isEmpty {
-                ForEach(searchResults, id: \.food_id) { food in
-                    Button {
-                        Popup.show(content: {
-                            LogFoodEntryPopup(log: log, food: food, foodAdded: $foodAdded)
-                        })
-                    } label: {
-                        HStack(alignment: .center) {
-                            Text("\(food.food_name)\(food.brand_name == nil ? "" : " (\(food.brand_name ?? ""))")")
-                                .bodyText(size: 16)
-                                .multilineTextAlignment(.leading)
-                            
-                            Image(systemName: "chevron.right")
-                                .padding(.leading, -2)
-                                .font(Font.system(size: 10))
+                VStack(alignment: .leading, spacing: .listSpacing) {
+                    ForEach(searchResults, id: \.food_id) { food in
+                        Button {
+                            Popup.show(content: {
+                                LogFoodEntryPopup(log: log, food: food, foodAdded: $foodAdded)
+                            })
+                        } label: {
+                            HStack(alignment: .center, spacing: .spacingXS) {
+                                Text("\(food.food_name)\(food.brand_name == nil ? "" : " (\(food.brand_name ?? ""))")")
+                                    .bodyText(weight: .regular)
+                                    .lineLimit(1)
+                                    .truncationMode(.tail)
+                                
+                                Image(systemName: "chevron.right")
+                                    .bodyImage()
+                            }
                         }
-                    }
-                    .textColor()
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .top).combined(with: .opacity),
-                        removal: .move(edge: .bottom).combined(with: .opacity)
-                    ))
-                }
-                
-                Spacer()
-                    .frame(height: 16)
-            }
-            
-            HStack(alignment: .center) {
-                Spacer()
-                
-                VStack(alignment: .center, spacing: 12) {
-                    Text(text)
-                        .bodyText(size: searchResults.isEmpty ? 18 : 16)
                         .textColor()
-                    
-                    Button {
-                        Popup.show(content: {
-                            AddFoodEntryPopup(log: log, foodAdded: $foodAdded)
-                        })
-                    } label: {
-                        HStack(alignment: .center) {
-                            Text("Add Custom Entry")
-                                .bodyText(size: 14, weight: .bold)
-                            
-                            Image(systemName: "chevron.right")
-                                .padding(.leading, -2)
-                                .font(Font.system(size: 8, weight: .bold))
-                        }
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .move(edge: .leading)),
+                            removal: .opacity.combined(with: .move(edge: .trailing))
+                        ))
                     }
-                    .textColor()
                 }
-                
-                Spacer()
             }
             
-            Spacer()
-                .frame(height: 16)
-            
-            FatSecretLink()
+            VStack(alignment: .center, spacing: .spacingXXL) {
+                VStack(alignment: .center, spacing: .spacingL) {
+                    if !image.isEmpty {
+                        Image(systemName: image)
+                            .font(.system(size: 96, weight: .medium))
+                            .textColor()
+                    }
+                    
+                    VStack(alignment: .center, spacing: .spacingXS) {
+                        Text(text)
+                            .bodyText()
+                            .textColor()
+                        
+                        Button {
+                            Popup.show(content: {
+                                AddFoodEntryPopup(log: log, foodAdded: $foodAdded)
+                            })
+                        } label: {
+                            HStack(alignment: .center, spacing: .spacingXS) {
+                                Text("Add Custom Entry")
+                                    .secondaryText()
+                                
+                                Image(systemName: "chevron.right")
+                                    .secondaryImage()
+                            }
+                        }
+                        .textColor()
+                    }
+                }
+                .padding(.top, .spacingXL)
+                .frame(maxWidth: .infinity)
+                .transition(.scale.combined(with: .opacity))
+                .animation(.easeInOut(duration: 0.3), value: text)
+                .animation(.easeInOut(duration: 0.3), value: image)
+                
+                FatSecretLink()
+            }
+            .frame(maxWidth: .infinity)
         }
         .onChange(of: foodAdded) {
             if foodAdded && foodsToAdd.isEmpty {

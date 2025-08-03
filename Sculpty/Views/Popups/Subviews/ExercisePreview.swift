@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ExercisePreview: View {
+    @EnvironmentObject private var settings: CloudSettings
+    
     let exercise: WorkoutExercise
     let index: Int
     
@@ -19,13 +21,13 @@ struct ExercisePreview: View {
                 open.toggle()
             }
         } label: {
-            HStack(alignment: .center) {
+            HStack(alignment: .center, spacing: .spacingXS) {
                 Text(exercise.exercise?.name ?? "Exercise \(index + 1)")
-                    .bodyText(size: 16)
+                    .bodyText(weight: .regular)
                     .multilineTextAlignment(.leading)
                 
                 Image(systemName: "chevron.down")
-                    .font(Font.system(size: 10, weight: .bold))
+                    .bodyImage()
                     .rotationEffect(.degrees(open ? -180 : 0))
             }
         }
@@ -33,47 +35,50 @@ struct ExercisePreview: View {
         .animatedButton()
         
         if open {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: .spacingS) {
                 ForEach(exercise.sets.sorted { $0.index < $1.index }, id: \.id) { set in
-                    HStack {
-                        ZStack {
+                    HStack(alignment: .center, spacing: .spacingXS) {
+                        ZStack(alignment: .center) {
                             switch set.type {
                             case .warmUp:
                                 Image(systemName: "bolt.fill")
-                                    .font(Font.system(size: 12))
+                                    .secondaryText()
                             case .dropSet:
                                 Image(systemName: "arrowtriangle.down.fill")
-                                    .font(Font.system(size: 12))
+                                    .secondaryText()
                             case .coolDown:
                                 Image(systemName: "drop.fill")
-                                    .font(Font.system(size: 12))
+                                    .secondaryText()
                             default:
                                 Text("")
                             }
                         }
-                        .frame(width: 10, height: 20)
+                        .frame(width: 15, height: 35)
                         
-                        if set.exerciseType == .weight,
-                           let reps = set.reps,
-                           let weight = set.weight {
-                            Text("\(reps) x \(String(format: "%0.2f", weight)) \(set.unit)")
-                                .bodyText(size: 12)
-                                .textColor()
-                                .monospacedDigit()
-                                .contentTransition(.numericText())
-                                .animation(.easeInOut(duration: 0.3), value: weight)
-                                .animation(.easeInOut(duration: 0.3), value: reps)
-                        } else if set.exerciseType == .distance,
-                                  let distance = set.distance {
-                            Text("\(set.timeString) \(String(format: "%0.2f", distance)) \(set.unit)")
-                                .bodyText(size: 12)
-                                .textColor()
-                                .monospacedDigit()
-                                .contentTransition(.numericText())
-                                .animation(.easeInOut(duration: 0.3), value: distance)
-                            
-                            Spacer()
+                        HStack(alignment: .center) {
+                            if set.exerciseType == .weight,
+                               let reps = set.reps,
+                               let weight = set.weight,
+                               let rir = set.rir {
+                                Text("\(reps) x \(String(format: "%0.2f", weight)) \(set.unit)\((settings.showRir && [.main, .dropSet].contains(set.type)) ? " (\(rir)\((rir) == "Failure" ? "" : " RIR"))" : "")") // swiftlint:disable:this line_length
+                                    .secondaryText()
+                                    .textColor()
+                                    .monospacedDigit()
+                                    .contentTransition(.numericText())
+                                    .animation(.easeInOut(duration: 0.3), value: weight)
+                                    .animation(.easeInOut(duration: 0.3), value: reps)
+                            } else if set.exerciseType == .distance,
+                                      let distance = set.distance {
+                                Text("\(set.timeString) \(String(format: "%0.2f", distance)) \(set.unit)")
+                                    .secondaryText()
+                                    .textColor()
+                                    .monospacedDigit()
+                                    .contentTransition(.numericText())
+                                    .animation(.easeInOut(duration: 0.3), value: distance)
+                            }
                         }
+                        
+                        Spacer()
                     }
                 }
             }

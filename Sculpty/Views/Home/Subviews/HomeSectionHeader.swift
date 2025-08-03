@@ -13,24 +13,22 @@ struct HomeSectionHeader<Content: View>: View {
     @ViewBuilder let trailingContent: Content
 
     var body: some View {
-        HStack(alignment: .center) {
-            HStack {
-                Spacer()
-                
-                Image(systemName: icon)
-                    .font(.system(size: 18))
-                
-                Spacer()
-            }
-            .frame(width: 25)
+        HStack(alignment: .center, spacing: .spacingS) {
+            Image(systemName: icon)
+                .headingImage()
+                .textColor()
+                .frame(width: 25, alignment: .center)
 
             Text(title.uppercased())
-                .headingText(size: 24)
+                .headingText()
+                .textColor()
 
             Spacer()
 
-            trailingContent
+            HStack(alignment: .center, spacing: .spacingL) {
+                trailingContent
+            }
         }
-        .textColor()
+        .padding(.horizontal, .spacingXS)
     }
 }

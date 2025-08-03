@@ -66,6 +66,11 @@ class SetLog: Identifiable {
         
         self.reps = reps
         self.weight = weight * Double(reps)
+        
+        if let log = exerciseLog?.workoutLog,
+           log.completed {
+            log.end = end
+        }
     }
     
     func finish(time: Double, distance: Double) {
@@ -74,6 +79,11 @@ class SetLog: Identifiable {
         
         self.time = time
         self.distance = distance
+        
+        if let log = exerciseLog?.workoutLog,
+           log.completed {
+            log.end = end
+        }
     }
     
     func unfinish() {
@@ -100,6 +110,11 @@ class SetLog: Identifiable {
         } else if time != nil && distance != nil {
             time = 0
             distance = 0
+        }
+        
+        if let log = exerciseLog?.workoutLog,
+           log.completed {
+            log.end = end
         }
     }
     

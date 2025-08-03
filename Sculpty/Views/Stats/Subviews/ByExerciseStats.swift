@@ -178,102 +178,105 @@ struct ByExerciseStats: View {
     private var showDistanceData: Bool { !distanceData.isEmpty || !timeData.isEmpty }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: .spacingL) {
             NavigationLink {
                 SelectExercise(selectedExercise: $exercise, forStats: true)
             } label: {
-                HStack(alignment: .center) {
+                HStack(alignment: .center, spacing: .spacingXS) {
                     Text(exercise?.name ?? "Select Exercise")
-                        .bodyText(size: 20, weight: .bold)
+                        .bodyText(weight: .regular)
                     
                     Image(systemName: "chevron.right")
-                        .padding(.leading, -2)
-                        .font(Font.system(size: 14, weight: .bold))
+                        .bodyImage()
                 }
             }
             .textColor()
-            .animatedButton(scale: 0.98)
+            .animatedButton()
             .animation(.easeInOut(duration: 0.2), value: exercise?.name)
             
             ChartDateRangeControl(selectedRangeIndex: $selectedRangeIndex)
             
             if showPrData || showOneRmData || showWeightData || showDistanceData {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: .spacingL) {
                         if showPrData {
                             // PR
-                            Text("PR")
-                                .headingText(size: 24)
-                                .textColor()
-                                .padding(.bottom, -16)
-                            
-                            Text("Current PR: \(prData.last?.value.formatted() ?? "0")\(UnitsManager.weight) (\(formatDate(prData.last?.date ?? Date())))") // swiftlint:disable:this line_length
-                                .bodyText(size: 16)
-                                .textColor()
-                                .monospacedDigit()
-                                .contentTransition(.numericText())
-                                .animation(.easeInOut(duration: 0.3), value: prData.last?.value)
-                                .animation(.easeInOut(duration: 0.3), value: prData.last?.date)
-                            
-                            LineChart(selectedRangeIndex: $selectedRangeIndex, data: prData, units: UnitsManager.weight)
+                            VStack(alignment: .leading, spacing: .spacingXS) {
+                                Text("PR")
+                                    .subheadingText()
+                                    .textColor()
+                                
+                                Text("Current PR: \(prData.last?.value.formatted() ?? "0")\(UnitsManager.weight) (\(formatDate(prData.last?.date ?? Date())))") // swiftlint:disable:this line_length
+                                    .bodyText()
+                                    .textColor()
+                                    .monospacedDigit()
+                                    .contentTransition(.numericText())
+                                    .animation(.easeInOut(duration: 0.3), value: prData.last?.value)
+                                    .animation(.easeInOut(duration: 0.3), value: prData.last?.date)
+                            }
                         }
                         
                         if showOneRmData {
                             // 1RM
-                            Text("ONE REP MAX (1RM)")
-                                .headingText(size: 24)
-                                .textColor()
-                                .padding(.bottom, -16)
-                            
-                            LineChart(
-                                selectedRangeIndex: $selectedRangeIndex,
-                                data: oneRmData,
-                                units: UnitsManager.weight
-                            )
+                            VStack(alignment: .leading, spacing: .spacingXS) {
+                                Text("ONE REP MAX (1RM)")
+                                    .subheadingText()
+                                    .textColor()
+                                
+                                LineChart(
+                                    selectedRangeIndex: $selectedRangeIndex,
+                                    data: oneRmData,
+                                    units: UnitsManager.weight
+                                )
+                            }
                         }
                         
                         if showWeightData {
                             // Weight
-                            Text("TOTAL WEIGHT")
-                                .headingText(size: 24)
-                                .textColor()
-                                .padding(.bottom, -16)
-                            
-                            LineChart(
-                                selectedRangeIndex: $selectedRangeIndex,
-                                data: weightData,
-                                units: UnitsManager.weight
-                            )
+                            VStack(alignment: .leading, spacing: .spacingXS) {
+                                Text("TOTAL WEIGHT")
+                                    .subheadingText()
+                                    .textColor()
+                                
+                                LineChart(
+                                    selectedRangeIndex: $selectedRangeIndex,
+                                    data: weightData,
+                                    units: UnitsManager.weight
+                                )
+                            }
                             
                             // Reps
-                            Text("TOTAL REPS")
-                                .headingText(size: 24)
-                                .textColor()
-                                .padding(.bottom, -16)
-                            
-                            LineChart(selectedRangeIndex: $selectedRangeIndex, data: repsData, units: "reps")
+                            VStack(alignment: .leading, spacing: .spacingXS) {
+                                Text("TOTAL REPS")
+                                    .subheadingText()
+                                    .textColor()
+                                
+                                LineChart(selectedRangeIndex: $selectedRangeIndex, data: repsData, units: "reps")
+                            }
                         }
                         
                         if showDistanceData {
                             // Distance
-                            Text("TOTAL DISTANCE")
-                                .headingText(size: 24)
-                                .textColor()
-                                .padding(.bottom, -16)
-                            
-                            LineChart(
-                                selectedRangeIndex: $selectedRangeIndex,
-                                data: distanceData,
-                                units: UnitsManager.longLength
-                            )
+                            VStack(alignment: .leading, spacing: .spacingXS) {
+                                Text("TOTAL DISTANCE")
+                                    .subheadingText()
+                                    .textColor()
+                                
+                                LineChart(
+                                    selectedRangeIndex: $selectedRangeIndex,
+                                    data: distanceData,
+                                    units: UnitsManager.longLength
+                                )
+                            }
                             
                             // Time (Cardio)
-                            Text("TOTAL CARDIO TIME")
-                                .headingText(size: 24)
-                                .textColor()
-                                .padding(.bottom, -16)
-                            
-                            LineChart(selectedRangeIndex: $selectedRangeIndex, data: timeData, units: "min")
+                            VStack(alignment: .leading, spacing: .spacingXS) {
+                                Text("TOTAL CARDIO TIME")
+                                    .subheadingText()
+                                    .textColor()
+                                
+                                LineChart(selectedRangeIndex: $selectedRangeIndex, data: timeData, units: "min")
+                            }
                         }
                         
                         if let exercise = exercise,
@@ -284,35 +287,35 @@ struct ByExerciseStats: View {
                             }).isEmpty {
                             let workouts = exercise.workoutExercises.compactMap { $0.workout }.removingDuplicates()
                             
-                            Text("WORKOUTS")
-                                .headingText(size: 24)
-                                .textColor()
-                                .padding(.bottom, -16)
-                            
-                            VStack(alignment: .leading, spacing: 9) {
-                                ForEach(workouts, id: \.id) { workout in
-                                    Button {
-                                        self.workout = workout
-                                        
-                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                            selectedTab = 2
-                                        }
-                                    } label: {
-                                        HStack(alignment: .center) {
-                                            Text(workout.name)
-                                                .bodyText(size: 18, weight: .bold)
-                                            
-                                            Image(systemName: "chevron.right")
-                                                .padding(.leading, -2)
-                                                .font(Font.system(size: 12))
-                                        }
-                                    }
+                            VStack(alignment: .leading, spacing: .spacingXS) {
+                                Text("WORKOUTS")
+                                    .subheadingText()
                                     .textColor()
-                                    .animatedButton(scale: 0.98, feedback: .selection)
-                                    .transition(.asymmetric(
-                                        insertion: .opacity.combined(with: .move(edge: .leading)),
-                                        removal: .opacity.combined(with: .move(edge: .trailing))
-                                    ))
+                                
+                                VStack(alignment: .leading, spacing: .listSpacing) {
+                                    ForEach(workouts, id: \.id) { workout in
+                                        Button {
+                                            self.workout = workout
+                                            
+                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                                selectedTab = 2
+                                            }
+                                        } label: {
+                                            HStack(alignment: .center, spacing: .spacingXS) {
+                                                Text(workout.name)
+                                                    .bodyText(weight: .regular)
+                                                
+                                                Image(systemName: "chevron.right")
+                                                    .bodyImage()
+                                            }
+                                        }
+                                        .textColor()
+                                        .animatedButton(feedback: .selection)
+                                        .transition(.asymmetric(
+                                            insertion: .opacity.combined(with: .move(edge: .leading)),
+                                            removal: .opacity.combined(with: .move(edge: .trailing))
+                                        ))
+                                    }
                                 }
                             }
                         }
@@ -324,8 +327,9 @@ struct ByExerciseStats: View {
                 .frame(maxWidth: .infinity)
             } else {
                 EmptyState(
-                    message: "No Data",
-                    size: 18
+                    image: "dumbbell",
+                    text: "No data found\(exercise != nil ? " for \(exercise?.name ?? "this exercise")" : "")",
+                    subtext: "Try selecting \(exercise != nil ? "a different" : "an") exercise"
                 )
             }
         }

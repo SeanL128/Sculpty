@@ -19,24 +19,46 @@ struct MeasurementMenuPopup: View {
     }
     
     var body: some View {
-        VStack(alignment: .center, spacing: 12) {
-            ForEach(options.sorted { MeasurementType.displayOrder.firstIndex(of: $0.value)! < MeasurementType.displayOrder.firstIndex(of: $1.value)! }, id: \.key) { str, type in // swiftlint:disable:this line_length force_unwrapping
-                Button {
-                    selection = type
-                    
-                    Popup.dismissLast()
-                } label: {
-                    HStack(alignment: .center) {
-                        Text(str)
-                            .bodyText(size: 16, weight: selection == type ? .bold : .regular)
+        VStack(alignment: .leading, spacing: .spacingM) {
+            HStack(alignment: .center) {
+                Spacer()
+                
+                Text("Measurement")
+                    .subheadingText()
+                    .textColor()
+                    .multilineTextAlignment(.center)
+                
+                Spacer()
+            }
+            
+            VStack(alignment: .leading, spacing: .listSpacing) {
+                ForEach(options.sorted { MeasurementType.displayOrder.firstIndex(of: $0.value)! < MeasurementType.displayOrder.firstIndex(of: $1.value)! }, id: \.key) { str, type in // swiftlint:disable:this line_length force_unwrapping
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            selection = type
+                        }
                         
-                        Image(systemName: "chevron.right")
-                            .padding(.leading, -2)
-                            .font(Font.system(size: 10))
+                        Popup.dismissLast()
+                    } label: {
+                        HStack(alignment: .center, spacing: .spacingXS) {
+                            Text(str)
+                                .bodyText(weight: selection == type ? .bold : .regular)
+                                .multilineTextAlignment(.leading)
+                            
+                            Image(systemName: "chevron.right")
+                                .bodyImage(weight: selection == type ? .bold : .medium)
+                            
+                            Spacer()
+                            
+                            if selection == type {
+                                Image(systemName: "checkmark")
+                                    .bodyText()
+                            }
+                        }
                     }
+                    .textColor()
+                    .animatedButton(feedback: .selection)
                 }
-                .textColor()
-                .animatedButton(scale: 0.98, feedback: .selection)
             }
         }
     }

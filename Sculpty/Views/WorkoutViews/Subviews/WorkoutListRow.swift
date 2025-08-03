@@ -19,7 +19,7 @@ struct WorkoutListRow: View {
     let editing: Bool
     
     var body: some View {
-        HStack(alignment: .center) {
+        HStack(alignment: .center, spacing: .spacingM) {
             if editing {
                 ReorderControls(
                     moveUp: {
@@ -41,15 +41,15 @@ struct WorkoutListRow: View {
                 )
             }
             
-            VStack {
-                HStack {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(alignment: .center, spacing: .spacingL) {
                     Button {
                         Popup.show(content: {
                             WorkoutPreviewPopup(workout: workout)
                         })
                     } label: {
                         Text(workout.name)
-                            .bodyText(size: 18)
+                            .bodyText()
                     }
                     .animatedButton(scale: 1, feedback: .selection)
                     
@@ -59,26 +59,22 @@ struct WorkoutListRow: View {
                         UpsertWorkout(workout: workout)
                     } label: {
                         Image(systemName: "pencil")
-                            .padding(.horizontal, 8)
-                            .font(Font.system(size: 18))
+                            .bodyText(weight: .regular)
                     }
                     .textColor()
                     .animatedButton()
                     
                     Button {
-                        if !workout.exercises.isEmpty {
-                            let log = WorkoutLog(workout: workout)
-                            
-                            context.insert(log)
-                            
-                            workoutToStart = log
-                            
-                            dismiss()
-                        }
+                        let log = WorkoutLog(workout: workout)
+                        
+                        context.insert(log)
+                        
+                        workoutToStart = log
+                        
+                        dismiss()
                     } label: {
                         Image(systemName: "play.fill")
-                            .padding(.horizontal, 8)
-                            .font(Font.system(size: 18))
+                            .bodyText(weight: .regular)
                     }
                     .foregroundStyle(workout.exercises.isEmpty ? ColorManager.secondary : ColorManager.text)
                     .disabled(workout.exercises.isEmpty)
@@ -86,14 +82,13 @@ struct WorkoutListRow: View {
                     .animation(.easeInOut(duration: 0.2), value: workout.exercises.isEmpty)
                 }
                 
-                HStack {
-                    Text("Last started: \(workout.lastStarted != nil ? formatDateWithTime(workout.lastStarted ?? Date()) : "N/A")") // swiftlint:disable:this line_length
-                        .bodyText(size: 12)
-                        .secondaryColor()
-                        .animation(.easeInOut(duration: 0.3), value: workout.lastStarted)
-                    
-                    Spacer()
-                }
+                Text("Last started \(workout.lastStarted != nil ? formatDateWithTime(workout.lastStarted ?? Date()) : "N/A")") // swiftlint:disable:this line_length
+                    .captionText()
+                    .secondaryColor()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .multilineTextAlignment(.leading)
+                    .animation(.easeInOut(duration: 0.3), value: workout.lastStarted)
             }
         }
     }

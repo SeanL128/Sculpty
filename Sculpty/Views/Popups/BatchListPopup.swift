@@ -8,68 +8,107 @@
 import SwiftUI
 
 struct BatchListPopup: View {
-    let items: [FatSecretFood]
-    let onRemove: (Int) -> Void
+    @State private var items: [FatSecretFood]
+    private let onRemove: (Int) -> Void
+    
+    @State private var height: CGFloat = 0
+    
+    init (items: [FatSecretFood], onRemove: @escaping (Int) -> Void) {
+        self.items = items
+        self.onRemove = onRemove
+    }
     
     var body: some View {
-        VStack(alignment: .center, spacing: 24) {
-            Text("Scanned Items")
-                .bodyText(size: 18, weight: .bold)
-                .multilineTextAlignment(.center)
-            
-            ScrollView {
-                LazyVStack(spacing: 8) {
-                    ForEach(Array(items.enumerated()), id: \.element.food_id) { index, food in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(food.food_name)
-                                    .bodyText(size: 16)
-                                    .textColor()
-                                    .lineLimit(1)
-                                
-                                if let brand = food.brand_name {
-                                    Text(brand)
-                                        .bodyText(size: 12)
-                                        .secondaryColor()
-                                        .lineLimit(1)
+        VStack(alignment: .center, spacing: .spacingL) {
+            VStack(alignment: .center, spacing: .spacingM) {
+                Text("Scanned Items")
+                    .subheadingText()
+                    .multilineTextAlignment(.center)
+                
+                ScrollView {
+                    LazyVStack(spacing: .listSpacing) {
+                        if items.isEmpty {
+                            EmptyState(
+                                image: "fork.knife",
+                                text: "No items scanned",
+                                subtext: "Scan a food barcode to add it",
+                                topPadding: 0
+                            )
+                        } else {
+                            ForEach(Array(items.enumerated()), id: \.element.food_id) { index, food in
+                                VStack(alignment: .leading, spacing: 0) {
+                                    HStack(alignment: .center) {
+                                        Text(food.food_name)
+                                            .bodyText()
+                                            .textColor()
+                                            .lineLimit(1)
+                                            .truncationMode(.tail)
+                                        
+                                        Spacer()
+                                        
+                                        Button {
+                                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                                items.remove(at: index)
+                                                
+                                                onRemove(index)
+                                            }
+                                        } label: {
+                                            Image(systemName: "xmark")
+                                                .bodyText()
+                                        }
+                                        .textColor()
+                                        .animatedButton(feedback: .impact(weight: .medium))
+                                    }
+                                    
+                                    if let brand = food.brand_name {
+                                        Text(brand)
+                                            .captionText()
+                                            .secondaryColor()
+                                            .lineLimit(1)
+                                            .truncationMode(.tail)
+                                    }
                                 }
+                                .transition(.scale.combined(with: .opacity))
                             }
-                            
-                            Spacer()
-                            
-                            Button {
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    onRemove(index)
-                                }
-                            } label: {
-                                Image(systemName: "xmark")
-                                    .padding(.horizontal, 8)
-                                    .font(Font.system(size: 16))
-                            }
-                            .textColor()
-                            .animatedButton(feedback: .impact(weight: .medium))
                         }
-                        .transition(.asymmetric(
-                            insertion: .opacity.combined(with: .move(edge: .leading)),
-                            removal: .opacity.combined(with: .move(edge: .trailing))
-                        ))
                     }
+                    .background(GeometryReader { geo in
+                        Color.clear
+                            .onAppear {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    height = geo.size.height
+                                }
+                            }
+                            .onChange(of: geo.size.height) {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    height = geo.size.height
+                                }
+                            }
+                    })
                 }
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: items.count)
+                .frame(maxHeight: min(height, 300))
+                .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
+                .scrollIndicators(.hidden)
+                .scrollContentBackground(.hidden)
             }
-            .frame(maxHeight: 300)
-            .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
-            .scrollIndicators(.hidden)
-            .scrollContentBackground(.hidden)
             
-            Button {
-                Popup.dismissLast()
-            } label: {
-                Text("OK")
-                    .bodyText(size: 18, weight: .bold)
+            VStack(alignment: .center, spacing: .spacingM) {
+                Spacer()
+                    .frame(height: 0)
+                
+                Button {
+                    Popup.dismissLast()
+                } label: {
+                    Text("OK")
+                        .bodyText()
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, .spacingL)
+                }
+                .textColor()
+                .background(Color.accentColor)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .animatedButton()
             }
-            .textColor()
-            .animatedButton()
         }
     }
 }

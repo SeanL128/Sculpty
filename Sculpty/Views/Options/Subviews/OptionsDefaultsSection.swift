@@ -11,14 +11,17 @@ struct OptionsDefaultsSection: View {
     @EnvironmentObject private var settings: CloudSettings
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: .spacingS) {
             OptionsSectionHeader(title: "Defaults", image: "doc.plaintext")
             
-            OptionsPickerRow(
-                title: "Units",
-                text: settings.units == "Imperial" ? "Imperial (mi, ft, in, lbs)" : "Metric (km, m, cm, kg)",
-                popup: UnitMenuPopup(selection: $settings.units)
-            )
+            VStack(alignment: .leading, spacing: .spacingS) {
+                OptionsPickerRow(
+                    title: "Units",
+                    text: settings.units == "Imperial" ? "Imperial (mi, ft, in, lbs)" : "Metric (km, m, cm, kg)",
+                    popup: UnitMenuPopup(selection: $settings.units)
+                )
+            }
+            .card()
         }
         .frame(maxWidth: .infinity)
     }

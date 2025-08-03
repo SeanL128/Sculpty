@@ -79,51 +79,48 @@ struct AddFoodEntryPopup: View {
     }
     
     var body: some View {
-        VStack(alignment: .center, spacing: 12) {
-            HStack(alignment: .center) {
-                Input(title: "Name", text: $nameInput, isFocused: _isNameFocused, autoCapitalization: .words)
-                    .padding(.vertical, 5)
-                    .padding(.horizontal)
-                
-                Input(
-                    title: "Calories",
-                    text: $caloriesInput,
-                    isFocused: _isCaloriesFocused,
-                    unit: "cal",
-                    type: .decimalPad
-                )
-                .padding(.horizontal)
-                .padding(.vertical, 5)
-                .onChange(of: caloriesInput) {
-                    caloriesInput = caloriesInput.filteredNumericWithoutDecimalPoint()
-                }
-            }
-            
-            HStack(alignment: .center) {
-                Input(title: "Carbs", text: $carbsInput, isFocused: _isCarbsFocused, unit: "g", type: .decimalPad)
-                    .padding(.horizontal)
-                    .padding(.vertical, 5)
-                    .onChange(of: carbsInput) {
-                        carbsInput = carbsInput.filteredNumericWithoutDecimalPoint()
+        VStack(alignment: .center, spacing: .spacingL) {
+            VStack(alignment: .center, spacing: .spacingM) {
+                HStack(alignment: .center, spacing: .spacingM) {
+                    Input(title: "Name", text: $nameInput, isFocused: _isNameFocused, autoCapitalization: .words)
+                    
+                    Input(
+                        title: "Calories",
+                        text: $caloriesInput,
+                        isFocused: _isCaloriesFocused,
+                        unit: "cal",
+                        type: .decimalPad
+                    )
+                    .onChange(of: caloriesInput) {
+                        caloriesInput = caloriesInput.filteredNumericWithoutDecimalPoint()
                     }
+                }
                 
-                Input(title: "Protein", text: $proteinInput, isFocused: _isProteinFocused, unit: "g", type: .decimalPad)
-                    .padding(.horizontal)
-                    .padding(.vertical, 5)
+                HStack(alignment: .center, spacing: .spacingS) {
+                    Input(title: "Carbs", text: $carbsInput, isFocused: _isCarbsFocused, unit: "g", type: .decimalPad)
+                        .onChange(of: carbsInput) {
+                            carbsInput = carbsInput.filteredNumericWithoutDecimalPoint()
+                        }
+                    
+                    Input(
+                        title: "Protein",
+                        text: $proteinInput,
+                        isFocused: _isProteinFocused,
+                        unit: "g",
+                        type: .decimalPad
+                    )
                     .onChange(of: proteinInput) {
                         proteinInput = proteinInput.filteredNumericWithoutDecimalPoint()
                     }
-                
-                Input(title: "Fat", text: $fatInput, isFocused: _isFatFocused, unit: "g", type: .decimalPad)
-                    .padding(.horizontal)
-                    .padding(.vertical, 5)
-                    .onChange(of: fatInput) {
-                        fatInput = fatInput.filteredNumericWithoutDecimalPoint()
-                    }
+                    
+                    Input(title: "Fat", text: $fatInput, isFocused: _isFatFocused, unit: "g", type: .decimalPad)
+                        .onChange(of: fatInput) {
+                            fatInput = fatInput.filteredNumericWithoutDecimalPoint()
+                        }
+                }
             }
-            .padding(.bottom, 4)
             
-            SaveButton(save: save, isValid: isValid, size: 18)
+            SaveButton(save: save, isValid: isValid)
         }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {

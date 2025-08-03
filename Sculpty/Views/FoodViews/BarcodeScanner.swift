@@ -1,5 +1,5 @@
 //
-//  BarcodeScannerView.swift
+//  BarcodeScanner.swift
 //  Sculpty
 //
 //  Created by Sean Lindsay on 7/14/25.
@@ -8,7 +8,7 @@
 import SwiftUI
 import Vision
 
-struct BarcodeScannerView: View {
+struct BarcodeScanner: View {
     @Environment(\.dismiss) private var dismiss
     
     @State var log: CaloriesLog
@@ -72,7 +72,7 @@ struct BarcodeScannerView: View {
                     ScannerOverlay()
                 }
                 
-                VStack {
+                VStack(alignment: .center, spacing: .spacingXS) {
                     HStack(alignment: .center) {
                         Button {
                             if isBatchMode && !scannedItems.isEmpty {
@@ -84,7 +84,9 @@ struct BarcodeScannerView: View {
                                         promptText: "Unsaved Scanned Items",
                                         resultText: "Are you sure you want to leave without saving scanned items?",
                                         cancelText: "Discared Items",
-                                        confirmText: "Stay on Page"
+                                        cancelColor: ColorManager.destructive,
+                                        confirmText: "Stay on Page",
+                                        confirmColor: ColorManager.text
                                     )
                                 })
                             } else {
@@ -92,8 +94,7 @@ struct BarcodeScannerView: View {
                             }
                         } label: {
                             Image(systemName: "chevron.left")
-                                .padding(.trailing, 6)
-                                .font(Font.system(size: 22))
+                                .pageTitleImage()
                         }
                         .textColor()
                         .onChange(of: stayOnPage) {
@@ -105,76 +106,72 @@ struct BarcodeScannerView: View {
                         Spacer()
                         
                         if isBatchMode {
-                            Button {
-                                if checkmarkValid {
-                                    foodsToAdd = scannedItems
+                            HStack(alignment: .center, spacing: .spacingL) {
+                                Button {
+                                    if checkmarkValid {
+                                        foodsToAdd = scannedItems
+                                    }
+                                    
+                                    dismiss()
+                                } label: {
+                                    Image(systemName: "checkmark")
+                                        .pageTitleImage()
                                 }
-                                
-                                dismiss()
-                            } label: {
-                                Image(systemName: "checkmark")
-                                    .padding(.trailing, 6)
-                                    .font(Font.system(size: 22))
+                                .disabled(!checkmarkValid)
+                                .foregroundStyle(checkmarkValid ? ColorManager.text : ColorManager.secondary)
+                                .animatedButton(isValid: checkmarkValid)
+                                .animation(.easeInOut(duration: 0.2), value: checkmarkValid)
                             }
-                            .disabled(!checkmarkValid)
-                            .foregroundStyle(checkmarkValid ? ColorManager.text : ColorManager.secondary)
-                            .animatedButton(isValid: checkmarkValid)
-                            .animation(.easeInOut(duration: 0.2), value: checkmarkValid)
                         }
                     }
-                    .padding()
-                    .padding(.bottom, 2)
+                    .padding(.top, .spacingM)
+                    .padding(.bottom, .spacingXS)
+                    .padding(.horizontal, .spacingL)
                     .background(ColorManager.background)
                     
                     if coordinator.isSessionRunning {
                         if !showBatchList {
-                            VStack(spacing: 8) {
+                            VStack(alignment: .center, spacing: .spacingS) {
                                 if isBatchMode {
                                     Text("Scan multiple barcodes")
-                                        .bodyText(size: 16)
-                                        .darkModeTextColor()
+                                        .bodyText()
+                                        .foregroundStyle(ColorManager.text)
                                         .multilineTextAlignment(.center)
-                                        .transition(.asymmetric(
-                                            insertion: .opacity.combined(with: .move(edge: .top)),
-                                            removal: .opacity.combined(with: .move(edge: .bottom))
-                                        ))
+                                        .transition(.opacity.combined(with: .move(edge: .top)))
                                 } else {
-                                    Text("Position barcode in the frame")
-                                        .bodyText(size: 16)
-                                        .darkModeTextColor()
+                                    Text("Position barcode in frame")
+                                        .bodyText()
+                                        .foregroundStyle(ColorManager.text)
                                         .multilineTextAlignment(.center)
-                                        .transition(.asymmetric(
-                                            insertion: .opacity.combined(with: .move(edge: .top)),
-                                            removal: .opacity.combined(with: .move(edge: .bottom))
-                                        ))
+                                        .transition(.opacity.combined(with: .move(edge: .bottom)))
                                 }
                                 
                                 if api.isLoading {
                                     HStack {
                                         ProgressView()
                                             .scaleEffect(0.8)
-                                            .tint(ColorManager.text.dark)
+                                            .tint(ColorManager.text)
                                         
                                         Text("Looking up product...")
-                                            .bodyText(size: 14)
-                                            .darkModeTextColor()
+                                            .secondaryText()
+                                            .foregroundStyle(ColorManager.text)
                                     }
-                                    .padding(.top, 4)
+                                    .padding(.top, .spacingXS)
                                     .transition(.asymmetric(
                                         insertion: .opacity.combined(with: .scale(scale: 0.8)),
                                         removal: .opacity.combined(with: .scale(scale: 0.8))
                                     ))
                                 }
                             }
-                            .padding(.horizontal)
-                            .padding(.top, 30)
+                            .padding(.horizontal, .spacingXS)
+                            .padding(.top, .spacingXL)
                         }
                     }
                     
                     Spacer()
                     
-                    VStack(spacing: 16) {
-                        HStack {
+                    VStack(spacing: .spacingM) {
+                        HStack(alignment: .center) {
                             Spacer()
                             
                             if isBatchMode {
@@ -193,27 +190,26 @@ struct BarcodeScannerView: View {
                                         }
                                     })
                                 } label: {
-                                    HStack(alignment: .center) {
-                                        Text("\(scannedItems.count) items")
-                                            .bodyText(size: 18)
+                                    HStack(alignment: .center, spacing: .spacingXS) {
+                                        Text("\(scannedItems.count) item\(scannedItems.count == 1 ? "" : "s")")
+                                            .bodyText(weight: .regular)
                                             .monospacedDigit()
                                             .contentTransition(.numericText())
                                         
                                         Image(systemName: "chevron.right")
-                                            .padding(.leading, -2)
-                                            .font(Font.system(size: 12))
+                                            .bodyImage()
                                     }
                                 }
                                 .secondaryColor()
                                 .animatedButton()
-                                .animation(.easeOut(duration: 0.3), value: scannedItems.count)
                             }
                             
                             Spacer()
                         }
-                        .padding(.horizontal)
+                        .padding(.top, .spacingM)
+                        .padding(.horizontal, .spacingL)
                         
-                        HStack {
+                        HStack(alignment: .center) {
                             if coordinator.isTorchAvailable {
                                 Button {
                                     withAnimation(.easeInOut(duration: 0.3)) {
@@ -221,35 +217,23 @@ struct BarcodeScannerView: View {
                                     }
                                 } label: {
                                     Image(systemName: coordinator.isTorchOn ? "flashlight.on.circle.fill" : "flashlight.off.circle") // swiftlint:disable:this line_length
-                                        .font(.system(size: 30))
+                                        .pageTitleText(weight: .regular)
                                 }
                                 .textColor()
                                 .animatedButton(feedback: .impact(weight: .light))
                             } else {
                                 Image(systemName: "flashlight.slash.circle")
-                                    .font(.system(size: 30))
+                                    .pageTitleText(weight: .regular)
                                     .textColor()
                             }
                             
                             Spacer()
                             
                             Button {
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    coordinator.capturePhoto()
-                                }
+                                coordinator.capturePhoto()
                             } label: {
-                                HStack(spacing: 6) {
-                                    if isCapturingPhoto {
-                                        ProgressView()
-                                            .scaleEffect(0.7)
-                                            .tint(ColorManager.text)
-                                            .transition(.opacity)
-                                    } else {
-                                        Image(systemName: "camera.circle.fill")
-                                            .font(.system(size: 30))
-                                            .transition(.opacity)
-                                    }
-                                }
+                                Image(systemName: "camera.circle.fill")
+                                    .pageTitleText(weight: .regular)
                             }
                             .textColor()
                             .disabled(isCapturingPhoto)
@@ -268,7 +252,9 @@ struct BarcodeScannerView: View {
                                                 promptText: "Unsaved Scanned Items",
                                                 resultText: "Are you sure you want to turn off batch mode and clear scanned items?", // swiftlint:disable:this line_length
                                                 cancelText: "Clear Items",
-                                                confirmText: "Keep Items"
+                                                cancelColor: ColorManager.destructive,
+                                                confirmText: "Keep Items",
+                                                confirmColor: ColorManager.text
                                             )
                                         })
                                     } else {
@@ -283,7 +269,7 @@ struct BarcodeScannerView: View {
                                 }
                             } label: {
                                 Image(systemName: isBatchMode ? "list.bullet.circle.fill" : "list.bullet.circle")
-                                    .font(.system(size: 30))
+                                    .pageTitleText(weight: .regular)
                             }
                             .textColor()
                             .animatedButton(feedback: .selection)
@@ -302,9 +288,8 @@ struct BarcodeScannerView: View {
                                 }
                             }
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, .spacingL)
                     }
-                    .padding()
                     .background(ColorManager.background)
                 }
                 
@@ -315,11 +300,11 @@ struct BarcodeScannerView: View {
                             .secondaryColor()
                         
                         Text("Camera Access Required")
-                            .bodyText(size: 24, weight: .bold)
+                            .headingText()
                             .textColor()
                         
                         Text("To scan barcodes, Sculpty needs access to your camera. Please enable camera access in Settings.") // swiftlint:disable:this line_length
-                            .bodyText(size: 16)
+                            .bodyText()
                             .secondaryColor()
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 40)
@@ -331,19 +316,19 @@ struct BarcodeScannerView: View {
                             }
                         } label: {
                             Text("Open Settings")
-                                .bodyText(size: 24, weight: .bold)
+                                .headingText()
                         }
                         .textColor()
-                        .animatedButton(scale: 0.98)
+                        .animatedButton()
                         
                         Button {
                             dismiss()
                         } label: {
                             Text("Cancel")
-                                .bodyText(size: 16)
+                                .bodyText()
                         }
                         .textColor()
-                        .animatedButton(scale: 0.98)
+                        .animatedButton()
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(ColorManager.background)
@@ -496,7 +481,9 @@ struct BarcodeScannerView: View {
                 if !scannedItems.contains(where: { $0.food_id == food.food_id }) {
                     successTrigger += 1
                     
-                    scannedItems.append(food)
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        scannedItems.append(food)
+                    }
                 }
             } else {
                 successTrigger += 1

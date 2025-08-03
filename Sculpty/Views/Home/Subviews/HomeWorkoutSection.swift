@@ -34,14 +34,13 @@ struct HomeWorkoutSection: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .center, spacing: 8) {
             HomeSectionHeader(icon: "dumbbell", title: "Workouts") {
                 NavigationLink {
                     WorkoutStats()
                 } label: {
                     Image(systemName: "chart.xyaxis.line")
-                        .padding(.horizontal, 5)
-                        .font(Font.system(size: 18))
+                        .headingImage()
                 }
                 .animatedButton()
                 
@@ -49,28 +48,44 @@ struct HomeWorkoutSection: View {
                     WorkoutList(workoutToStart: $workoutToStart)
                 } label: {
                     Image(systemName: "plus")
-                        .padding(.horizontal, 5)
-                        .font(Font.system(size: 18))
+                        .headingImage()
                 }
                 .animatedButton()
             }
             
-            if !startedWorkoutLogs.isEmpty {
-                ForEach(startedWorkoutLogs, id: \.id) { log in
-                    if let workout = log.workout {
-                        HomeWorkoutRow(log: log, workout: workout)
-                            .transition(.asymmetric(
-                                insertion: .move(edge: .leading).combined(with: .opacity),
-                                removal: .move(edge: .trailing).combined(with: .opacity)
-                            ))
+            VStack(alignment: .center, spacing: .spacingM) {
+                if !startedWorkoutLogs.isEmpty {
+                    ForEach(Array(startedWorkoutLogs.enumerated()), id: \.element.id) { index, log in
+                        if let workout = log.workout {
+                            HomeWorkoutRow(log: log, workout: workout)
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .leading).combined(with: .opacity),
+                                    removal: .move(edge: .trailing).combined(with: .opacity)
+                                ))
+                            
+                            if index < startedWorkoutLogs.count - 1 {
+                                Divider()
+                                    .background(ColorManager.border)
+                                    .padding(.horizontal, -.spacingS)
+                            }
+                        }
                     }
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: startedWorkoutLogs.count)
+                } else {
+                    VStack(alignment: .center, spacing: .spacingXS) {
+                        Text("No active workouts")
+                            .bodyText(weight: .bold)
+                        
+                        Text("Click the + to get started")
+                            .secondaryText()
+                    }
+                    .textColor()
+                    .frame(maxWidth: .infinity)
+                    .transition(.opacity)
                 }
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: startedWorkoutLogs.count)
-            } else {
-                HomeEmptySectionMessage(text: "workouts")
             }
+            .card()
         }
-        .frame(maxWidth: .infinity)
         .onChange(of: workoutToStart) {
             if let log = workoutToStart {
                 log.startWorkout()

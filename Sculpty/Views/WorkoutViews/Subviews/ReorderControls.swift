@@ -15,21 +15,25 @@ struct ReorderControls: View {
     let canMoveDown: Bool
     
     var body: some View {
-        VStack(alignment: .center, spacing: 10) {
+        VStack(alignment: .center, spacing: .spacingS) {
             Button {
-                moveUp()
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    moveUp()
+                }
             } label: {
                 Image(systemName: "chevron.up")
-                    .font(Font.system(size: 14))
+                    .secondaryText(weight: .medium)
             }
             .foregroundStyle(canMoveUp ? ColorManager.text : ColorManager.secondary)
             .disabled(!canMoveUp)
             
             Button {
-                moveDown()
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    moveDown()
+                }
             } label: {
                 Image(systemName: "chevron.down")
-                    .font(Font.system(size: 14))
+                    .secondaryText(weight: .medium)
             }
             .foregroundStyle(canMoveDown ? ColorManager.text : ColorManager.secondary)
             .disabled(!canMoveDown)

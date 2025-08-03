@@ -36,57 +36,60 @@ struct OptionsNotificationsSection: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: .spacingS) {
             OptionsSectionHeader(title: "Notifications", image: "bell")
             
-            OptionsToggleRow(
-                title: "Enable Notifications",
-                isOn: $settings.enableNotifications
-            )
-            .onChange(of: settings.enableNotifications) {
+            VStack(alignment: .leading, spacing: .spacingS) {
+                OptionsToggleRow(
+                    text: "Enable Notifications",
+                    isOn: $settings.enableNotifications
+                )
+                .onChange(of: settings.enableNotifications) {
+                    if settings.enableNotifications {
+                        handleNotificationToggle()
+                    }
+                }
+                
                 if settings.enableNotifications {
-                    handleNotificationToggle()
-                }
-            }
-            
-            if settings.enableNotifications {
-                OptionsToggleRow(
-                    title: "Daily Calorie Reminders",
-                    isOn: $settings.enableCaloriesNotifications
-                )
-                
-                if settings.enableCaloriesNotifications {
-                    OptionsPickerRow(
-                        title: "Calories Reminder Time",
-                        text: calorieTime,
-                        popup: TimeSelectionPopup(
+                    OptionsToggleRow(
+                        text: "Daily Calorie Reminders",
+                        isOn: $settings.enableCaloriesNotifications
+                    )
+                    
+                    if settings.enableCaloriesNotifications {
+                        OptionsPickerRow(
                             title: "Calories Reminder Time",
-                            time: $tempCalorieTime
-                        ),
-                        onDismiss: saveCalorieTime
-                    )
-                    .animation(.easeInOut(duration: 0.3), value: settings.enableCaloriesNotifications)
-                }
-            
-                OptionsToggleRow(
-                    title: "Weekly Measurement Reminders",
-                    isOn: $settings.enableMeasurementsNotifications
-                )
+                            text: calorieTime,
+                            popup: TimeSelectionPopup(
+                                title: "Calories Reminder Time",
+                                time: $tempCalorieTime
+                            ),
+                            onDismiss: saveCalorieTime
+                        )
+                        .animation(.easeInOut(duration: 0.3), value: settings.enableCaloriesNotifications)
+                    }
                 
-                if settings.enableMeasurementsNotifications {
-                    OptionsPickerRow(
-                        title: "Measurement Reminder Time",
-                        text: measurementTime,
-                        popup: TimeSelectionPopup(
-                            title: "Measurement Reminder Time",
-                            day: $tempMeasurementWeekday,
-                            time: $tempMeasurementTime
-                        ),
-                        onDismiss: saveMeasurementTime
+                    OptionsToggleRow(
+                        text: "Weekly Measurement Reminders",
+                        isOn: $settings.enableMeasurementsNotifications
                     )
-                    .animation(.easeInOut(duration: 0.3), value: settings.enableMeasurementsNotifications)
+                    
+                    if settings.enableMeasurementsNotifications {
+                        OptionsPickerRow(
+                            title: "Measurement Reminder Time",
+                            text: measurementTime,
+                            popup: TimeSelectionPopup(
+                                title: "Measurement Reminder Time",
+                                day: $tempMeasurementWeekday,
+                                time: $tempMeasurementTime
+                            ),
+                            onDismiss: saveMeasurementTime
+                        )
+                        .animation(.easeInOut(duration: 0.3), value: settings.enableMeasurementsNotifications)
+                    }
                 }
             }
+            .card()
         }
         .frame(maxWidth: .infinity)
         .animation(.easeInOut(duration: 0.3), value: settings.enableNotifications)

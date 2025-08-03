@@ -9,7 +9,9 @@ import SwiftUI
 
 final class ColorManager {
     static let background = Color("BackgroundColor")
-    
     static let text = Color("TextColor")
+    
+    static let surface = Color("SurfaceColor")
+    static let border = Color("BorderColor")
     static let secondary = Color("SecondaryTextColor")
 }

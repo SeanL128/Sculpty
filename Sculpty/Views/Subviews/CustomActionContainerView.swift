@@ -28,7 +28,7 @@ struct CustomActionContainerView<Content: View, TrailingItems: View>: View {
     
     init(
         title: String,
-        spacing: CGFloat = 12,
+        spacing: CGFloat = .spacingM,
         backgroundColor: Color = ColorManager.background,
         showNavBar: Bool = false,
         showScrollBar: Bool = false,
@@ -49,7 +49,7 @@ struct CustomActionContainerView<Content: View, TrailingItems: View>: View {
     
     init(
         title: String,
-        spacing: CGFloat = 12,
+        spacing: CGFloat = .spacingM,
         backgroundColor: Color = ColorManager.background,
         showNavBar: Bool = false,
         showScrollBar: Bool = false,
@@ -75,7 +75,7 @@ struct CustomActionContainerView<Content: View, TrailingItems: View>: View {
                 backgroundColor
                     .ignoresSafeArea(edges: .all)
                 
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: .spacingXS) {
                     if !title.isEmpty {
                         CustomActionContainerViewHeader(
                             title: title,
@@ -99,7 +99,9 @@ struct CustomActionContainerView<Content: View, TrailingItems: View>: View {
                     .scrollIndicators(showScrollBar ? .visible : .hidden)
                     .scrollContentBackground(.hidden)
                 }
-                .padding()
+                .padding(.top, .spacingM)
+                .padding(.bottom, .spacingXS)
+                .padding(.horizontal, .spacingL)
             }
             .toolbar(showNavBar ? .visible : .hidden, for: .navigationBar)
         }

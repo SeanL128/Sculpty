@@ -17,18 +17,18 @@ struct SetLogRow: View {
     let exerciseLog: ExerciseLog
     
     @State private var confirmDelete: Bool = false
-    @State private var setLogToDelete: (ExerciseLog, SetLog)?
+    @State private var setLogToDelete: SetLog?
     
     var body: some View {
         if let set = setLog.set {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .center) {
                     if set.exerciseType == .weight,
                        let reps = set.reps,
                        let weight = set.weight,
                        let rir = set.rir {
-                        Text("\(reps) x \(String(format: "%0.2f", weight)) \(set.unit) \((settings.showRir && [.main, .dropSet].contains(set.type)) ? "(\(rir)\((rir) == "Failure" ? "" : " RIR"))" : "")") // swiftlint:disable:this line_length
-                            .bodyText(size: 16)
+                        Text("\(reps) x \(String(format: "%0.2f", weight)) \(set.unit)\((settings.showRir && [.main, .dropSet].contains(set.type)) ? " (\(rir)\((rir) == "Failure" ? "" : " RIR"))" : "")") // swiftlint:disable:this line_length
+                            .bodyText()
                             .textColor()
                             .monospacedDigit()
                             .contentTransition(.numericText())
@@ -37,7 +37,7 @@ struct SetLogRow: View {
                     } else if set.exerciseType == .distance,
                               let distance = set.distance {
                         Text("\(set.timeString) \(String(format: "%0.2f", distance)) \(set.unit)")
-                            .bodyText(size: 16)
+                            .bodyText()
                             .textColor()
                             .monospacedDigit()
                             .contentTransition(.numericText())
@@ -47,7 +47,7 @@ struct SetLogRow: View {
                     Spacer()
                     
                     Button {
-                        setLogToDelete = (exerciseLog, setLog)
+                        setLogToDelete = setLog
                         
                         Popup.show(content: {
                             ConfirmationPopup(
@@ -60,22 +60,23 @@ struct SetLogRow: View {
                         })
                     } label: {
                         Image(systemName: "xmark")
-                            .padding(.horizontal, 8)
-                            .font(Font.system(size: 16))
+                            .bodyText(weight: .regular)
                     }
                     .textColor()
                     .animatedButton(feedback: .warning)
                 }
-                .padding(.trailing, 1)
                 
                 Text(formatDateWithTime(setLog.start))
-                    .bodyText(size: 12)
+                    .captionText()
                     .secondaryColor()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .multilineTextAlignment(.leading)
+                    .animation(.easeInOut(duration: 0.3), value: setLog.start)
             }
             .onChange(of: confirmDelete) {
                 if confirmDelete,
-                   let exerciseLog = setLogToDelete?.0,
-                   let setLog = setLogToDelete?.1,
+                   let setLog = setLogToDelete,
                    let index = exerciseLog.setLogs.firstIndex(where: { $0.id == setLog.id }) {
                     exerciseLog.setLogs.remove(at: index)
                     context.delete(setLog)
@@ -90,10 +91,6 @@ struct SetLogRow: View {
                     setLogToDelete = nil
                 }
             }
-        } else {
-            Text("Error")
-                .bodyText(size: 16)
-                .secondaryColor()
         }
     }
 }

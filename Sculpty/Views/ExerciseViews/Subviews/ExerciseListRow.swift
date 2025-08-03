@@ -11,8 +11,7 @@ struct ExerciseListRow: View {
     let exercise: Exercise
     var selectedExercise: Binding<Exercise?>?
     let isSelectable: Bool
-    
-    @State private var selectionTrigger: Int = 0
+    let exerciseOptions: [Exercise]?
     
     init(
         exercise: Exercise,
@@ -21,26 +20,32 @@ struct ExerciseListRow: View {
     ) {
         self.exercise = exercise
         self.selectedExercise = selectedExercise
+        self.exerciseOptions = exerciseOptions
         isSelectable = exerciseOptions?.contains(exercise) == true
     }
     
     var body: some View {
-        HStack(alignment: .center) {
-            Text(exercise.name)
-                .bodyText(size: 16)
-                .multilineTextAlignment(.leading)
-            
-            if isSelectable {
-                Image(systemName: "chevron.right")
-                    .padding(.leading, -2)
-                    .font(
-                        Font.system(
-                            size: 10,
-                            weight: selectedExercise?.wrappedValue == exercise ? .bold : .regular
-                        )
-                    )
-                    .animation(.easeInOut(duration: 0.2), value: selectedExercise?.wrappedValue == exercise)
+        HStack(alignment: .center, spacing: .spacingXS) {
+            Button {
+                if let selectedExercise = selectedExercise {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        selectedExercise.wrappedValue = exercise
+                    }
+                }
+            } label: {
+                HStack(alignment: .center, spacing: .spacingXS) {
+                    Text(exercise.name)
+                        .bodyText(weight: selectedExercise?.wrappedValue == exercise ? .bold : .regular)
+                        .multilineTextAlignment(.leading)
+                    
+                    if isSelectable {
+                        Image(systemName: "chevron.right")
+                            .bodyImage(weight: selectedExercise?.wrappedValue == exercise ? .bold : .medium)
+                    }
+                }
             }
+            .foregroundStyle(exerciseOptions != nil && !(exerciseOptions?.contains(where: { $0 == exercise }) ?? true) ? ColorManager.secondary : ColorManager.text) // swiftlint:disable:this line_length
+            .animatedButton(feedback: .selection, isValid: selectedExercise != nil && isSelectable)
             
             Spacer()
             
@@ -49,29 +54,14 @@ struct ExerciseListRow: View {
                     UpsertExercise(exercise: exercise)
                 } label: {
                     Image(systemName: "pencil")
-                        .padding(.horizontal, 8)
-                        .font(Font.system(size: 16))
+                        .bodyText(weight: .regular)
                 }
                 .animatedButton()
             } else if selectedExercise?.wrappedValue == exercise {
                 Image(systemName: "checkmark")
-                    .padding(.horizontal, 8)
-                    .font(Font.system(size: 16))
-                    .transition(.scale.combined(with: .opacity))
+                    .bodyText(weight: .regular)
             }
         }
         .textColor()
-        .padding(.trailing, 1)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            if let selectedExercise = selectedExercise {
-                selectionTrigger += 1
-                
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    selectedExercise.wrappedValue = exercise
-                }
-            }
-        }
-        .sensoryFeedback(.selection, trigger: selectionTrigger)
     }
 }

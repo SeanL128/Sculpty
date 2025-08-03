@@ -18,98 +18,96 @@ struct FoodEntryRow: View {
     @State private var entryToDelete: FoodEntry?
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .center, spacing: .spacingL) {
                 Text(entry.name)
-                    .bodyText(size: 16)
-                    .multilineTextAlignment(.leading)
+                    .bodyText(weight: .regular)
                     .textColor()
+                    .multilineTextAlignment(.leading)
                 
                 Spacer()
                 
-                HStack {
-                    Button {
-                        if let food = entry.fatSecretFood {
-                            Popup.show(content: {
-                                LogFoodEntryPopup(log: log, entry: entry, food: food)
-                            })
-                        } else {
-                            Popup.show(content: {
-                                AddFoodEntryPopup(entry: entry, log: log)
-                            })
-                        }
-                    } label: {
-                        Image(systemName: "pencil")
-                            .padding(.horizontal, 8)
-                            .font(Font.system(size: 16))
-                    }
-                    .textColor()
-                    .animatedButton()
-                    
-                    Button {
-                        entryToDelete = entry
-                        
+                Button {
+                    if let food = entry.fatSecretFood {
                         Popup.show(content: {
-                            ConfirmationPopup(
-                                selection: $confirmDelete,
-                                promptText: "Delete \(entry.name)?",
-                                resultText: "This cannot be undone.",
-                                cancelText: "Cancel",
-                                confirmText: "Delete"
-                            )
+                            LogFoodEntryPopup(log: log, entry: entry, food: food)
                         })
-                    } label: {
-                        Image(systemName: "xmark")
-                            .padding(.horizontal, 8)
-                            .font(Font.system(size: 16))
+                    } else {
+                        Popup.show(content: {
+                            AddFoodEntryPopup(entry: entry, log: log)
+                        })
                     }
-                    .textColor()
-                    .animatedButton(feedback: .warning)
-                    .onChange(of: confirmDelete) {
-                        if confirmDelete,
-                           let entry = entryToDelete {
-                            log.entries.removeAll(where: { $0.id == entry.id })
-                            context.delete(entry)
-                            
-                            try? context.save()
-                            
-                            confirmDelete = false
-                            entryToDelete = nil
-                        }
+                } label: {
+                    Image(systemName: "pencil")
+                        .bodyText(weight: .regular)
+                }
+                .textColor()
+                .animatedButton()
+                
+                Button {
+                    entryToDelete = entry
+                    
+                    Popup.show(content: {
+                        ConfirmationPopup(
+                            selection: $confirmDelete,
+                            promptText: "Delete \(entry.name)?",
+                            resultText: "This cannot be undone.",
+                            cancelText: "Cancel",
+                            confirmText: "Delete"
+                        )
+                    })
+                } label: {
+                    Image(systemName: "xmark")
+                        .bodyText(weight: .regular)
+                }
+                .textColor()
+                .animatedButton(feedback: .warning)
+                .onChange(of: confirmDelete) {
+                    if confirmDelete,
+                       let entry = entryToDelete {
+                        log.entries.removeAll(where: { $0.id == entry.id })
+                        context.delete(entry)
+                        
+                        try? context.save()
+                        
+                        confirmDelete = false
+                        entryToDelete = nil
                     }
                 }
             }
             
-            HStack(spacing: 16) {
+            HStack(alignment: .center, spacing: .spacingM) {
                 Text("\(entry.calories.formatted())cal")
-                    .statsText(size: 12)
+                    .captionText()
                     .textColor()
+                    .monospacedDigit()
                 
                 MacroLabel(
-                    value: entry.carbs,
+                    value: Int(entry.carbs),
                     label: "Carbs",
-                    size: 12,
                     color: Color.blue
                 )
+                .captionText()
                 
                 MacroLabel(
-                    value: entry.protein,
+                    value: Int(entry.protein),
                     label: "Protein",
-                    size: 12,
                     color: Color.red
                 )
+                .captionText()
                 
                 MacroLabel(
-                    value: entry.fat,
+                    value: Int(entry.fat),
                     label: "Fat",
-                    size: 12,
                     color: Color.orange
                 )
+                .captionText()
             }
             
             Text(formatTime(entry.date))
-                .statsText(size: 12)
+                .captionText()
                 .secondaryColor()
+                .monospacedDigit()
         }
         .frame(maxWidth: .infinity)
     }

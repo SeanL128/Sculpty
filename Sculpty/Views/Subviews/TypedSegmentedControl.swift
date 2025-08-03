@@ -59,7 +59,7 @@ struct TypedSegmentedControl<T: Hashable>: View {
                     let shouldShowDivider = !currentSelected && !nextSelected
                     
                     RoundedRectangle(cornerRadius: 2)
-                        .fill(ColorManager.secondary.opacity(0.2))
+                        .fill(ColorManager.border.opacity(0.7))
                         .frame(width: 1)
                         .padding(.vertical, 6)
                         .opacity(shouldShowDivider ? 1.0 : 0.0)
@@ -70,8 +70,8 @@ struct TypedSegmentedControl<T: Hashable>: View {
         .fixedSize(horizontal: false, vertical: true)
         .padding(2)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(ColorManager.secondaryBackground)
+            RoundedRectangle(cornerRadius: 6)
+                .fill(ColorManager.raisedSurface)
                 .animation(.easeInOut(duration: 0.3), value: selection)
         )
     }
@@ -103,7 +103,7 @@ private struct SegmentButton: View {
                 }
 
                 Text(label)
-                    .bodyText(size: 12, weight: .bold)
+                    .captionText()
                     .multilineTextAlignment(.center)
                     .foregroundColor(isSelected ? ColorManager.text : ColorManager.secondary)
                     .padding(.vertical, 8)

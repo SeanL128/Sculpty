@@ -16,31 +16,34 @@ struct OptionsWorkoutsSection: View {
         VStack(alignment: .leading, spacing: 12) {
             OptionsSectionHeader(title: "Workouts", image: "dumbbell")
             
-            OptionsInputRow(
-                title: "Weekly Workouts Goal",
-                unit: "",
-                text: $settings.targetWeeklyWorkoutsString
-            )
-            
-            OptionsToggleRow(
-                title: "Enable RIR",
-                isOn: $settings.showRir
-            )
-            
-            OptionsToggleRow(
-                title: "Enable 1RM",
-                isOn: $settings.show1RM
-            )
-            
-            OptionsToggleRow(
-                title: "Enable Tempo",
-                isOn: $settings.showTempo
-            )
-            
-            OptionsToggleRow(
-                title: "Enable Set Timers",
-                isOn: $settings.showSetTimer
-            )
+            VStack(alignment: .leading, spacing: .spacingS) {
+                OptionsInputRow(
+                    title: "Weekly Workouts Goal",
+                    unit: "",
+                    text: $settings.targetWeeklyWorkoutsString
+                )
+                
+                OptionsToggleRow(
+                    text: "Enable RIR",
+                    isOn: $settings.showRir
+                )
+                
+                OptionsToggleRow(
+                    text: "Enable 1RM",
+                    isOn: $settings.show1RM
+                )
+                
+                OptionsToggleRow(
+                    text: "Enable Tempo",
+                    isOn: $settings.showTempo
+                )
+                
+                OptionsToggleRow(
+                    text: "Enable Set Timers",
+                    isOn: $settings.showSetTimer
+                )
+            }
+            .card()
         }
         .frame(maxWidth: .infinity)
     }

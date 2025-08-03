@@ -27,7 +27,7 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
     
     init(
         title: String,
-        spacing: CGFloat = 12,
+        spacing: CGFloat = .spacingM,
         backgroundColor: Color = ColorManager.background,
         showNavBar: Bool = false,
         showBackButton: Bool = true,
@@ -50,7 +50,7 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
     
     init(
         title: String,
-        spacing: CGFloat = 12,
+        spacing: CGFloat = .spacingM,
         backgroundColor: Color = ColorManager.background,
         showNavBar: Bool = false,
         showBackButton: Bool = true,
@@ -78,7 +78,7 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
                 backgroundColor
                     .ignoresSafeArea(edges: .all)
                 
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: .spacingXS) {
                     if !title.isEmpty {
                         ContainerViewHeader(
                             title: title,
@@ -91,10 +91,14 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
                         if lazy {
                             LazyVStack(alignment: .leading, spacing: spacing) {
                                 content
+                                
+                                Spacer()
                             }
                         } else {
                             VStack(alignment: .leading, spacing: spacing) {
                                 content
+                                
+                                Spacer()
                             }
                         }
                     }
@@ -102,7 +106,9 @@ struct ContainerView<Content: View, TrailingItems: View>: View {
                     .scrollIndicators(showScrollBar ? .visible : .hidden)
                     .scrollContentBackground(.hidden)
                 }
-                .padding()
+                .padding(.top, .spacingM)
+                .padding(.bottom, .spacingXS)
+                .padding(.horizontal, .spacingL)
             }
             .toolbar(showNavBar ? .visible : .hidden, for: .navigationBar)
         }

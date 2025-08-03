@@ -56,9 +56,9 @@ struct EditDistanceSetPopup: View {
     }
     
     var body: some View {
-        VStack {
+        VStack(alignment: .leading, spacing: .spacingM) {
             // Header
-            HStack {
+            HStack(alignment: .center, spacing: .spacingL) {
                 Spacer()
                 
                 if log.index > -1 {
@@ -69,8 +69,7 @@ struct EditDistanceSetPopup: View {
                         Popup.dismissLast()
                     } label: {
                         Image(systemName: "arrowshape.turn.up.right.fill")
-                            .padding(.horizontal, 3)
-                            .font(Font.system(size: 16))
+                            .headingImage()
                     }
                     .textColor()
                     .animatedButton(feedback: .impact(weight: .light))
@@ -101,19 +100,16 @@ struct EditDistanceSetPopup: View {
                     Popup.dismissLast()
                 } label: {
                     Image(systemName: "checkmark")
-                        .padding(.horizontal, 3)
-                        .font(Font.system(size: 16))
+                        .headingImage()
                 }
                 .textColor()
                 .animatedButton(feedback: .success)
             }
-            .padding(.top, 25)
-            .padding(.bottom, 1)
             
-            HStack {
-                VStack(alignment: .leading) {
+            HStack(alignment: .center, spacing: .spacingM) {
+                VStack(alignment: .leading, spacing: 0) {
                     Text("Duration")
-                        .bodyText(size: 12)
+                        .captionText()
                         .textColor()
                     
                     Spacer()
@@ -128,13 +124,12 @@ struct EditDistanceSetPopup: View {
                             )
                         })
                     } label: {
-                        HStack(alignment: .center) {
+                        HStack(alignment: .center, spacing: .spacingXS) {
                             Text("\(hours)hr \(minutes)min \(seconds)sec")
-                                .bodyText(size: 18)
+                                .bodyText(weight: .regular)
                             
                             Image(systemName: "chevron.right")
-                                .padding(.leading, -2)
-                                .font(Font.system(size: 12))
+                                .bodyImage()
                         }
                     }
                     .textColor()
@@ -142,54 +137,58 @@ struct EditDistanceSetPopup: View {
                     .onChange(of: minutes) { updateTime() }
                     .onChange(of: seconds) { updateTime() }
                     .animatedButton()
+                    .padding(.bottom, .spacingS)
                 }
                 .frame(maxWidth: 200, maxHeight: referenceHeight)
                 
-                HStack {
-                    Input(title: "Distance", text: $distanceString, isFocused: _isDistanceFocused, type: .decimalPad)
-                        .onChange(of: distanceString) {
-                            distanceString = distanceString.filteredNumeric()
-                             
-                            if distanceString.isEmpty {
-                                updatedSet.distance = 0
-                            } else if distanceString.hasSuffix(".") {
-                                updatedSet.distance = ("\(distanceString)0" as NSString).doubleValue
-                            } else {
-                                updatedSet.distance = (distanceString as NSString).doubleValue
-                            }
+                HStack(alignment: .bottom, spacing: 0) {
+                    Input(
+                        title: "Distance",
+                        text: $distanceString,
+                        isFocused: _isDistanceFocused,
+                        type: .decimalPad
+                    )
+                    .onChange(of: distanceString) {
+                        distanceString = distanceString.filteredNumeric()
+                         
+                        if distanceString.isEmpty {
+                            updatedSet.distance = 0
+                        } else if distanceString.hasSuffix(".") {
+                            updatedSet.distance = ("\(distanceString)0" as NSString).doubleValue
+                        } else {
+                            updatedSet.distance = (distanceString as NSString).doubleValue
                         }
-                        .frame(maxWidth: 150)
-                        .background(GeometryReader { geo in
-                            Color.clear
-                                .onAppear {
-                                    referenceHeight = geo.size.height
-                                }
-                                .onChange(of: geo.size.height) {
-                                    referenceHeight = geo.size.height
-                                }
-                        })
+                    }
+                    .frame(maxWidth: 150)
+                    .background(GeometryReader { geo in
+                        Color.clear
+                            .onAppear {
+                                referenceHeight = geo.size.height
+                            }
+                            .onChange(of: geo.size.height) {
+                                referenceHeight = geo.size.height
+                            }
+                    })
                     
                     Button {
                         Popup.show(content: {
                             SmallMenuPopup(title: "Units", options: ["mi", "km"], selection: $updatedSet.unit)
                         })
                     } label: {
-                        HStack(alignment: .center) {
+                        HStack(alignment: .center, spacing: .spacingXS) {
                             Text(updatedSet.unit)
-                                .bodyText(size: 18, weight: .bold)
+                                .bodyText(weight: .regular)
                             
                             Image(systemName: "chevron.up.chevron.down")
-                                .font(Font.system(size: 12, weight: .bold))
+                                .bodyImage(weight: .medium)
                         }
                     }
                     .textColor()
                     .frame(maxWidth: 65)
-                    .padding(.leading, 5)
                     .animatedButton()
                 }
                 .frame(maxWidth: 190)
             }
-            .padding(.bottom, 10)
             
             if !disableType {
                 TypedSegmentedControl(
@@ -200,9 +199,9 @@ struct EditDistanceSetPopup: View {
             }
             
             if log.index > -1 && settings.showSetTimer {
-                HStack {
+                HStack(alignment: .center, spacing: .spacingS) {
                     Text(setTimer.timeString())
-                        .bodyText(size: 22, weight: .bold)
+                        .subheadingText()
                     
                     Spacer()
                     
@@ -216,8 +215,8 @@ struct EditDistanceSetPopup: View {
                         }
                     } label: {
                         Image(systemName: (setTimer.status == .notStarted || setTimer.status == .paused) ? "play.fill" : "pause.fill") // swiftlint:disable:this line_length
-                            .padding(.vertical, -4)
-                            .font(Font.system(size: 16))
+                            .bodyText(weight: .regular)
+                            .padding(.vertical, -2)
                             .frame(width: 15)
                     }
                     .textColor()
@@ -230,8 +229,8 @@ struct EditDistanceSetPopup: View {
                         setTimer.cancel()
                     } label: {
                         Image(systemName: "stop.fill")
-                            .padding(.vertical, -4)
-                            .font(Font.system(size: 16))
+                            .bodyText(weight: .regular)
+                            .padding(.vertical, -2)
                             .frame(width: 15)
                     }
                     .buttonStyle(FilledToBorderedButtonStyle())
@@ -242,11 +241,8 @@ struct EditDistanceSetPopup: View {
                         isValid: setTimer.status == .running || setTimer.status == .paused
                     )
                 }
-                .padding(.top, 10)
-                .padding(.horizontal, 30)
             }
         }
-        .padding(.top, -30)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 KeyboardDoneButton()

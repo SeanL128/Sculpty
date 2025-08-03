@@ -11,20 +11,21 @@ struct AccentColorMenuPopup: View {
     @Binding var selection: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: .spacingM) {
             HStack {
                 Spacer()
                 
                 Text("Accent Color")
-                    .bodyText(size: 18, weight: .bold)
+                    .subheadingText()
+                    .textColor()
                     .multilineTextAlignment(.center)
                 
                 Spacer()
             }
             
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: .listSpacing) {
                 ForEach(AccentColor.displayOrder, id: \.self) { color in
-                    let hex = AccentColor.colorMap[color] ?? "#2B7EFF"
+                    let hex = AccentColor.colorMap[color] ?? "#2563EB"
                     
                     Button {
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -33,30 +34,32 @@ struct AccentColorMenuPopup: View {
                         
                         Popup.dismissLast()
                     } label: {
-                        HStack(alignment: .center) {
+                        HStack(alignment: .center, spacing: .spacingS) {
                             Circle()
                                 .fill(Color(hex: hex))
-                                .frame(width: 10, height: 10)
+                                .frame(width: 8, height: 8)
                             
-                            Text(color.rawValue)
-                                .bodyText(size: 18, weight: selection == hex ? .bold : .regular)
-                                .textColor()
-                                .multilineTextAlignment(.leading)
+                            HStack(alignment: .center, spacing: .spacingXS) {
+                                Text(color.rawValue)
+                                    .bodyText(weight: selection == hex ? .bold : .regular)
+                                    .multilineTextAlignment(.leading)
+                                
+                                Image(systemName: "chevron.right")
+                                    .bodyImage(weight: selection == hex ? .bold : .medium)
+                            }
+                            
+                            Spacer()
                             
                             if selection == hex {
-                                Spacer()
-                                
                                 Image(systemName: "checkmark")
-                                    .padding(.horizontal, 8)
-                                    .font(Font.system(size: 16))
+                                    .bodyText()
                             }
                         }
                     }
                     .textColor()
-                    .animatedButton(scale: 0.98, feedback: .selection)
+                    .animatedButton(feedback: .selection)
                 }
             }
-            .padding(.horizontal, 5)
         }
     }
 }

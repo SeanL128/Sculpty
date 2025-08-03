@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct OptionsToggleRow: View {
-    let title: String
+    let text: String
     
     @Binding var isOn: Bool
     
@@ -16,11 +16,11 @@ struct OptionsToggleRow: View {
     
     var body: some View {
         Toggle(isOn: $isOn) {
-            Text(title)
-                .bodyText(size: 18)
+            Text(text)
+                .bodyText()
                 .textColor()
         }
-        .padding(.trailing, 2)
+        .toggleStyle(SmallToggleStyle())
         .onChange(of: isOn) {
             toggleTrigger += 1
         }

@@ -9,30 +9,23 @@ import SwiftUI
 
 struct HomeMeasusrementRow: View {
     let measurement: Measurement
-    let large: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 0) {
-                Text("\(measurement.type.rawValue) (")
-                    .bodyText(size: large ? 18 : 14)
-                    .textColor()
-                
-                Text("\(measurement.measurement.formatted())\(measurement.unit)")
-                    .statsText(size: large ? 18 : 14)
-                    .textColor()
+        HStack {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("\(measurement.type.rawValue) (\(measurement.measurement.formatted())\(measurement.unit))")
+                    .bodyText(weight: .regular)
                     .monospacedDigit()
+                    .textColor()
                     .contentTransition(.numericText())
                     .animation(.easeInOut(duration: 0.3), value: measurement.measurement)
                 
-                Text(")")
-                    .bodyText(size: large ? 18 : 14)
-                    .textColor()
+                Text(formatDateWithTime(measurement.date))
+                    .captionText()
+                    .secondaryColor()
             }
             
-            Text(formatDateWithTime(measurement.date))
-                .bodyText(size: large ? 12 : 10)
-                .secondaryColor()
+            Spacer()
         }
     }
 }

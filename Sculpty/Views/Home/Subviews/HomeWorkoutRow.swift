@@ -15,14 +15,14 @@ struct HomeWorkoutRow: View {
         NavigationLink {
             PerformWorkout(log: log)
         } label: {
-            HStack(alignment: .center) {
+            HStack(alignment: .center, spacing: .spacingXS) {
                 Text(workout.name)
-                    .bodyText(size: 18, weight: .bold)
+                    .subheadingText()
                     .truncationMode(.tail)
                 
                 Spacer()
                 
-                HStack {
+                HStack(alignment: .center, spacing: .spacingS) {
                     ProgressView(value: log.getProgress())
                         .frame(height: 6)
                         .frame(width: 100)
@@ -33,21 +33,19 @@ struct HomeWorkoutRow: View {
                         .animation(.easeInOut(duration: 0.3), value: log.getProgress())
                     
                     Text("\((round(log.getProgress() * 100)).formatted())%")
-                        .statsText(size: 16)
-                        .frame(width: 40)
+                        .bodyText()
+                        .frame(width: 50)
                         .monospacedDigit()
                         .contentTransition(.numericText())
-                        .animation(.easeInOut(duration: 0.3), value: log.getProgress())
+                        .animation(.easeInOut(duration: 0.7), value: log.getProgress())
                 }
                 
                 Image(systemName: "chevron.right")
-                    .padding(.leading, -2)
-                    .font(Font.system(size: 12))
+                    .bodyImage()
             }
             .contentShape(Rectangle())
         }
         .textColor()
-        .padding(.trailing, 6)
-        .animatedButton(scale: 0.98)
+        .animatedButton()
     }
 }

@@ -14,7 +14,7 @@ struct BorderedToFilledButtonStyle: ButtonStyle {
     
     @State private var triggerCount: Int = 0
     
-    init(scale: Double = 0.97, feedback: SensoryFeedback? = nil, isValid: Bool = true) {
+    init(scale: Double = 0.98, feedback: SensoryFeedback? = nil, isValid: Bool = true) {
         self.feedback = feedback
         self.scale = scale
         self.isValid = isValid
@@ -22,7 +22,7 @@ struct BorderedToFilledButtonStyle: ButtonStyle {
     
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .padding(10)
+            .padding(.spacingS)
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(configuration.isPressed ? ColorManager.text : Color.clear)

@@ -49,9 +49,9 @@ struct EditWeightSetPopup: View {
     }
     
     var body: some View {
-        VStack {
+        VStack(alignment: .leading, spacing: .spacingM) {
             // Header
-            HStack {
+            HStack(alignment: .center, spacing: .spacingL) {
                 Spacer()
                 
                 if log.index > -1 {
@@ -62,8 +62,7 @@ struct EditWeightSetPopup: View {
                         Popup.dismissLast()
                     } label: {
                         Image(systemName: "arrowshape.turn.up.right.fill")
-                            .padding(.horizontal, 3)
-                            .font(Font.system(size: 16))
+                            .headingImage()
                     }
                     .textColor()
                     .animatedButton(feedback: .impact(weight: .light))
@@ -96,16 +95,13 @@ struct EditWeightSetPopup: View {
                     Popup.dismissLast()
                 } label: {
                     Image(systemName: "checkmark")
-                        .padding(.horizontal, 3)
-                        .font(Font.system(size: 16))
+                        .headingImage()
                 }
                 .textColor()
                 .animatedButton(feedback: .success)
             }
-            .padding(.top, 25)
-            .padding(.bottom, 1)
             
-            HStack {
+            HStack(alignment: .center, spacing: 0) {
                 // Reps
                 Input(title: "Reps", text: $repsString, isFocused: _isRepsFocused, type: .numberPad)
                     .onChange(of: repsString) {
@@ -117,19 +113,19 @@ struct EditWeightSetPopup: View {
                         
                         updatedSet.reps = (repsString as NSString).integerValue
                     }
-                    .frame(maxWidth: 115)
+                    .frame(maxWidth: 130)
                 
                 Spacer()
                     
                 Text("x")
-                    .bodyText(size: 20)
+                    .bodyText()
                     .textColor()
-                    .frame(maxWidth: 45)
+                    .frame(maxWidth: 30)
                 
                 Spacer()
                  
                 // Weight
-                HStack {
+                HStack(alignment: .bottom, spacing: 0) {
                     Input(title: "Weight", text: $weightString, isFocused: _isWeightFocused, type: .decimalPad)
                         .onChange(of: weightString) {
                             weightString = weightString.filteredNumeric()
@@ -142,7 +138,7 @@ struct EditWeightSetPopup: View {
                                 updatedSet.weight = (weightString as NSString).doubleValue
                             }
                         }
-                        .frame(maxWidth: 145)
+                        .frame(maxWidth: 85)
                     
                     Button {
                         Popup.show(content: {
@@ -151,19 +147,18 @@ struct EditWeightSetPopup: View {
                     } label: {
                         HStack(alignment: .center) {
                             Text(updatedSet.unit)
-                                .bodyText(size: 18, weight: .bold)
+                                .bodyText(weight: .regular)
                             
                             Image(systemName: "chevron.up.chevron.down")
-                                .font(Font.system(size: 12, weight: .bold))
+                                .bodyImage(weight: .medium)
                         }
                     }
                     .textColor()
-                    .frame(maxWidth: 55)
+                    .frame(maxWidth: 45)
                     .animatedButton()
                 }
-                .frame(maxWidth: 230)
+                .frame(maxWidth: 130)
             }
-            .padding(.bottom, 10)
             
             if !disableType {
                 TypedSegmentedControl(
@@ -175,9 +170,8 @@ struct EditWeightSetPopup: View {
             
             // RIR
             if settings.showRir && [.main, .dropSet].contains(updatedSet.type) {
-                HStack {
+                HStack(alignment: .center, spacing: .spacingS) {
                     Text("RIR")
-                        .padding(.horizontal, 5)
                     
                     TypedSegmentedControl(
                         selection: $updatedSet.rir,
@@ -185,10 +179,8 @@ struct EditWeightSetPopup: View {
                         displayNames: ["Failure", "0", "1", "2", "3+"]
                     )
                 }
-                .padding(.top, 10)
             }
         }
-        .padding(.top, -30)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 KeyboardDoneButton()
