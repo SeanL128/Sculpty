@@ -42,11 +42,11 @@ struct CaloriesStats: View {
             .filter { $0.value > 0 }
             .sorted { $0.date < $1.date }
     }
-    private var macrosData: [LineData] {
+    private var macrosData: [LineChartData] {
         return [
-            LineData(data: carbsData, color: .blue, name: "Carbs"),
-            LineData(data: proteinData, color: .red, name: "Protein"),
-            LineData(data: fatData, color: .orange, name: "Fat")
+            LineChartData(data: carbsData, color: .blue, name: "Carbs"),
+            LineChartData(data: proteinData, color: .red, name: "Protein"),
+            LineChartData(data: fatData, color: .orange, name: "Fat")
         ]
     }
     
@@ -67,7 +67,7 @@ struct CaloriesStats: View {
                                     .pageTitleImage()
                             }
                             .textColor()
-                            .animatedButton()
+                            .animatedButton(feedback: .selection)
                         }
                     )
                     

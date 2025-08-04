@@ -26,6 +26,7 @@ struct ReorderControls: View {
             }
             .foregroundStyle(canMoveUp ? ColorManager.text : ColorManager.secondary)
             .disabled(!canMoveUp)
+            .animatedButton(feedback: .selection)
             
             Button {
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
@@ -37,6 +38,7 @@ struct ReorderControls: View {
             }
             .foregroundStyle(canMoveDown ? ColorManager.text : ColorManager.secondary)
             .disabled(!canMoveDown)
+            .animatedButton(feedback: .selection)
         }
     }
 }

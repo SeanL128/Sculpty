@@ -116,7 +116,8 @@ struct PerformWorkout: View {
                                         resultText: "This will skip all remaining sets.",
                                         cancelText: "Cancel",
                                         confirmText: "Finish",
-                                        confirmColor: ColorManager.text
+                                        confirmColor: ColorManager.text,
+                                        confirmFeedback: .success
                                     )
                                 })
                             }
@@ -125,8 +126,7 @@ struct PerformWorkout: View {
                                 .pageTitleImage()
                         }
                         .textColor()
-                        .animatedButton(feedback: .warning)
-                        .animation(.easeInOut(duration: 0.3), value: log.completed)
+                        .animatedButton(feedback: log.completed ? .selection : .warning)
                     })
                     
                     VStack(alignment: .leading, spacing: .spacingS) {
@@ -146,14 +146,10 @@ struct PerformWorkout: View {
                                 Text("Rest Time: \(restTimer.timeString())")
                                     .bodyText()
                                     .monospacedDigit()
-                                    .contentTransition(.numericText())
-                                    .animation(.easeInOut(duration: 0.2), value: restTimer.timeString())
                                 
                                 Text("Total Time: \(timeIntervalToString(totalTime))")
                                     .bodyText()
                                     .monospacedDigit()
-                                    .contentTransition(.numericText())
-                                    .animation(.easeInOut(duration: 0.2), value: totalTime)
                             }
                             .secondaryColor()
                             
@@ -226,7 +222,8 @@ struct PerformWorkout: View {
                                 promptText: "Finish \(workoutName)?",
                                 cancelText: "Continue",
                                 confirmText: "Finish",
-                                confirmColor: ColorManager.text
+                                confirmColor: ColorManager.text,
+                                confirmFeedback: .success
                             )
                         })
                     }
@@ -236,7 +233,9 @@ struct PerformWorkout: View {
             }
             .onChange(of: finishWorkoutSelection) {
                 if finishWorkoutSelection {
-                    log.finishWorkout()
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        log.finishWorkout()
+                    }
                     
                     do {
                         try context.save()

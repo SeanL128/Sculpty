@@ -43,15 +43,19 @@ extension View {
     // Button Styles
     func animatedButton(
         scale: Double = 0.95,
-        feedback: SensoryFeedback? = nil,
+        feedback: SensoryFeedback = .impact(weight: .light),
         isValid: Bool = true
     ) -> some View {
         self.buttonStyle(AnimatedButtonStyle(scale: scale, feedback: feedback, isValid: isValid))
     }
     
+    func hapticButton(_ feedback: SensoryFeedback, isValid: Bool = true) -> some View {
+        self.animatedButton(scale: 1, feedback: feedback, isValid: isValid)
+    }
+    
     func borderedToFilledButton(
         scale: Double = 0.97,
-        feedback: SensoryFeedback? = nil,
+        feedback: SensoryFeedback = .impact(weight: .light),
         isValid: Bool = true
     ) -> some View {
         self.buttonStyle(BorderedToFilledButtonStyle(scale: scale, feedback: feedback, isValid: isValid))
@@ -60,7 +64,7 @@ extension View {
     func filledToBorderedButton(
         color: Color = ColorManager.text,
         scale: Double = 0.97,
-        feedback: SensoryFeedback? = nil,
+        feedback: SensoryFeedback = .impact(weight: .light),
         isValid: Bool = true
     ) -> some View {
         self.buttonStyle(FilledToBorderedButtonStyle(color: color, scale: scale, feedback: feedback, isValid: isValid))

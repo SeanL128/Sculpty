@@ -85,8 +85,10 @@ struct BarcodeScanner: View {
                                         resultText: "Are you sure you want to leave without saving scanned items?",
                                         cancelText: "Discared Items",
                                         cancelColor: ColorManager.destructive,
+                                        cancelFeedback: .impact(weight: .medium),
                                         confirmText: "Stay on Page",
-                                        confirmColor: ColorManager.text
+                                        confirmColor: ColorManager.text,
+                                        confirmFeedback: .selection
                                     )
                                 })
                             } else {
@@ -119,13 +121,13 @@ struct BarcodeScanner: View {
                                 }
                                 .disabled(!checkmarkValid)
                                 .foregroundStyle(checkmarkValid ? ColorManager.text : ColorManager.secondary)
-                                .animatedButton(isValid: checkmarkValid)
-                                .animation(.easeInOut(duration: 0.2), value: checkmarkValid)
+                                .animatedButton(feedback: .success, isValid: checkmarkValid)
+                                .animation(.easeInOut(duration: 0.3), value: checkmarkValid)
                             }
                         }
                     }
                     .padding(.top, .spacingM)
-                    .padding(.bottom, .spacingXS)
+                    .padding(.bottom, .spacingS)
                     .padding(.horizontal, .spacingL)
                     .background(ColorManager.background)
                     
@@ -176,7 +178,7 @@ struct BarcodeScanner: View {
                             
                             if isBatchMode {
                                 Button {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                                         showBatchList = true
                                     }
                                     
@@ -185,7 +187,7 @@ struct BarcodeScanner: View {
                                             scannedItems.remove(at: index)
                                         })
                                     }, onDismiss: {
-                                        withAnimation(.easeInOut(duration: 0.3)) {
+                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                                             showBatchList = false
                                         }
                                     })
@@ -194,14 +196,13 @@ struct BarcodeScanner: View {
                                         Text("\(scannedItems.count) item\(scannedItems.count == 1 ? "" : "s")")
                                             .bodyText(weight: .regular)
                                             .monospacedDigit()
-                                            .contentTransition(.numericText())
                                         
                                         Image(systemName: "chevron.right")
                                             .bodyImage()
                                     }
                                 }
                                 .secondaryColor()
-                                .animatedButton()
+                                .animatedButton(feedback: .selection)
                             }
                             
                             Spacer()
@@ -212,7 +213,7 @@ struct BarcodeScanner: View {
                         HStack(alignment: .center) {
                             if coordinator.isTorchAvailable {
                                 Button {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                                         coordinator.toggleTorch()
                                     }
                                 } label: {
@@ -220,7 +221,7 @@ struct BarcodeScanner: View {
                                         .pageTitleText(weight: .regular)
                                 }
                                 .textColor()
-                                .animatedButton(feedback: .impact(weight: .light))
+                                .animatedButton()
                             } else {
                                 Image(systemName: "flashlight.slash.circle")
                                     .pageTitleText(weight: .regular)
@@ -237,15 +238,13 @@ struct BarcodeScanner: View {
                             }
                             .textColor()
                             .disabled(isCapturingPhoto)
-                            .animatedButton(feedback: .impact(weight: .light), isValid: !isCapturingPhoto)
+                            .animatedButton(isValid: !isCapturingPhoto)
                             
                             Spacer()
                             
                             Button {
                                 if isBatchMode {
                                     if !scannedItems.isEmpty {
-                                        warningTrigger += 1
-                                        
                                         Popup.show(content: {
                                             ConfirmationPopup(
                                                 selection: $stayOnBatch,
@@ -253,17 +252,19 @@ struct BarcodeScanner: View {
                                                 resultText: "Are you sure you want to turn off batch mode and clear scanned items?", // swiftlint:disable:this line_length
                                                 cancelText: "Clear Items",
                                                 cancelColor: ColorManager.destructive,
-                                                confirmText: "Keep Items",
-                                                confirmColor: ColorManager.text
+                                                cancelFeedback: .impact(weight: .medium),
+                                                confirmText: "Stay on Page",
+                                                confirmColor: ColorManager.text,
+                                                confirmFeedback: .selection
                                             )
                                         })
                                     } else {
-                                        withAnimation(.easeInOut(duration: 0.3)) {
+                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                                             isBatchMode = false
                                         }
                                     }
                                 } else {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                                         isBatchMode = true
                                     }
                                 }
@@ -272,10 +273,10 @@ struct BarcodeScanner: View {
                                     .pageTitleText(weight: .regular)
                             }
                             .textColor()
-                            .animatedButton(feedback: .selection)
+                            .animatedButton(feedback: !scannedItems.isEmpty ? .warning : .impact(weight: .light))
                             .onChange(of: stayOnBatch) {
                                 if !stayOnBatch {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                                         isBatchMode = false
                                     }
                                     
@@ -328,7 +329,7 @@ struct BarcodeScanner: View {
                                 .bodyText()
                         }
                         .textColor()
-                        .animatedButton()
+                        .animatedButton(feedback: .selection)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(ColorManager.background)

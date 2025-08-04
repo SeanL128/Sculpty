@@ -60,6 +60,6 @@ struct ContainerViewHeader<TrailingItems: View>: View {
                 }
             }
         }
-        .padding(.bottom, .spacingXS)
+        .padding(.bottom, .spacingS)
     }
 }

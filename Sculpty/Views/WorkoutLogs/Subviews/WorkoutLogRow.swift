@@ -31,7 +31,7 @@ struct WorkoutLogRow: View {
                 }
             }
             .textColor()
-            .animatedButton()
+            .animatedButton(feedback: .selection)
             
             Spacer()
             

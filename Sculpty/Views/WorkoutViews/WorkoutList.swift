@@ -56,7 +56,7 @@ struct WorkoutList: View {
                     .pageTitleImage()
             }
             .textColor()
-            .animatedButton()
+            .animatedButton(feedback: .selection)
             
             NavigationLink {
                 PageRenderer(page: .upsertWorkout)

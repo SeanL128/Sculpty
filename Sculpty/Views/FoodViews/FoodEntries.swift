@@ -26,7 +26,7 @@ struct FoodEntries: View {
                             removal: .opacity.combined(with: .move(edge: .trailing))
                         ))
                 }
-                .animation(.easeInOut(duration: 0.4), value: log.entries.count)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: log.entries.count)
                 
                 Spacer()
                     .frame(height: 0)
@@ -40,6 +40,6 @@ struct FoodEntries: View {
                 )
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: log.entries.isEmpty)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: log.entries.isEmpty)
     }
 }

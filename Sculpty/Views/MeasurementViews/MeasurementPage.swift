@@ -36,7 +36,7 @@ struct MeasurementPage: View {
                         removal: .opacity.combined(with: .move(edge: .trailing))
                     ))
                 }
-                .animation(.easeInOut(duration: 0.4), value: data.count)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: data.count)
             } else if !loading {
                 EmptyState(
                     image: "ruler",
@@ -45,7 +45,7 @@ struct MeasurementPage: View {
                 )
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: data.isEmpty)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: data.isEmpty)
         .onAppear {
             setData()
         }

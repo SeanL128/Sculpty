@@ -16,12 +16,14 @@ struct TypedSegmentedControl<T: Hashable>: View {
     
     @State private var buttonPressed: [Int: Bool] = [:]
     
-    @State private var buttonTriggers: [Int: Int] = [:]
+    private let animate: Bool
     
-    init(selection: Binding<T>, options: [T], displayNames: [String]) {
+    init(selection: Binding<T>, options: [T], displayNames: [String], animate: Bool = true) {
         self._selection = selection
         self.options = options
         self.displayNames = displayNames
+        
+        self.animate = animate
     }
     
     var body: some View {
@@ -31,10 +33,14 @@ struct TypedSegmentedControl<T: Hashable>: View {
                     isSelected: selection == option,
                     label: displayNames[index],
                     action: {
-                        buttonTriggers[index, default: 0] += 1
-                        
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) {
-                            selection = option
+                        if selection != option {
+                            if animate {
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) {
+                                    selection = option
+                                }
+                            } else {
+                                selection = option
+                            }
                         }
                     },
                     namespace: animationNamespace,
@@ -51,7 +57,6 @@ struct TypedSegmentedControl<T: Hashable>: View {
                         }
                     }
                 })
-                .sensoryFeedback(.selection, trigger: buttonTriggers[index, default: 0])
                 
                 if index < options.count - 1 {
                     let currentSelected = selection == option
@@ -114,6 +119,7 @@ private struct SegmentButton: View {
                     .animation(.easeInOut(duration: 0.1), value: isPressed)
             }
         }
+        .hapticButton(.selection)
         .frame(maxWidth: .infinity)
     }
 }

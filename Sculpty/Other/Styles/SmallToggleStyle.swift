@@ -15,7 +15,7 @@ struct SmallToggleStyle: ToggleStyle {
             Spacer()
             
             Button {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                     configuration.isOn.toggle()
                 }
             } label: {
@@ -31,7 +31,7 @@ struct SmallToggleStyle: ToggleStyle {
                             .offset(x: configuration.isOn ? 9 : -9)
                     }
             }
-            .animatedButton(scale: 1)
+            .hapticButton(.selection)
         }
     }
 }

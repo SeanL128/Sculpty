@@ -117,7 +117,7 @@ struct ByWorkoutStats: View {
                 }
             }
             .textColor()
-            .animatedButton()
+            .animatedButton(feedback: .selection)
             
             ChartDateRangeControl(selectedRangeIndex: $selectedRangeIndex)
             

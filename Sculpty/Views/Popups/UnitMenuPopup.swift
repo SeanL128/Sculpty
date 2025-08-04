@@ -30,7 +30,7 @@ struct UnitMenuPopup: View {
             VStack(alignment: .leading, spacing: .spacingM) {
                 // Imperial
                 Button {
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                         selection = "Imperial"
                     }
                     
@@ -57,7 +57,7 @@ struct UnitMenuPopup: View {
                 
                 // Metric
                 Button {
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                         selection = "Metric"
                     }
                     

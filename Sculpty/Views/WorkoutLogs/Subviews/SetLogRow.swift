@@ -31,17 +31,12 @@ struct SetLogRow: View {
                             .bodyText()
                             .textColor()
                             .monospacedDigit()
-                            .contentTransition(.numericText())
-                            .animation(.easeInOut(duration: 0.3), value: weight)
-                            .animation(.easeInOut(duration: 0.3), value: reps)
                     } else if set.exerciseType == .distance,
                               let distance = set.distance {
                         Text("\(set.timeString) \(String(format: "%0.2f", distance)) \(set.unit)")
                             .bodyText()
                             .textColor()
                             .monospacedDigit()
-                            .contentTransition(.numericText())
-                            .animation(.easeInOut(duration: 0.3), value: distance)
                     }
                     
                     Spacer()

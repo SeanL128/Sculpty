@@ -55,7 +55,7 @@ struct MeasurementStats: View {
                                     .pageTitleImage()
                             }
                             .textColor()
-                            .animatedButton()
+                            .animatedButton(feedback: .selection)
                         }
                     )
                     
@@ -72,7 +72,7 @@ struct MeasurementStats: View {
                             }
                         }
                         .textColor()
-                        .animatedButton()
+                        .animatedButton(feedback: .selection)
                         
                         ChartDateRangeControl(selectedRangeIndex: $selectedRangeIndex)
                         

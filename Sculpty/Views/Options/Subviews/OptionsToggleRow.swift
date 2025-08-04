@@ -12,8 +12,6 @@ struct OptionsToggleRow: View {
     
     @Binding var isOn: Bool
     
-    @State private var toggleTrigger: Int = 0
-    
     var body: some View {
         Toggle(isOn: $isOn) {
             Text(text)
@@ -21,9 +19,5 @@ struct OptionsToggleRow: View {
                 .textColor()
         }
         .toggleStyle(SmallToggleStyle())
-        .onChange(of: isOn) {
-            toggleTrigger += 1
-        }
-        .sensoryFeedback(.selection, trigger: toggleTrigger)
     }
 }

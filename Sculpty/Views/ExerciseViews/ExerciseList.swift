@@ -72,7 +72,7 @@ struct ExerciseList: View {
                             ExerciseListGroup(muscleGroup: muscleGroup, exercises: exercisesForGroup)
                         }
                     }
-                    .animation(.easeInOut(duration: 0.3), value: groupedExercises)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: groupedExercises)
                 }
             }
         }

@@ -70,8 +70,10 @@ struct UpsertExercise: View {
                             resultText: "Are you sure you want to leave without saving?",
                             cancelText: "Discard Changes",
                             cancelColor: ColorManager.destructive,
+                            cancelFeedback: .impact(weight: .medium),
                             confirmText: "Stay on Page",
-                            confirmColor: ColorManager.text
+                            confirmColor: ColorManager.text,
+                            confirmFeedback: .selection
                         )
                     })
                 } else {
@@ -88,7 +90,7 @@ struct UpsertExercise: View {
                             .pageTitleImage()
                     }
                     .textColor()
-                    .animatedButton(feedback: .impact(weight: .light))
+                    .animatedButton()
                     
                     Button {
                         Popup.show(content: {

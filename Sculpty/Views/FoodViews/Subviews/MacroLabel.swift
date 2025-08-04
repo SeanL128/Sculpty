@@ -16,7 +16,5 @@ struct MacroLabel: View {
         Text("\(value)g \(label)")
             .foregroundStyle(color)
             .monospacedDigit()
-            .contentTransition(.numericText())
-            .animation(.easeInOut(duration: 0.3), value: value)
     }
 }

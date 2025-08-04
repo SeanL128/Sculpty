@@ -39,22 +39,16 @@ struct WorkoutLogView: View {
                         .bodyText()
                         .textColor()
                         .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .animation(.easeInOut(duration: 0.3), value: log.getLength())
                     
                     Text("Total Reps: \(reps) reps")
                         .bodyText()
                         .textColor()
                         .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .animation(.easeInOut(duration: 0.3), value: reps)
                     
                     Text("Total Weight: \(weight)\(UnitsManager.weight)")
                         .bodyText()
                         .textColor()
                         .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .animation(.easeInOut(duration: 0.3), value: weight)
                 }
                 
                 if !muscleGroups.isEmpty {

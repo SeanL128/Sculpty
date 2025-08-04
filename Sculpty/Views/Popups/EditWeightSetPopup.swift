@@ -56,8 +56,10 @@ struct EditWeightSetPopup: View {
                 
                 if log.index > -1 {
                     Button {
-                        log.unfinish()
-                        log.skip()
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            log.unfinish()
+                            log.skip()
+                        }
                         
                         Popup.dismissLast()
                     } label: {
@@ -69,26 +71,28 @@ struct EditWeightSetPopup: View {
                 }
                 
                 Button {
-                    if log.index > -1 {
-                        let weight = Double(updatedSet.reps ?? 0) * (updatedSet.weight ?? 0)
-                        
-                        log.unskip()
-                        log.finish(reps: updatedSet.reps ?? 0, weight: weight)
-                        
-                        if let restTimer = restTimer {
-                            var time: Double = 0
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        if log.index > -1 {
+                            let weight = Double(updatedSet.reps ?? 0) * (updatedSet.weight ?? 0)
                             
-                            switch updatedSet.type {
-                            case .warmUp:
-                                time = 30
-                            case .coolDown:
-                                time = 60
-                            default:
-                                time = restTime
+                            log.unskip()
+                            log.finish(reps: updatedSet.reps ?? 0, weight: weight)
+                            
+                            if let restTimer = restTimer {
+                                var time: Double = 0
+                                
+                                switch updatedSet.type {
+                                case .warmUp:
+                                    time = 30
+                                case .coolDown:
+                                    time = 60
+                                default:
+                                    time = restTime
+                                }
+                                
+                                restTimer.skip()
+                                restTimer.start(duration: time)
                             }
-                            
-                            restTimer.skip()
-                            restTimer.start(duration: time)
                         }
                     }
                     
@@ -155,7 +159,7 @@ struct EditWeightSetPopup: View {
                     }
                     .textColor()
                     .frame(maxWidth: 45)
-                    .animatedButton()
+                    .animatedButton(feedback: .selection)
                 }
                 .frame(maxWidth: 130)
             }

@@ -28,7 +28,7 @@ struct AccentColorMenuPopup: View {
                     let hex = AccentColor.colorMap[color] ?? "#2563EB"
                     
                     Button {
-                        withAnimation(.easeInOut(duration: 0.3)) {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                             selection = hex
                         }
                         

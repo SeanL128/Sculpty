@@ -36,8 +36,6 @@ struct WorkoutLiveActivity: Widget {
                                 .secondaryText()
                                 .secondaryColor()
                                 .monospacedDigit()
-                                .contentTransition(.numericText())
-                                .animation(.easeInOut(duration: 0.2), value: context.state.workoutProgress)
                         }
                         
                         Spacer()
@@ -76,8 +74,6 @@ struct WorkoutLiveActivity: Widget {
                     .bodyText()
                     .textColor()
                     .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .animation(.easeInOut(duration: 0.2), value: context.state.workoutProgress)
             } minimal: {
                 Image("TransparentIcon")
                     .resizable()
@@ -104,8 +100,6 @@ struct WorkoutLockScreenView: View {
                     .secondaryText()
                     .secondaryColor()
                     .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .animation(.easeInOut(duration: 0.2), value: context.state.workoutProgress)
             }
             
             Spacer()

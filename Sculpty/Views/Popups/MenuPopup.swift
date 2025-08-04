@@ -35,7 +35,7 @@ struct MenuPopup: View {
             VStack(alignment: .leading, spacing: .listSpacing) {
                 ForEach(options, id: \.self) { option in
                     Button {
-                        withAnimation(.easeInOut(duration: 0.3)) {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                             selection = option
                         }
                         

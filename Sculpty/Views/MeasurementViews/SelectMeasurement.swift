@@ -25,7 +25,7 @@ struct SelectMeasurement: View {
         ContainerView(title: "Measurements", spacing: .listSpacing, lazy: true) {
             ForEach(MeasurementType.displayOrder, id: \.id) { type in
                 Button {
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                         selectedMeasurementType = type
                     }
                 } label: {

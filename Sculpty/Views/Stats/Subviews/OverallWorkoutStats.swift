@@ -70,9 +70,10 @@ struct OverallWorkoutStats: View {
     @State private var selectedDate: Date?
     @State private var selectedValue: Double?
     @State private var isInteracting: Bool = false
+    @State private var animationStates: [Date: Bool] = [:]
     
     // swiftlint:disable force_unwrapping
-    private var data: [(date: Date, value: Double)] {
+    private var data: [BarChartData] {
         let calendar = Calendar.current
         
         let dailyData = Dictionary(grouping: workoutLogs) { log in
@@ -100,9 +101,6 @@ struct OverallWorkoutStats: View {
         case 3:
             numberOfPeriods = 12
             startDate = calendar.date(byAdding: .month, value: -numberOfPeriods + 1, to: today)!
-        case 4:
-            numberOfPeriods = 60
-            startDate = calendar.date(byAdding: .month, value: -numberOfPeriods + 1, to: today)!
         default:
             numberOfPeriods = 4
             startDate = calendar.date(byAdding: .weekOfYear, value: -numberOfPeriods + 1, to: today)!
@@ -120,17 +118,16 @@ struct OverallWorkoutStats: View {
             
             let weekStartDate = calendar.dateInterval(of: .weekOfYear, for: startDate)?.start ?? startDate
             
-            var result: [(date: Date, value: Double)] = []
+            var result: [BarChartData] = []
             var currentWeekStart = weekStartDate
             
             for _ in 0..<numberOfPeriods {
                 let value = weeklyData[currentWeekStart] ?? 0.0
-                result.append((date: currentWeekStart, value: value))
+                result.append(BarChartData(date: currentWeekStart, value: value))
                 currentWeekStart = calendar.date(byAdding: .weekOfYear, value: 1, to: currentWeekStart)!
             }
             
             return result.sorted { $0.date < $1.date }
-            
         } else {
             let monthlyData = Dictionary(grouping: dailyData) { (dateValue) in
                 let (date, _) = dateValue
@@ -145,12 +142,12 @@ struct OverallWorkoutStats: View {
             let monthComponents = calendar.dateComponents([.year, .month], from: startDate)
             let monthStartDate = calendar.date(from: monthComponents)!
             
-            var result: [(date: Date, value: Double)] = []
+            var result: [BarChartData] = []
             var currentMonthStart = monthStartDate
             
             for _ in 0..<numberOfPeriods {
                 let value = monthlyData[currentMonthStart] ?? 0.0
-                result.append((date: currentMonthStart, value: value))
+                result.append(BarChartData(date: currentMonthStart, value: value))
                 currentMonthStart = calendar.date(byAdding: .month, value: 1, to: currentMonthStart)!
             }
             
@@ -165,10 +162,15 @@ struct OverallWorkoutStats: View {
         case 1: return [1, 3, 5, 7, 9, 11]
         case 2: return [1, 3, 5]
         case 3: return [1, 4, 7, 10]
-        case 4: return [11, 23, 35, 47]
         default: return [0, 1, 2, 3]
         }
     }
+    
+    private var maxValue: Double {
+        data.map { $0.value }.max() ?? 0
+    }
+    
+    @State private var interactingTrigger: Int = 0
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -186,15 +188,11 @@ struct OverallWorkoutStats: View {
                                 .bodyText(weight: .regular)
                                 .textColor()
                                 .monospacedDigit()
-                                .contentTransition(.numericText())
-                                .animation(.easeInOut(duration: 0.3), value: workoutStreak)
                             
                             Text("Longest Streak: \(settings.longestWorkoutStreak) week\(settings.longestWorkoutStreak != 1 ? "s" : "")")
                                 .secondaryText()
                                 .secondaryColor()
                                 .monospacedDigit()
-                                .contentTransition(.numericText())
-                                .animation(.easeInOut(duration: 0.3), value: settings.longestWorkoutStreak)
                         }
                         // swiftlint:enable line_length
                     }
@@ -208,13 +206,13 @@ struct OverallWorkoutStats: View {
                         VStack(alignment: .leading, spacing: .spacingM) {
                             ZStack(alignment: .top) {
                                 Chart {
-                                    ForEach(data, id: \.date) { item in
+                                    ForEach(data, id: \.id) { item in
                                         BarMark(
                                             x: .value(
                                                 "Week",
                                                 selectedRangeIndex <= 1 ? formatDateNoYear(item.date) : formatMonth(item.date) // swiftlint:disable:this line_length
                                             ),
-                                            y: .value("Value", item.value)
+                                            y: .value("Value", getAnimatedValue(for: item))
                                         )
                                         .foregroundStyle(
                                             LinearGradient(
@@ -240,6 +238,7 @@ struct OverallWorkoutStats: View {
                                 .chartXAxis {
                                     AxisMarks { value in
                                         AxisGridLine()
+                                        
                                         AxisValueLabel {
                                             if let date = value.as(String.self),
                                                let index = data
@@ -258,6 +257,7 @@ struct OverallWorkoutStats: View {
                                 .chartYAxis {
                                     AxisMarks(position: .leading) { value in
                                         AxisGridLine()
+                                        
                                         AxisValueLabel {
                                             if let numericValue = value.as(Double.self) {
                                                 Text("\(numericValue.formatted())x")
@@ -267,6 +267,7 @@ struct OverallWorkoutStats: View {
                                         }
                                     }
                                 }
+                                .chartYScale(domain: 0...max(maxValue, 1))
                                 .chartGesture { proxy in
                                     DragGesture(minimumDistance: 8)
                                         .onChanged { value in
@@ -281,6 +282,8 @@ struct OverallWorkoutStats: View {
                                                     selectedDate = newSelectedDate
                                                     
                                                     selectedValue = findClosestDataPointValue(to: newSelectedDate)
+                                                    
+                                                    interactingTrigger += 1
                                                 }
                                             }
                                         }
@@ -292,8 +295,21 @@ struct OverallWorkoutStats: View {
                                             }
                                         }
                                 }
-                                .animation(.easeInOut(duration: 0.5), value: selectedRangeIndex)
-                                .animation(.easeInOut(duration: 0.3), value: data.count)
+                                .onAppear {
+                                    initializeAnimations()
+                                }
+                                .onChange(of: selectedRangeIndex) {
+                                    animationStates = [:]
+                                    
+                                    for (index, item) in data.enumerated() {
+                                        withAnimation(.linear.delay(Double(index) * 0.05)) {
+                                            animationStates[item.date] = false
+                                        }
+                                    }
+                                    
+                                    initializeAnimations()
+                                }
+                                .sensoryFeedback(.selection, trigger: interactingTrigger)
                                 
                                 if isInteracting,
                                    let date = selectedDate,
@@ -319,20 +335,18 @@ struct OverallWorkoutStats: View {
                                 }
                             }
                             .padding()
-                            .animation(.easeInOut(duration: 0.4), value: data.count)
-                            .animation(.easeInOut(duration: 0.3), value: selectedRangeIndex)
                             .drawingGroup()
                             
                             TypedSegmentedControl(
                                 selection: $selectedRangeIndex,
-                                options: [0, 1, 2, 3, 4],
+                                options: [0, 1, 2, 3],
                                 displayNames: [
                                     "Last 4 Weeks",
                                     "Last 12 Weeks",
                                     "Last 6 Months",
-                                    "Last Year",
-                                    "Last 5 Years"
-                                ]
+                                    "Last Year"
+                                ],
+                                animate: false
                             )
                         }
                     }
@@ -341,6 +355,18 @@ struct OverallWorkoutStats: View {
             .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
             .scrollIndicators(.hidden)
             .scrollContentBackground(.hidden)
+        }
+    }
+    
+    private func getAnimatedValue(for item: BarChartData) -> Double {
+        return animationStates[item.date] == true ? item.value : 0
+    }
+    
+    private func initializeAnimations() {
+        for (index, item) in data.enumerated() {
+            withAnimation(.linear.delay(Double(index) * 0.05)) {
+                animationStates[item.date] = true
+            }
         }
     }
     

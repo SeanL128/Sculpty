@@ -88,7 +88,7 @@ struct WorkoutPreviewPopup: View {
                     .textColor()
                     .background(Color.accentColor)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .animatedButton()
+                    .animatedButton(feedback: .selection)
                 }
                 
                 Spacer()

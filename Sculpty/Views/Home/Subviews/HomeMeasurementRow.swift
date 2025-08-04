@@ -17,8 +17,6 @@ struct HomeMeasusrementRow: View {
                     .bodyText(weight: .regular)
                     .monospacedDigit()
                     .textColor()
-                    .contentTransition(.numericText())
-                    .animation(.easeInOut(duration: 0.3), value: measurement.measurement)
                 
                 Text(formatDateWithTime(measurement.date))
                     .captionText()

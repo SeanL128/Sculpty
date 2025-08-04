@@ -40,9 +40,6 @@ struct SetView: View {
                     .bodyText()
                     .strikethrough(setLog?.completed ?? false || setLog?.skipped ?? false)
                     .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .animation(.easeInOut(duration: 0.3), value: weight)
-                    .animation(.easeInOut(duration: 0.3), value: reps)
                     .animation(.easeInOut(duration: 0.3), value: setLog?.completed)
                     .animation(.easeInOut(duration: 0.3), value: setLog?.skipped)
                 
@@ -56,8 +53,6 @@ struct SetView: View {
                             insertion: .opacity.combined(with: .move(edge: .trailing)),
                             removal: .opacity.combined(with: .move(edge: .trailing))
                         ))
-                        .contentTransition(.numericText())
-                        .animation(.easeInOut(duration: 0.3), value: weight * (1.0 + (Double(reps) / 30.0)))
                 }
             } else if set.exerciseType == .distance,
                       let distance = set.distance {
@@ -65,8 +60,6 @@ struct SetView: View {
                     .bodyText()
                     .strikethrough(setLog?.completed ?? false || setLog?.skipped ?? false)
                     .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .animation(.easeInOut(duration: 0.3), value: distance)
                     .animation(.easeInOut(duration: 0.3), value: setLog?.completed)
                     .animation(.easeInOut(duration: 0.3), value: setLog?.skipped)
                 

@@ -63,8 +63,10 @@ struct EditDistanceSetPopup: View {
                 
                 if log.index > -1 {
                     Button {
-                        log.unfinish()
-                        log.skip()
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            log.unfinish()
+                            log.skip()
+                        }
                         
                         Popup.dismissLast()
                     } label: {
@@ -72,28 +74,30 @@ struct EditDistanceSetPopup: View {
                             .headingImage()
                     }
                     .textColor()
-                    .animatedButton(feedback: .impact(weight: .light))
+                    .animatedButton()
                 }
                 
                 Button {
-                    if log.index > -1 {
-                        log.unskip()
-                        log.finish(time: (updatedSet.time ?? 0), distance: (updatedSet.distance ?? 0))
-                        
-                        if let restTimer = restTimer {
-                            var time: Double = 0
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        if log.index > -1 {
+                            log.unskip()
+                            log.finish(time: (updatedSet.time ?? 0), distance: (updatedSet.distance ?? 0))
                             
-                            switch updatedSet.type {
-                            case .warmUp:
-                                time = 30
-                            case .coolDown:
-                                time = 60
-                            default:
-                                time = restTime
+                            if let restTimer = restTimer {
+                                var time: Double = 0
+                                
+                                switch updatedSet.type {
+                                case .warmUp:
+                                    time = 30
+                                case .coolDown:
+                                    time = 60
+                                default:
+                                    time = restTime
+                                }
+                                
+                                restTimer.skip()
+                                restTimer.start(duration: time)
                             }
-                            
-                            restTimer.skip()
-                            restTimer.start(duration: time)
                         }
                     }
                     
@@ -136,7 +140,7 @@ struct EditDistanceSetPopup: View {
                     .onChange(of: hours) { updateTime() }
                     .onChange(of: minutes) { updateTime() }
                     .onChange(of: seconds) { updateTime() }
-                    .animatedButton()
+                    .animatedButton(feedback: .selection)
                     .padding(.bottom, .spacingS)
                 }
                 .frame(maxWidth: 200, maxHeight: referenceHeight)
@@ -185,7 +189,7 @@ struct EditDistanceSetPopup: View {
                     }
                     .textColor()
                     .frame(maxWidth: 65)
-                    .animatedButton()
+                    .animatedButton(feedback: .selection)
                 }
                 .frame(maxWidth: 190)
             }
@@ -206,12 +210,14 @@ struct EditDistanceSetPopup: View {
                     Spacer()
                     
                     Button {
-                        if setTimer.status == .notStarted {
-                            setTimer.start()
-                        } else if setTimer.status == .paused {
-                            setTimer.resume()
-                        } else {
-                            setTimer.pause()
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            if setTimer.status == .notStarted {
+                                setTimer.start()
+                            } else if setTimer.status == .paused {
+                                setTimer.resume()
+                            } else {
+                                setTimer.pause()
+                            }
                         }
                     } label: {
                         Image(systemName: (setTimer.status == .notStarted || setTimer.status == .paused) ? "play.fill" : "pause.fill") // swiftlint:disable:this line_length
@@ -222,11 +228,13 @@ struct EditDistanceSetPopup: View {
                     .textColor()
                     .filledToBorderedButton(
                         scale: 0.95,
-                        feedback: [.notStarted, .paused].contains(setTimer.status) ? .start : .stop
+                        feedback: [.notStarted, .paused].contains(setTimer.status) ? .impact(weight: .light) : .selection // swiftlint:disable:this line_length
                     )
                     
                     Button {
-                        setTimer.cancel()
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            setTimer.cancel()
+                        }
                     } label: {
                         Image(systemName: "stop.fill")
                             .bodyText(weight: .regular)
@@ -237,7 +245,7 @@ struct EditDistanceSetPopup: View {
                     .disabled(setTimer.status != .running && setTimer.status != .paused)
                     .filledToBorderedButton(
                         scale: 0.95,
-                        feedback: .stop,
+                        feedback: .impact(weight: .medium),
                         isValid: setTimer.status == .running || setTimer.status == .paused
                     )
                 }

@@ -24,7 +24,7 @@ struct HomeMeasurementSection: View {
                     Image(systemName: "chart.xyaxis.line")
                         .headingImage()
                 }
-                .animatedButton()
+                .animatedButton(feedback: .selection)
                 
                 Button {
                     Popup.show(content: {

@@ -10,15 +10,18 @@ import SwiftUI
 struct LabeledButton<Content: View>: View {
     let label: String
     let action: () -> Void
+    let feedback: SensoryFeedback
     let content: Content
     
     init(
         label: String,
         action: @escaping () -> Void,
+        feedback: SensoryFeedback,
         @ViewBuilder content: () -> Content
     ) {
         self.label = label
         self.action = action
+        self.feedback = feedback
         self.content = content()
     }
     
@@ -34,7 +37,7 @@ struct LabeledButton<Content: View>: View {
                content
             }
             .textColor()
-            .animatedButton()
+            .animatedButton(feedback: feedback)
         }
     }
 }

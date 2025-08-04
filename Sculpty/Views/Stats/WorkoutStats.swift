@@ -40,7 +40,7 @@ struct WorkoutStats: View {
                                     .pageTitleImage()
                             }
                             .textColor()
-                            .animatedButton()
+                            .animatedButton(feedback: .selection)
                         }
                     )
                     

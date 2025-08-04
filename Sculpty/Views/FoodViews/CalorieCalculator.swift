@@ -94,7 +94,8 @@ struct CalorieCalculator: View {
                     Popup.show(content: {
                         UnitMenuPopup(selection: $settings.units)
                     })
-                }
+                },
+                feedback: .selection
             ) {
                 HStack(alignment: .center, spacing: .spacingXS) {
                     Text(settings.units == "Imperial" ? "Imperial (mi, ft, in, lbs)" : "Metric (km, m, cm, kg)")
@@ -162,7 +163,8 @@ struct CalorieCalculator: View {
                             selection: $activityLevelString
                         )
                     })
-                }
+                },
+                feedback: .selection
             ) {
                 HStack(alignment: .center, spacing: .spacingXS) {
                     Text(activityLevelString ?? "Moderate (3-5 days/week)")
@@ -181,7 +183,8 @@ struct CalorieCalculator: View {
                     Popup.show(content: {
                         MenuPopup(title: "Goal", options: Goal.stringDisplayOrder, selection: $goalString)
                     })
-                }
+                },
+                feedback: .selection
             ) {
                 HStack(alignment: .center, spacing: .spacingXS) {
                     Text(goalString ?? "Maintain Weight")
@@ -200,8 +203,6 @@ struct CalorieCalculator: View {
                 Text("Daily Calories: \(dailyCalories != nil ? "\(dailyCalories ?? 0)cal" : "N/A")")
                     .bodyText()
                     .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .animation(.easeInOut(duration: 0.3), value: dailyCalories)
             }
             .textColor()
 

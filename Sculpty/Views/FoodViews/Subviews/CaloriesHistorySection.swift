@@ -17,7 +17,7 @@ struct CaloriesHistorySection: View {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .center) {
                     Button {
-                        withAnimation(.easeInOut(duration: 0.3)) {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                             open.toggle()
                         }
                     } label: {
@@ -31,7 +31,7 @@ struct CaloriesHistorySection: View {
                                 .rotationEffect(.degrees(open ? -180 : 0))
                         }
                     }
-                    .animatedButton()
+                    .animatedButton(feedback: .selection)
                     .textColor()
                     
                     Spacer()
@@ -64,7 +64,7 @@ struct CaloriesHistorySection: View {
                             removal: .opacity.combined(with: .move(edge: .bottom))
                         ))
                     }
-                    .animation(.easeInOut(duration: 0.3), value: log.entries)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: log.entries)
                 }
             }
         }

@@ -63,8 +63,10 @@ struct UpsertWorkout: View {
                             resultText: "Are you sure you want to leave without saving?",
                             cancelText: "Discard Changes",
                             cancelColor: ColorManager.destructive,
+                            cancelFeedback: .impact(weight: .medium),
                             confirmText: "Stay on Page",
-                            confirmColor: ColorManager.text
+                            confirmColor: ColorManager.text,
+                            confirmFeedback: .selection
                         )
                     })
                 } else {
@@ -88,7 +90,7 @@ struct UpsertWorkout: View {
                     }
                     .foregroundStyle(isValid ? ColorManager.text : ColorManager.secondary)
                     .disabled(!isValid)
-                    .animatedButton(feedback: .impact(weight: .light), isValid: isValid)
+                    .animatedButton(isValid: isValid)
                     .animation(.easeInOut(duration: 0.2), value: isValid)
                     
                     Button {
@@ -190,7 +192,7 @@ struct UpsertWorkout: View {
                                         }
                                     }
                                     .textColor()
-                                    .animatedButton()
+                                    .animatedButton(feedback: .selection)
                                     
                                     Spacer()
                                     
@@ -235,7 +237,7 @@ struct UpsertWorkout: View {
                     }
                 }
                 .textColor()
-                .animatedButton(feedback: .impact(weight: .light))
+                .animatedButton()
                 
                 Input(title: "Notes", text: $workoutNotes, isFocused: _isNotesFocused, axis: .vertical)
             }

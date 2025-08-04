@@ -36,8 +36,6 @@ struct HomeWorkoutRow: View {
                         .bodyText()
                         .frame(width: 50)
                         .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .animation(.easeInOut(duration: 0.7), value: log.getProgress())
                 }
                 
                 Image(systemName: "chevron.right")
@@ -46,6 +44,6 @@ struct HomeWorkoutRow: View {
             .contentShape(Rectangle())
         }
         .textColor()
-        .animatedButton()
+        .animatedButton(feedback: .selection)
     }
 }

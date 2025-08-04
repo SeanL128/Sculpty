@@ -13,8 +13,10 @@ struct ConfirmationPopup: View {
     private let resultText: String?
     private let cancelText: String
     private let cancelColor: Color
+    private let cancelFeedback: SensoryFeedback
     private let confirmText: String
     private let confirmColor: Color
+    private let confirmFeedback: SensoryFeedback
     
     init(
         selection: Binding<Bool>,
@@ -22,16 +24,20 @@ struct ConfirmationPopup: View {
         resultText: String? = nil,
         cancelText: String = "Cancel",
         cancelColor: Color = ColorManager.text,
+        cancelFeedback: SensoryFeedback = .selection,
         confirmText: String = "Confirm",
-        confirmColor: Color = ColorManager.destructive
+        confirmColor: Color = ColorManager.destructive,
+        confirmFeedback: SensoryFeedback = .impact(weight: .medium)
     ) {
         self._selection = selection
         self.promptText = promptText
         self.resultText = resultText
         self.cancelText = cancelText
         self.cancelColor = cancelColor
+        self.cancelFeedback = cancelFeedback
         self.confirmText = confirmText
         self.confirmColor = confirmColor
+        self.confirmFeedback = confirmFeedback
     }
     
     var body: some View {
@@ -52,7 +58,7 @@ struct ConfirmationPopup: View {
             
             HStack(alignment: .center, spacing: .spacingM) {
                 Button {
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                         selection = false
                     }
                     
@@ -66,14 +72,14 @@ struct ConfirmationPopup: View {
                         .frame(maxWidth: .infinity)
                 }
                 .foregroundStyle(cancelColor)
-                .animatedButton()
+                .animatedButton(feedback: cancelFeedback)
                 
                 Divider()
                     .frame(width: 1, height: 24)
                     .background(ColorManager.border)
                 
                 Button {
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                         selection = true
                     }
                     
@@ -87,7 +93,7 @@ struct ConfirmationPopup: View {
                         .frame(maxWidth: .infinity)
                 }
                 .foregroundStyle(confirmColor)
-                .animatedButton(feedback: .impact(weight: .medium))
+                .animatedButton(feedback: confirmFeedback)
             }
             .frame(maxWidth: .infinity)
         }

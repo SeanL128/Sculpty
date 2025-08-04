@@ -14,8 +14,9 @@ struct ChartDateRangeControl: View {
         TypedSegmentedControl(
             selection: $selectedRangeIndex,
             options: [0, 1, 2, 3, 4],
-            displayNames: ["Last 7 Days", "Last 30 Days", "Last 6 Months", "Last Year", "Last 5 Years"]
+            displayNames: ["Last 7 Days", "Last 30 Days", "Last 6 Months", "Last Year", "Last 5 Years"],
+            animate: false
         )
-        .padding(.bottom, -8)
+        .padding(.bottom, -.spacingS)
     }
 }

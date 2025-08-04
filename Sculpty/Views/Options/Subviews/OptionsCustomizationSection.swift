@@ -41,7 +41,7 @@ struct OptionsCustomizationSection: View {
                         }
                     }
                     .textColor()
-                    .animatedButton()
+                    .animatedButton(feedback: .selection)
                 }
             }
             .card()

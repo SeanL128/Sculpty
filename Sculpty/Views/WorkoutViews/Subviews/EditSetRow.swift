@@ -58,7 +58,7 @@ struct EditSetRow: View {
                     SetView(set: set)
                 }
                 .textColor()
-                .animatedButton()
+                .animatedButton(feedback: .selection)
                 
                 Spacer()
                 
@@ -73,7 +73,7 @@ struct EditSetRow: View {
                         .bodyText(weight: .regular)
                 }
                 .textColor()
-                .animatedButton(feedback: .warning)
+                .animatedButton(feedback: .impact(weight: .medium))
             }
         } else {
             HStack(alignment: .center, spacing: .spacingXS) {

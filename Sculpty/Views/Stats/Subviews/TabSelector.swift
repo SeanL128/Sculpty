@@ -11,6 +11,8 @@ struct TabSelector: View {
     let tabs: [String]
     @Binding var selected: Int
     var animation: Namespace.ID
+    
+    @State private var trigger: Int = 0
 
     var body: some View {
         GeometryReader { geo in
@@ -35,6 +37,8 @@ struct TabSelector: View {
                     }
                     .frame(width: geo.size.width / CGFloat(tabs.count))
                     .onTapGesture {
+                        trigger += 1
+                        
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                             selected = index
                         }
@@ -43,5 +47,6 @@ struct TabSelector: View {
             }
         }
         .frame(height: 20)
+        .sensoryFeedback(.selection, trigger: trigger)
     }
 }

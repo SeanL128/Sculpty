@@ -318,7 +318,7 @@ struct OptionsDataSection: View {
         do {
             try DataTransferManager.shared.clearAllData(in: context)
             
-            withAnimation(.easeInOut(duration: 0.3)) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 settings.resetAllSettings()
                 
                 dismiss()

@@ -17,7 +17,7 @@ struct ExercisePreview: View {
     
     var body: some View {
         Button {
-            withAnimation(.easeInOut(duration: 0.3)) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 open.toggle()
             }
         } label: {
@@ -32,7 +32,7 @@ struct ExercisePreview: View {
             }
         }
         .textColor()
-        .animatedButton()
+        .animatedButton(feedback: .selection)
         
         if open {
             VStack(alignment: .leading, spacing: .spacingS) {
@@ -64,17 +64,12 @@ struct ExercisePreview: View {
                                     .secondaryText()
                                     .textColor()
                                     .monospacedDigit()
-                                    .contentTransition(.numericText())
-                                    .animation(.easeInOut(duration: 0.3), value: weight)
-                                    .animation(.easeInOut(duration: 0.3), value: reps)
                             } else if set.exerciseType == .distance,
                                       let distance = set.distance {
                                 Text("\(set.timeString) \(String(format: "%0.2f", distance)) \(set.unit)")
                                     .secondaryText()
                                     .textColor()
                                     .monospacedDigit()
-                                    .contentTransition(.numericText())
-                                    .animation(.easeInOut(duration: 0.3), value: distance)
                             }
                         }
                         

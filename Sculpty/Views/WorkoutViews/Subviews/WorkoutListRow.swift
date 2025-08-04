@@ -51,7 +51,7 @@ struct WorkoutListRow: View {
                         Text(workout.name)
                             .bodyText()
                     }
-                    .animatedButton(scale: 1, feedback: .selection)
+                    .hapticButton(.selection)
                     
                     Spacer()
                     
@@ -78,7 +78,7 @@ struct WorkoutListRow: View {
                     }
                     .foregroundStyle(workout.exercises.isEmpty ? ColorManager.secondary : ColorManager.text)
                     .disabled(workout.exercises.isEmpty)
-                    .animatedButton(feedback: .impact(weight: .light), isValid: !workout.exercises.isEmpty)
+                    .animatedButton(isValid: !workout.exercises.isEmpty)
                     .animation(.easeInOut(duration: 0.2), value: workout.exercises.isEmpty)
                 }
                 

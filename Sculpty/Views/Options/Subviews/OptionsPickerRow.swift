@@ -36,7 +36,7 @@ struct OptionsPickerRow<PopupContent: View>: View {
                 }
             }
             .textColor()
-            .animatedButton()
+            .animatedButton(feedback: .selection)
         }
     }
 }

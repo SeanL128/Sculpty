@@ -104,6 +104,7 @@ struct SearchFood: View {
                             }
                         }
                         .textColor()
+                        .hapticButton(.selection)
                         .transition(.asymmetric(
                             insertion: .opacity.combined(with: .move(edge: .leading)),
                             removal: .opacity.combined(with: .move(edge: .trailing))
@@ -139,13 +140,14 @@ struct SearchFood: View {
                             }
                         }
                         .textColor()
+                        .animatedButton(feedback: .selection)
                     }
                 }
                 .padding(.top, .spacingXL)
                 .frame(maxWidth: .infinity)
                 .transition(.scale.combined(with: .opacity))
-                .animation(.easeInOut(duration: 0.3), value: text)
-                .animation(.easeInOut(duration: 0.3), value: image)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: text)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: image)
                 
                 FatSecretLink()
             }
@@ -186,7 +188,7 @@ struct SearchFood: View {
             }
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: searchResults.count)
-        .animation(.easeInOut(duration: 0.3), value: text)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: text)
     }
     
     private func searchFoods() {

@@ -34,7 +34,7 @@ struct MeasurementMenuPopup: View {
             VStack(alignment: .leading, spacing: .listSpacing) {
                 ForEach(options.sorted { MeasurementType.displayOrder.firstIndex(of: $0.value)! < MeasurementType.displayOrder.firstIndex(of: $1.value)! }, id: \.key) { str, type in // swiftlint:disable:this line_length force_unwrapping
                     Button {
-                        withAnimation(.easeInOut(duration: 0.3)) {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                             selection = type
                         }
                         

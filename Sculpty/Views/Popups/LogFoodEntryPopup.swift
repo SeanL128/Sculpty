@@ -105,7 +105,7 @@ struct LogFoodEntryPopup: View {
                         .onChange(of: selectedServingString) {
                             selectedServing = servingOptions.first(where: { $0.fullServingDescription == selectedServingString }) // swiftlint:disable:this line_length
                         }
-                        .animatedButton()
+                        .animatedButton(feedback: .selection)
                     } else {
                         Text(selectedServing?.fullServingDescription ?? "1 serving")
                             .bodyText()
@@ -129,8 +129,6 @@ struct LogFoodEntryPopup: View {
                                 .bodyText()
                                 .textColor()
                                 .monospacedDigit()
-                                .contentTransition(.numericText())
-                                .animation(.easeInOut(duration: 0.3), value: calories)
                         }
                         .padding(.spacingXS)
                         
@@ -148,8 +146,6 @@ struct LogFoodEntryPopup: View {
                                 .bodyText()
                                 .textColor()
                                 .monospacedDigit()
-                                .contentTransition(.numericText())
-                                .animation(.easeInOut(duration: 0.3), value: carbs)
                         }
                         .padding(.spacingXS)
                         .background(ColorManager.secondary.opacity(0.1))
@@ -168,8 +164,6 @@ struct LogFoodEntryPopup: View {
                                 .bodyText()
                                 .textColor()
                                 .monospacedDigit()
-                                .contentTransition(.numericText())
-                                .animation(.easeInOut(duration: 0.3), value: protein)
                         }
                         .padding(.spacingXS)
                         
@@ -187,8 +181,6 @@ struct LogFoodEntryPopup: View {
                                 .bodyText()
                                 .textColor()
                                 .monospacedDigit()
-                                .contentTransition(.numericText())
-                                .animation(.easeInOut(duration: 0.3), value: fat)
                         }
                         .padding(.spacingXS)
                         .background(ColorManager.secondary.opacity(0.1))
@@ -233,7 +225,7 @@ struct LogFoodEntryPopup: View {
                 api.loaded = true
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: servingOptions.isEmpty)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: servingOptions.isEmpty)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 KeyboardDoneButton()

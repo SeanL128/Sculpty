@@ -20,8 +20,6 @@ struct MeasurementRow: View {
                 .textColor()
                 .multilineTextAlignment(.leading)
                 .monospacedDigit()
-                .contentTransition(.numericText())
-                .animation(.easeInOut(duration: 0.3), value: measurement.measurement)
             
             Spacer()
             

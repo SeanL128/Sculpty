@@ -29,7 +29,7 @@ struct WorkoutLogGroup: View {
                         .rotationEffect(.degrees(open ? -180 : 0))
                 }
             }
-            .animatedButton()
+            .animatedButton(feedback: .selection)
             .textColor()
             
             if open {

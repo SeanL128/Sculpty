@@ -21,7 +21,7 @@ struct LaunchScreen: View {
             LottieView(
                 animationName: "sculpty_launch_animation",
                 onAnimationComplete: {
-                    withAnimation(.easeInOut(duration: 0.3).delay(0.1)) {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.1)) {
                         fadeOut = true
                     }
                     

@@ -58,6 +58,6 @@ struct CustomActionContainerViewHeader<TrailingItems: View>: View {
                 }
             }
         }
-        .padding(.bottom, .spacingXS)
+        .padding(.bottom, .spacingS)
     }
 }

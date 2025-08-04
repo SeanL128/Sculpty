@@ -17,7 +17,7 @@ struct Home: View {
                     .pageTitleImage()
             }
             .textColor()
-            .animatedButton()
+            .animatedButton(feedback: .selection)
         }) {
             // MARK: Workout Section
             HomeWorkoutSection()

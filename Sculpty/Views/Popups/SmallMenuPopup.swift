@@ -35,7 +35,7 @@ struct SmallMenuPopup: View {
             HStack(spacing: .spacingXS) {
                 ForEach(Array(options.enumerated()), id: \.element.self) { index, option in
                     Button {
-                        withAnimation(.easeInOut(duration: 0.3)) {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                             selection = option
                         }
                         

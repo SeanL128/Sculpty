@@ -8,12 +8,6 @@
 import SwiftUI
 import Charts
 
-struct LineData {
-    let data: [(date: Date, value: Double)]
-    let color: Color
-    let name: String
-}
-
 struct MultiLineChart: View {
     @Binding var selectedRangeIndex: Int
     private var endDate: Date {
@@ -29,22 +23,28 @@ struct MultiLineChart: View {
         }
     }
     
+    @State private var animationStates: [Date: Bool] = [:]
+    
     @State private var selectedDate: Date?
     @State private var isInteracting: Bool = false
     
-    var lineDataSets: [LineData]
+    var lineDataSets: [LineChartData]
     var units: String
     
-    private var allChartData: [LineData] {
+    private var allChartData: [LineChartData] {
         lineDataSets.map { lineData in
             let filteredData = lineData.data.filter { $0.date >= startDate && $0.date <= endDate }
                 .sorted { $0.date < $1.date }
-            return LineData(data: filteredData, color: lineData.color, name: lineData.name)
+            return LineChartData(data: filteredData, color: lineData.color, name: lineData.name)
         }
     }
     
     private var allDataPoints: [(date: Date, value: Double)] {
         allChartData.flatMap { $0.data }.sorted { $0.date < $1.date }
+    }
+    
+    private var allUniqueDates: [Date] {
+        allChartData.flatMap { $0.data.map { $0.date } }.removingDuplicates().sorted()
     }
     
     private var selectedValues: [(name: String, value: Double, color: Color)] {
@@ -58,12 +58,18 @@ struct MultiLineChart: View {
         }
     }
     
+    private var maxValue: Double {
+        allChartData.flatMap { $0.data.map { $0.value } }.max() ?? 0
+    }
+    
+    @State private var interactingTrigger: Int = 0
+    
     var body: some View {
         VStack {
             GeometryReader { geo in
                 ZStack(alignment: .topLeading) {
                     Chart {
-                        ForEach(Array(allChartData.enumerated()), id: \.offset) { _, lineData in
+                        ForEach(allChartData, id: \.id) { lineData in
                             ForEach(lineData.data, id: \.date) { item in
                                 LineMark(
                                     x: .value("Date", item.date),
@@ -72,13 +78,6 @@ struct MultiLineChart: View {
                                 )
                                 .foregroundStyle(lineData.color)
                                 .lineStyle(StrokeStyle(lineWidth: 2))
-                                
-                                PointMark(
-                                    x: .value("Date", item.date),
-                                    y: .value("Value", item.value)
-                                )
-                                .foregroundStyle(lineData.color)
-                                .symbolSize(24)
                                 
                                 AreaMark(
                                     x: .value("Date", item.date),
@@ -93,6 +92,16 @@ struct MultiLineChart: View {
                                         endPoint: .bottom
                                     )
                                 )
+                                
+                                if selectedRangeIndex <= 1,
+                                   animationStates[item.date] == true {
+                                    PointMark(
+                                        x: .value("Date", item.date),
+                                        y: .value("Value", item.value)
+                                    )
+                                    .foregroundStyle(lineData.color)
+                                    .symbolSize(24)
+                                }
                             }
                         }
                         
@@ -108,6 +117,7 @@ struct MultiLineChart: View {
                     .chartXAxis {
                         AxisMarks { value in
                             AxisGridLine()
+                            
                             AxisValueLabel {
                                 if let date = value.as(Date.self) {
                                     Text(selectedRangeIndex <= 1 ? formatDateNoYear(date) : formatMonth(date))
@@ -120,6 +130,7 @@ struct MultiLineChart: View {
                     .chartYAxis {
                         AxisMarks(position: .leading) { value in
                             AxisGridLine()
+                            
                             AxisValueLabel {
                                 if let numericValue = value.as(Double.self) {
                                     Text("\(numericValue.formatted())\(units)")
@@ -129,6 +140,7 @@ struct MultiLineChart: View {
                             }
                         }
                     }
+                    .chartYScale(domain: 0...max(maxValue, 1))
                     .chartXSelection(value: .constant(selectedDate))
                     .chartGesture { proxy in
                         DragGesture(minimumDistance: 8)
@@ -142,6 +154,8 @@ struct MultiLineChart: View {
                                     
                                     if newSelectedDate != selectedDate {
                                         selectedDate = newSelectedDate
+                                        
+                                        interactingTrigger += 1
                                     }
                                 }
                             }
@@ -152,6 +166,21 @@ struct MultiLineChart: View {
                                 }
                             }
                     }
+                    .onAppear {
+                        initializeAnimations()
+                    }
+                    .onChange(of: selectedRangeIndex) {
+                        animationStates = [:]
+                        
+                        for (index, date) in allUniqueDates.enumerated() {
+                            withAnimation(.linear.delay(Double(index) * 0.05)) {
+                                animationStates[date] = false
+                            }
+                        }
+                        
+                        initializeAnimations()
+                    }
+                    .sensoryFeedback(.selection, trigger: interactingTrigger)
                     
                     if isInteracting,
                        let date = selectedDate,
@@ -198,6 +227,14 @@ struct MultiLineChart: View {
         .animation(.easeInOut(duration: 0.4), value: allChartData.map { $0.data.count })
         .animation(.easeInOut(duration: 0.3), value: selectedRangeIndex)
         .drawingGroup()
+    }
+    
+    private func initializeAnimations() {
+        for (index, date) in allUniqueDates.enumerated() {
+            withAnimation(.linear(duration: 0.1).delay(Double(index) * 0.1)) {
+                animationStates[date] = true
+            }
+        }
     }
     
     private func findClosestDataPoint(to date: Date) -> Date? {

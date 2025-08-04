@@ -82,7 +82,7 @@ struct ExerciseInfo: View {
                         }
                     }
                     .textColor()
-                    .animatedButton()
+                    .animatedButton(feedback: .selection)
                     .onChange(of: exercise) {
                         if exercise?.type != type {
                             workoutExercise.sets.removeAll()
@@ -152,7 +152,7 @@ struct ExerciseInfo: View {
                         }
                     }
                     .textColor()
-                    .animatedButton(feedback: .impact(weight: .light))
+                    .animatedButton()
                 }
                 
                 Button {
@@ -164,16 +164,13 @@ struct ExerciseInfo: View {
                         Text("Rest Time: \(restMinutes)min \(restSeconds)sec")
                             .bodyText()
                             .monospacedDigit()
-                            .contentTransition(.numericText())
-                            .animation(.easeInOut(duration: 0.3), value: restMinutes)
-                            .animation(.easeInOut(duration: 0.3), value: restSeconds)
                         
                         Image(systemName: "chevron.right")
                             .bodyImage()
                     }
                 }
                 .textColor()
-                .animatedButton()
+                .animatedButton(feedback: .selection)
                 
                 if settings.showTempo {
                     VStack(alignment: .leading, spacing: .spacingXS) {
@@ -191,7 +188,7 @@ struct ExerciseInfo: View {
                             }
                         }
                         .textColor()
-                        .animatedButton()
+                        .animatedButton(feedback: .selection)
                         
                         HStack(alignment: .bottom) {
                             TextField("", text: $tempo, prompt: Text("0000"))

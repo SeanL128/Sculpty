@@ -37,7 +37,7 @@ struct HomeCaloriesSection: View {
                     Image(systemName: "chart.xyaxis.line")
                         .headingImage()
                 }
-                .animatedButton()
+                .animatedButton(feedback: .selection)
                 
                 NavigationLink {
                     SearchFood(log: log ?? CaloriesLog())
@@ -71,21 +71,17 @@ struct HomeCaloriesSection: View {
                                 .blinking()
                         }
                     }
+                    .hapticButton(.selection)
                     
                     Text("Target: \(settings.dailyCalories)cal")
                         .secondaryText()
                         .secondaryColor()
                         .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .animation(.easeInOut(duration: 0.3), value: settings.dailyCalories)
                     
                     Text("\(Int(settings.dailyCalories - caloriesBreakdown.0))cal remaining")
                         .secondaryText(weight: .light)
                         .secondaryColor()
                         .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .animation(.easeInOut(duration: 0.3), value: caloriesBreakdown.0)
-                        .animation(.easeInOut(duration: 0.3), value: settings.dailyCalories)
                 }
                 
                 Spacer()

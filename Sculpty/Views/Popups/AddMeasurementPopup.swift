@@ -128,7 +128,7 @@ struct AddMeasurementPopup: View {
                     heightFeet = ""
                     heightInches = ""
                 }
-                .animatedButton()
+                .animatedButton(feedback: .selection)
                 
                 // Unit Selector
                 if type != .bodyFat {
@@ -146,7 +146,7 @@ struct AddMeasurementPopup: View {
                         }
                     }
                     .textColor()
-                    .animatedButton()
+                    .animatedButton(feedback: .selection)
                 }
                 
                 // Input

@@ -27,8 +27,8 @@ struct CaloriesHistory: View {
                             removal: .opacity.combined(with: .move(edge: .trailing))
                         ))
                 }
-                .animation(.easeInOut(duration: 0.4), value: caloriesLogs.count)
-                .animation(.easeInOut(duration: 0.3), value: caloriesLogs.map { $0.entries.count })
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: caloriesLogs.count)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: caloriesLogs.map { $0.entries.count })
                 
                 Spacer()
                     .frame(height: 0)
@@ -42,6 +42,6 @@ struct CaloriesHistory: View {
                 )
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: caloriesLogs.isEmpty)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: caloriesLogs.isEmpty)
     }
 }

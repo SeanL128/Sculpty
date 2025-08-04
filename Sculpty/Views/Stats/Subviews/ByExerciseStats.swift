@@ -191,8 +191,8 @@ struct ByExerciseStats: View {
                 }
             }
             .textColor()
-            .animatedButton()
-            .animation(.easeInOut(duration: 0.2), value: exercise?.name)
+            .animatedButton(feedback: .selection)
+            .animation(.easeInOut(duration: 0.3), value: exercise?.name)
             
             ChartDateRangeControl(selectedRangeIndex: $selectedRangeIndex)
             
@@ -210,9 +210,6 @@ struct ByExerciseStats: View {
                                     .bodyText()
                                     .textColor()
                                     .monospacedDigit()
-                                    .contentTransition(.numericText())
-                                    .animation(.easeInOut(duration: 0.3), value: prData.last?.value)
-                                    .animation(.easeInOut(duration: 0.3), value: prData.last?.date)
                             }
                         }
                         

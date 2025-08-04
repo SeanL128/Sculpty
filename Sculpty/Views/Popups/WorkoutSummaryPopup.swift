@@ -36,22 +36,16 @@ struct WorkoutSummaryPopup: View {
                         .bodyText()
                         .textColor()
                         .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .animation(.easeInOut(duration: 0.3), value: time)
                     
                     Text("Total Reps: \(reps) reps")
                         .bodyText()
                         .textColor()
                         .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .animation(.easeInOut(duration: 0.3), value: reps)
                     
                     Text("Total Weight: \(weight)\(UnitsManager.weight)")
                         .bodyText()
                         .textColor()
                         .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .animation(.easeInOut(duration: 0.3), value: weight)
                 }
                 
                 if !muscleGroups.isEmpty {
@@ -74,7 +68,7 @@ struct WorkoutSummaryPopup: View {
                 .textColor()
                 .background(Color.accentColor)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                .animatedButton()
+                .animatedButton(feedback: .selection)
             }
         }
     }

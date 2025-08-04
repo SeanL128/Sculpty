@@ -121,9 +121,8 @@ struct PerformSet: View {
             }
             .foregroundStyle(showTextColor ? ColorManager.text : ColorManager.secondary)
             .disabled(!isValid)
-            .animatedButton(isValid: isValid)
-            .animation(.easeInOut(duration: 0.2), value: isValid)
-            .animation(.easeInOut(duration: 0.3), value: setLog.skipped)
+            .animatedButton(feedback: .selection, isValid: isValid)
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isValid)
             
             if setLog.index < (exerciseLog.setLogs.map({ $0.index }).max() ?? 0) {
                 Divider()

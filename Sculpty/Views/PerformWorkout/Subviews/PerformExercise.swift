@@ -41,7 +41,7 @@ struct PerformExercise: View {
                                 }
                             }
                             .textColor()
-                            .animatedButton()
+                            .animatedButton(feedback: .selection)
                         }
                         
                         if !exercise.specNotes.isEmpty {
@@ -62,7 +62,7 @@ struct PerformExercise: View {
                                 }
                             }
                             .textColor()
-                            .animatedButton()
+                            .animatedButton(feedback: .selection)
                         }
                     }
                     
@@ -108,7 +108,7 @@ struct PerformExercise: View {
                             }
                         }
                         .textColor()
-                        .animatedButton(feedback: .impact(weight: .light))
+                        .animatedButton()
                     }
                 }
             }

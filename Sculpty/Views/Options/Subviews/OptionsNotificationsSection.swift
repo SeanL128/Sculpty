@@ -66,7 +66,6 @@ struct OptionsNotificationsSection: View {
                             ),
                             onDismiss: saveCalorieTime
                         )
-                        .animation(.easeInOut(duration: 0.3), value: settings.enableCaloriesNotifications)
                     }
                 
                     OptionsToggleRow(
@@ -85,14 +84,12 @@ struct OptionsNotificationsSection: View {
                             ),
                             onDismiss: saveMeasurementTime
                         )
-                        .animation(.easeInOut(duration: 0.3), value: settings.enableMeasurementsNotifications)
                     }
                 }
             }
             .card()
         }
         .frame(maxWidth: .infinity)
-        .animation(.easeInOut(duration: 0.3), value: settings.enableNotifications)
         .onAppear {
             setupTempTimes()
         }

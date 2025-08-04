@@ -88,7 +88,7 @@ struct Onboarding: View {
                 )
                 .opacity(sectionsVisible ? 1.0 : 0.0)
                 .offset(x: sectionsVisible ? 0 : -20)
-                .animation(.easeInOut(duration: 0.4).delay(0.1), value: sectionsVisible)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.1), value: sectionsVisible)
 
                 OnboardingSection(
                     title: "Calories",
@@ -96,7 +96,7 @@ struct Onboarding: View {
                 )
                 .opacity(sectionsVisible ? 1.0 : 0.0)
                 .offset(x: sectionsVisible ? 0 : -20)
-                .animation(.easeInOut(duration: 0.4).delay(0.2), value: sectionsVisible)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.2), value: sectionsVisible)
 
                 OnboardingSection(
                     title: "Measurements",
@@ -104,7 +104,7 @@ struct Onboarding: View {
                 )
                 .opacity(sectionsVisible ? 1.0 : 0.0)
                 .offset(x: sectionsVisible ? 0 : -20)
-                .animation(.easeInOut(duration: 0.4).delay(0.3), value: sectionsVisible)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.3), value: sectionsVisible)
 
                 OnboardingSection(
                     title: "Stats",
@@ -112,7 +112,7 @@ struct Onboarding: View {
                 )
                 .opacity(sectionsVisible ? 1.0 : 0.0)
                 .offset(x: sectionsVisible ? 0 : -20)
-                .animation(.easeInOut(duration: 0.4).delay(0.4), value: sectionsVisible)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.4), value: sectionsVisible)
                 
                 Spacer()
                 
@@ -123,7 +123,7 @@ struct Onboarding: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .opacity(sectionsVisible ? 1.0 : 0.0)
                         .offset(y: sectionsVisible ? 0 : 10)
-                        .animation(.easeInOut(duration: 0.4).delay(0.5), value: sectionsVisible)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.5), value: sectionsVisible)
                     
                     Button {
                         preloadData()
@@ -136,7 +136,7 @@ struct Onboarding: View {
                             .bodyText()
                             .frame(maxWidth: .infinity)
                     }
-                    .filledToBorderedButton(feedback: .selection)
+                    .filledToBorderedButton()
                     
                     Button {
                         restoring = true
@@ -145,18 +145,18 @@ struct Onboarding: View {
                             .bodyText()
                             .frame(maxWidth: .infinity)
                     }
-                    .borderedToFilledButton(feedback: .selection)
+                    .borderedToFilledButton()
                 }
                 .opacity(sectionsVisible ? 1.0 : 0.0)
                 .offset(y: sectionsVisible ? 0 : 20)
-                .animation(.easeInOut(duration: 0.5).delay(0.6), value: sectionsVisible)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.6), value: sectionsVisible)
             }
             .padding(.top, .spacingM)
             .padding(.bottom, .spacingXS)
             .padding(.horizontal, .spacingL)
         }
         .onAppear {
-            withAnimation(.easeInOut(duration: 0.6).delay(0.3)) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.3)) {
                 sectionsVisible = true
             }
         }

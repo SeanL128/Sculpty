@@ -42,7 +42,7 @@ struct HomeWorkoutSection: View {
                     Image(systemName: "chart.xyaxis.line")
                         .headingImage()
                 }
-                .animatedButton()
+                .animatedButton(feedback: .selection)
                 
                 NavigationLink {
                     WorkoutList(workoutToStart: $workoutToStart)

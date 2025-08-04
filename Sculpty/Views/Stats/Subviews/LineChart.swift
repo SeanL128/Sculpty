@@ -23,6 +23,8 @@ struct LineChart: View {
         }
     }
     
+    @State private var animationStates: [Date: Bool] = [:]
+    
     @State private var selectedDate: Date?
     @State private var isInteracting: Bool = false
     
@@ -41,6 +43,12 @@ struct LineChart: View {
         return findClosestDataPointValue(to: selectedDate)
     }
     
+    private var maxValue: Double {
+        chartData.map { $0.value }.max() ?? 0
+    }
+    
+    @State private var interactingTrigger: Int = 0
+    
     var body: some View {
         VStack {
             GeometryReader { geo in
@@ -53,7 +61,7 @@ struct LineChart: View {
                             )
                             .foregroundStyle(
                                 LinearGradient(
-                                    colors: [Color.accentColor.opacity(0.2), .clear],
+                                    colors: [ColorManager.accent.opacity(0.2), .clear],
                                     startPoint: .top,
                                     endPoint: .bottom
                                 )
@@ -63,14 +71,17 @@ struct LineChart: View {
                                 x: .value("Date", item.date),
                                 y: .value("Value", item.value)
                             )
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(ColorManager.accent)
                             
-                            PointMark(
-                                x: .value("Date", item.date),
-                                y: .value("Value", item.value)
-                            )
-                            .foregroundStyle(Color.accentColor)
-                            .symbolSize(24)
+                            if selectedRangeIndex <= 1,
+                               animationStates[item.date] == true {
+                                PointMark(
+                                    x: .value("Date", item.date),
+                                    y: .value("Value", item.value)
+                                )
+                                .foregroundStyle(ColorManager.accent)
+                                .symbolSize(24)
+                            }
                         }
                         
                         if let selectedDate = selectedDate {
@@ -85,6 +96,7 @@ struct LineChart: View {
                     .chartXAxis {
                         AxisMarks { value in
                             AxisGridLine()
+                            
                             AxisValueLabel {
                                 if let date = value.as(Date.self) {
                                     Text(selectedRangeIndex <= 1 ? formatDateNoYear(date) : formatMonth(date))
@@ -97,6 +109,7 @@ struct LineChart: View {
                     .chartYAxis {
                         AxisMarks(position: .leading) { value in
                             AxisGridLine()
+                            
                             AxisValueLabel {
                                 if let numericValue = value.as(Double.self) {
                                     Text("\(numericValue.formatted())\(units)")
@@ -106,6 +119,7 @@ struct LineChart: View {
                             }
                         }
                     }
+                    .chartYScale(domain: 0...max(maxValue, 1))
                     .chartXSelection(value: .constant(selectedDate))
                     .chartGesture { proxy in
                         DragGesture(minimumDistance: 8)
@@ -119,6 +133,8 @@ struct LineChart: View {
                                     
                                     if newSelectedDate != selectedDate {
                                         selectedDate = newSelectedDate
+                                        
+                                        interactingTrigger += 1
                                     }
                                 }
                             }
@@ -129,6 +145,22 @@ struct LineChart: View {
                                 }
                             }
                     }
+                    .onAppear {
+                        initializeAnimations()
+                    }
+                    .onChange(of: selectedRangeIndex) {
+                        animationStates = [:]
+                        
+                        for (index, item) in chartData.enumerated() {
+                            withAnimation(.linear.delay(Double(index) * 0.05)) {
+                                animationStates[item.date] = false
+                            }
+                        }
+                        
+                        initializeAnimations()
+                    }
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: selectedRangeIndex)
+                    .sensoryFeedback(.selection, trigger: interactingTrigger)
                     
                     if isInteracting,
                        let date = selectedDate,
@@ -162,9 +194,15 @@ struct LineChart: View {
             .frame(height: 250)
             .padding()
         }
-        .animation(.easeInOut(duration: 0.4), value: chartData.count)
-        .animation(.easeInOut(duration: 0.3), value: selectedRangeIndex)
         .drawingGroup()
+    }
+    
+    private func initializeAnimations() {
+        for (index, item) in chartData.enumerated() {
+            withAnimation(.linear.delay(Double(index) * 0.05)) {
+                animationStates[item.date] = true
+            }
+        }
     }
     
     private func findClosestDataPoint(to date: Date) -> Date? {
