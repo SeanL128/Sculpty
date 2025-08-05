@@ -365,9 +365,9 @@ struct BarcodeScanner: View {
                     dismiss()
                 }
             }
-            .sensoryFeedback(.success, trigger: successTrigger)
-            .sensoryFeedback(.error, trigger: errorTrigger)
-            .sensoryFeedback(.warning, trigger: warningTrigger)
+            .hapticFeedback(.success, trigger: successTrigger)
+            .hapticFeedback(.error, trigger: errorTrigger)
+            .hapticFeedback(.warning, trigger: warningTrigger)
         }
     }
     

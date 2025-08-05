@@ -9,4 +9,5 @@ import Foundation
 
 extension Notification.Name {
     static let dismissPopup = Notification.Name("dismissPopup")
+    static let dismissToast = Notification.Name("dismissToast")
 }

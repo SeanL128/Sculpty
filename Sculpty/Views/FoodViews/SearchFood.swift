@@ -6,14 +6,19 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct SearchFood: View {
+    @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     
     @StateObject private var api: FatSecretAPI = FatSecretAPI()
     
     @State var log: CaloriesLog
     @State private var foodAdded: Bool = false
+    
+    @State private var recentFoods: [FatSecretFood] = []
+    @State private var recentFoodsLoaded: Bool = false
     
     @State private var searchInput = ""
     @FocusState private var isSearchFocused: Bool
@@ -114,44 +119,69 @@ struct SearchFood: View {
             }
             
             VStack(alignment: .center, spacing: .spacingXXL) {
-                VStack(alignment: .center, spacing: .spacingL) {
-                    if !image.isEmpty {
-                        Image(systemName: image)
-                            .font(.system(size: 96, weight: .medium))
-                            .textColor()
-                    }
-                    
-                    VStack(alignment: .center, spacing: .spacingXS) {
-                        Text(text)
-                            .bodyText()
-                            .textColor()
-                        
-                        Button {
-                            Popup.show(content: {
-                                AddFoodEntryPopup(log: log, foodAdded: $foodAdded)
-                            })
-                        } label: {
-                            HStack(alignment: .center, spacing: .spacingXS) {
-                                Text("Add Custom Entry")
-                                    .secondaryText()
-                                
-                                Image(systemName: "chevron.right")
-                                    .secondaryImage()
-                            }
+                if recentFoodsLoaded {
+                    VStack(alignment: .center, spacing: .spacingL) {
+                        if !image.isEmpty {
+                            Image(systemName: image)
+                                .font(.system(size: 96, weight: .medium))
+                                .textColor()
                         }
-                        .textColor()
-                        .animatedButton(feedback: .selection)
+                        
+                        VStack(alignment: .center, spacing: .spacingXS) {
+                            Text(text)
+                                .bodyText()
+                                .textColor()
+                            
+                            Button {
+                                Popup.show(content: {
+                                    AddFoodEntryPopup(log: log, foodAdded: $foodAdded)
+                                })
+                            } label: {
+                                HStack(alignment: .center, spacing: .spacingXS) {
+                                    Text("Add Custom Entry")
+                                        .secondaryText()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .secondaryImage()
+                                }
+                            }
+                            .textColor()
+                            .animatedButton(feedback: .selection)
+                        }
                     }
+                    .padding(.top, .spacingXL)
+                    .frame(maxWidth: .infinity)
+                    .transition(.scale.combined(with: .opacity))
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: text)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: image)
+                } else {
+                    Spacer()
+                        .frame(height: 0)
                 }
-                .padding(.top, .spacingXL)
-                .frame(maxWidth: .infinity)
-                .transition(.scale.combined(with: .opacity))
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: text)
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: image)
                 
                 FatSecretLink()
             }
             .frame(maxWidth: .infinity)
+        }
+        .onAppear {
+            do {
+                let foods = try context.fetch(FetchDescriptor<FoodEntry>())
+                    .sorted { $0.date > $1.date }
+                    .compactMap { $0.fatSecretFood }
+                    .prefix(15)
+                
+                for food in foods where !recentFoods.contains(where: { $0.food_id == food.food_id }) {
+                    recentFoods.append(food)
+                }
+            } catch {
+                debugLog("Error: \(error.localizedDescription)")
+            }
+            
+            if searchResults.isEmpty {
+                searchResults = recentFoods
+            }
+            
+            recentFoodsLoaded = true
         }
         .onChange(of: foodAdded) {
             if foodAdded && foodsToAdd.isEmpty {
@@ -195,8 +225,13 @@ struct SearchFood: View {
         searchTask?.cancel()
             
         searchTask = Task {
+            let length = searchInput.count
+            
             guard searchInput.count >= 2 else {
-                searchResults = []
+                if searchResults.isEmpty || length == 0 {
+                    searchResults = recentFoods
+                }
+                
                 return
             }
             

@@ -81,6 +81,8 @@ struct UpsertWorkout: View {
                         
                         copyWorkout()
                         
+                        Toast.show("\(workout.name) copied", "document.on.document")
+                        
                         hasUnsavedChanges = false
                         
                         dismiss()
@@ -122,6 +124,8 @@ struct UpsertWorkout: View {
                                 }
                                 
                                 try context.save()
+                                
+                                Toast.show("\(workout.name) deleted", "trash")
                             } catch {
                                 debugLog("Error: \(error.localizedDescription)")
                             }
@@ -273,7 +277,7 @@ struct UpsertWorkout: View {
                 KeyboardDoneButton()
             }
         }
-        .sensoryFeedback(.warning, trigger: dismissTrigger)
+        .hapticFeedback(.warning, trigger: dismissTrigger)
         .disableEdgeSwipe(hasUnsavedChanges)
     }
     
@@ -331,6 +335,8 @@ struct UpsertWorkout: View {
 
         do {
             try context.save()
+            
+            Toast.show("\(workoutName) saved", "checkmark")
         } catch {
             debugLog("Failed to save workout: \(error.localizedDescription)")
         }

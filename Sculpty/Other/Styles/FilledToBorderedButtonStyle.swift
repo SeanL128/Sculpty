@@ -43,7 +43,7 @@ struct FilledToBorderedButtonStyle: ButtonStyle {
             .foregroundStyle(configuration.isPressed ? ColorManager.text : ColorManager.background)
             .scaleEffect(isValid && (configuration.isPressed || isManuallyPressed) ? scale : 1.0)
             .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
-            .sensoryFeedback(feedback, trigger: triggerCount)
+            .hapticFeedback(feedback, trigger: triggerCount)
             .simultaneousGesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { _ in

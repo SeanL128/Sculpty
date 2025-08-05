@@ -115,6 +115,8 @@ struct UpsertExercise: View {
                                 
                                 try context.save()
                                 
+                                Toast.show("\(exercise?.name ?? exerciseName) deleted", "trash")
+                                
                                 hasUnsavedChanges = false
                                 
                                 dismiss()
@@ -168,7 +170,7 @@ struct UpsertExercise: View {
                 KeyboardDoneButton()
             }
         }
-        .sensoryFeedback(.warning, trigger: dismissTrigger)
+        .hapticFeedback(.warning, trigger: dismissTrigger)
         .disableEdgeSwipe(hasUnsavedChanges)
     }
     
@@ -197,6 +199,8 @@ struct UpsertExercise: View {
 
         do {
             try context.save()
+            
+            Toast.show("\(exercise?.name ?? exerciseName) saved", "checkmark")
         } catch {
             debugLog("Error: \(error.localizedDescription)")
         }

@@ -52,7 +52,7 @@ struct Options: View {
                     removal: .opacity
                 ))
 
-            OptionsMiscSection()
+            OptionsAboutSection()
                 .transition(.asymmetric(
                     insertion: .move(edge: .bottom).combined(with: .opacity),
                     removal: .opacity

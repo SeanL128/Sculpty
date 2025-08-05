@@ -309,7 +309,7 @@ struct OverallWorkoutStats: View {
                                     
                                     initializeAnimations()
                                 }
-                                .sensoryFeedback(.selection, trigger: interactingTrigger)
+                                .hapticFeedback(.selection, trigger: interactingTrigger)
                                 
                                 if isInteracting,
                                    let date = selectedDate,

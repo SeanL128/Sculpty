@@ -9,8 +9,9 @@ import Foundation
 
 enum UserKeys: String, CaseIterable {
     case accentColorHex = "ACCENT_COLOR_HEX"
-    case appearance = "APPEARANCE"
     case dailyCalories = "DAILY_CALORIES"
+    case enableHaptics = "ENABLE_HAPTICS"
+    case enableToasts = "ENABLE_TOASTS"
     case gender = "GENDER"
     case includeWarmUp = "INCLUDE_WARM_UP"
     case includeDropSet = "INCLUDE_DROP_SET"

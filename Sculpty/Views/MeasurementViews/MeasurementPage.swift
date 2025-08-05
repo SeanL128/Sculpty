@@ -56,6 +56,8 @@ struct MeasurementPage: View {
                 
                 do {
                     try context.save()
+                    
+                    Toast.show("\(measurement.type.rawValue) measurement deleted", "trash")
                 } catch {
                     debugLog("Error: \(error.localizedDescription)")
                 }

@@ -96,6 +96,8 @@ struct PerformWorkout: View {
                                     
                                     try context.save()
                                     
+                                    Toast.show("\(log.workout?.name ?? "Workout") log deleted", "trash")
+                                    
                                     dismiss()
                                 } catch {
                                     debugLog("Error: \(error.localizedDescription)")

@@ -33,6 +33,8 @@ class CloudSettings: ObservableObject {
         let defaults: [String: Any] = [
             UserKeys.accentColorHex.rawValue: "#2563EB",
             UserKeys.dailyCalories.rawValue: 2000,
+            UserKeys.enableHaptics.rawValue: true,
+            UserKeys.enableToasts.rawValue: true,
             UserKeys.gender.rawValue: "Male",
             UserKeys.includeWarmUp.rawValue: true,
             UserKeys.includeDropSet.rawValue: true,
@@ -227,6 +229,22 @@ class CloudSettings: ObservableObject {
         set {
             objectWillChange.send()
             setValue(newValue, for: .showTempo)
+        }
+    }
+    
+    var enableHaptics: Bool {
+        get { userDefaults.bool(forKey: UserKeys.enableHaptics.rawValue) }
+        set {
+            objectWillChange.send()
+            setValue(newValue, for: .enableHaptics)
+        }
+    }
+    
+    var enableToasts: Bool {
+        get { userDefaults.bool(forKey: UserKeys.enableToasts.rawValue) }
+        set {
+            objectWillChange.send()
+            setValue(newValue, for: .enableToasts)
         }
     }
     

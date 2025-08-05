@@ -47,6 +47,6 @@ struct TabSelector: View {
             }
         }
         .frame(height: 20)
-        .sensoryFeedback(.selection, trigger: trigger)
+        .hapticFeedback(.selection, trigger: trigger)
     }
 }

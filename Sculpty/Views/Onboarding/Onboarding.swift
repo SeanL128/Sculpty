@@ -193,6 +193,9 @@ struct Onboarding: View {
                         )
                         
                         await MainActor.run {
+                            
+                            Toast.show("Data imported successfully", "square.and.arrow.down.badge.checkmark")
+                            
                             withAnimation {
                                 settings.onboarded = true
                             }

@@ -43,6 +43,16 @@ struct OptionsCustomizationSection: View {
                     .textColor()
                     .animatedButton(feedback: .selection)
                 }
+                
+                OptionsToggleRow(
+                    text: "Enable Haptics",
+                    isOn: $settings.enableHaptics
+                )
+                
+                OptionsToggleRow(
+                    text: "Enable Toasts",
+                    isOn: $settings.enableToasts
+                )
             }
             .card()
         }

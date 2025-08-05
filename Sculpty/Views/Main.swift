@@ -11,7 +11,9 @@ import SwiftData
 struct Main: View {
     @Environment(\.modelContext) private var context
     @EnvironmentObject private var settings: CloudSettings
+    
     @StateObject private var popupManager = PopupManager.shared
+    @StateObject private var toastManager = ToastManager.shared
     
     @State private var hasPerformedLaunchTasks = false
     
@@ -60,7 +62,19 @@ struct Main: View {
                         }
                     }
                 )
-                .zIndex(Double(index + 1000))
+                .zIndex(Double(index + 100))
+            }
+            
+            ForEach(Array(toastManager.toasts.enumerated()), id: \.element.id) { index, toast in
+                ToastOverlay(
+                    toast: toast,
+                    onDismiss: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            toastManager.dismiss(toast.id)
+                        }
+                    }
+                )
+                .zIndex(Double(index + 200))
             }
         }
         .background(ColorManager.background)

@@ -318,6 +318,8 @@ struct OptionsDataSection: View {
         do {
             try DataTransferManager.shared.clearAllData(in: context)
             
+            Toast.show("Data reset successfully", "arrow.clockwise")
+            
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 settings.resetAllSettings()
                 

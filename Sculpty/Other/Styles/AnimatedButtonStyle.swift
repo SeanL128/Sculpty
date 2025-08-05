@@ -25,7 +25,7 @@ struct AnimatedButtonStyle: ButtonStyle {
         configuration.label
             .scaleEffect(isValid && (configuration.isPressed || isManuallyPressed) ? scale : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed || isManuallyPressed)
-            .sensoryFeedback(feedback, trigger: triggerCount)
+            .hapticFeedback(feedback, trigger: triggerCount)
             .simultaneousGesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { _ in

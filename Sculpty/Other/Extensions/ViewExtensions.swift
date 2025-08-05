@@ -80,8 +80,14 @@ extension View {
     
     // Blinking
     func blinking(_ min: Double = 0.3, _ max: Double = 0.7) -> some View {
-        self
-            .modifier(BlinkViewModifier(min: min, max: max))
+        self.modifier(BlinkViewModifier(min: min, max: max))
+    }
+    
+    // Haptics
+    func hapticFeedback(_ feedback: SensoryFeedback, trigger: Int) -> some View {
+        self.sensoryFeedback(feedback, trigger: trigger) { _, _ in
+            CloudSettings.shared.enableHaptics
+        }
     }
     
     // Card

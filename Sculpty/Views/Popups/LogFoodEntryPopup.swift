@@ -262,6 +262,8 @@ struct LogFoodEntryPopup: View {
         
         do {
             try context.save()
+            
+            Toast.show("\(formatFoodName(food)) entry saved", "checkmark")
         } catch {
             debugLog("Error: \(error.localizedDescription)")
         }

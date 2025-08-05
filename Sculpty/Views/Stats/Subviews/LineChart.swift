@@ -160,7 +160,7 @@ struct LineChart: View {
                         initializeAnimations()
                     }
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: selectedRangeIndex)
-                    .sensoryFeedback(.selection, trigger: interactingTrigger)
+                    .hapticFeedback(.selection, trigger: interactingTrigger)
                     
                     if isInteracting,
                        let date = selectedDate,

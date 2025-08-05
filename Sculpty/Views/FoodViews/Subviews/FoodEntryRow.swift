@@ -68,7 +68,13 @@ struct FoodEntryRow: View {
                         log.entries.removeAll(where: { $0.id == entry.id })
                         context.delete(entry)
                         
-                        try? context.save()
+                        do {
+                            try context.save()
+                            
+                            Toast.show("\(entry.name) entry deleted", "trash")
+                        } catch {
+                            debugLog("Error: \(error.localizedDescription)")
+                        }
                         
                         confirmDelete = false
                         entryToDelete = nil
