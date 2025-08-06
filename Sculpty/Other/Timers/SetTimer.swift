@@ -16,13 +16,6 @@ class SetTimer: ObservableObject {
     private var startTime: Date?
     private var pausedTime: TimeInterval = 0
     
-    enum TimerStatus {
-        case notStarted
-        case running
-        case paused
-        case stopped
-    }
-    
     func start() {
         startTime = Date().addingTimeInterval(-pausedTime)
         isRunning = true

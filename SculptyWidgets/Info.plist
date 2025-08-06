@@ -7,12 +7,5 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.widgetkit-extension</string>
 	</dict>
-	<key>UIAppFonts</key>
-	<array>
-		<string>Oswald-Bold.ttf</string>
-		<string>IBMPlexMono-Regular.ttf</string>
-		<string>PublicSans-Regular.ttf</string>
-		<string>PublicSans-Bold.ttf</string>
-	</array>
 </dict>
 </plist>

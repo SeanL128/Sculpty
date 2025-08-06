@@ -12,7 +12,7 @@ class EdgeSwipeManager: ObservableObject {
     
     @Published var isDisabled = false
     
-    private init() {}
+    private init() { }
     
     func disable() {
         isDisabled = true

@@ -22,6 +22,15 @@ struct OptionsCaloriesSection: View {
                     unit: "cal",
                     text: $settings.dailyCaloriesString
                 )
+                .onChange(of: settings.dailyCalories) {
+                    WidgetDataUpdater.shared.updateWidgetData(
+                        caloriesLogged: UserDefaults.standard.integer(forKey: UserKeys.widgetCaloriesLogged.rawValue),
+                        targetCalories: settings.dailyCalories,
+                        carbs: UserDefaults.standard.integer(forKey: UserKeys.widgetCarbs.rawValue),
+                        protein: UserDefaults.standard.integer(forKey: UserKeys.widgetProtein.rawValue),
+                        fat: UserDefaults.standard.integer(forKey: UserKeys.widgetFat.rawValue)
+                    )
+                }
                 
                 NavigationLink {
                     CalorieCalculator()

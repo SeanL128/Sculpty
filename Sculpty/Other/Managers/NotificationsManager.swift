@@ -11,22 +11,7 @@ import UIKit
 class NotificationManager {
     static let shared = NotificationManager()
     
-    enum NotificationStatus {
-        case notDetermined
-        case denied
-        case authorized
-        case provisional
-    }
-    
-    private enum NotificationIdentifiers {
-        static let dailyCaloriePrefix = "sculpty-daily-calorie-reminder"
-        static let weeklyMeasurement = "sculpty-weekly-measurement"
-        static let gentleReminder = "sculpty-gentle-checkin"
-        static let workoutReminder = "sculpty-workout-reminder"
-        static let streakReminder = "sculpty-streak-reminder"
-    }
-    
-    private init() {}
+    private init() { }
     
     func checkNotificationStatus(completion: @escaping (NotificationStatus) -> Void) {
         UNUserNotificationCenter.current().getNotificationSettings { settings in

@@ -216,7 +216,7 @@ struct OverallWorkoutStats: View {
                                         )
                                         .foregroundStyle(
                                             LinearGradient(
-                                                colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+                                                colors: [ColorManager.accent, ColorManager.accent.opacity(0.8)],
                                                 startPoint: .top,
                                                 endPoint: .bottom
                                             )

@@ -38,7 +38,7 @@ struct ExerciseListRow: View {
                         .bodyText(weight: selectedExercise?.wrappedValue == exercise ? .bold : .regular)
                         .multilineTextAlignment(.leading)
                     
-                    if isSelectable {
+                    if selectedExercise != nil && isSelectable {
                         Image(systemName: "chevron.right")
                             .bodyImage(weight: selectedExercise?.wrappedValue == exercise ? .bold : .medium)
                     }

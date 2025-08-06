@@ -120,10 +120,14 @@ struct HomeCaloriesSection: View {
         }
         .onAppear {
             setCaloriesLog()
+            
+            updateWidgets()
         }
         .onChange(of: log?.entries) {
             do {
                 try context.save()
+                
+                updateWidgets()
             } catch {
                 debugLog("Error: \(error.localizedDescription)")
             }
@@ -148,5 +152,12 @@ struct HomeCaloriesSection: View {
         }
         
         log = todaysLog
+    }
+    
+    private func updateWidgets() {
+        let breakdown = caloriesBreakdown
+        let target = Int(settings.dailyCalories)
+        
+        WidgetDataUpdater.shared.updateFromCaloriesBreakdown(breakdown, targetCalories: target)
     }
 }

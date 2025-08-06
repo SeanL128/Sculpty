@@ -27,7 +27,16 @@ struct SculptyApp: App {
                 .preferredColorScheme(.dark)
                 .accentColor(Color(hex: settings.accentColorHex))
                 .dynamicTypeSize(.medium ... .xxxLarge)
-                .modelContainer(for: [Workout.self, Exercise.self, WorkoutLog.self, CaloriesLog.self, Measurement.self])
+                .modelContainer(
+                    for: [
+                        Workout.self,
+                        Exercise.self,
+                        WorkoutLog.self,
+                        CaloriesLog.self,
+                        Measurement.self,
+                        CustomFood.self
+                    ]
+                )
                 .environmentObject(settings)
                 .onChange(of: scenePhase) {
                     if scenePhase == .active {

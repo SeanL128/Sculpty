@@ -13,7 +13,7 @@ import UIKit
 class WorkoutActivityManager: ObservableObject {
     static let shared = WorkoutActivityManager()
     
-    private var currentActivity: Activity<WorkoutActivityAttributes>?
+    private var currentActivity: Activity<WorkoutLiveActivityAttributes>?
     
     private static var activeWorkouts: [String: (log: WorkoutLog, lastUpdated: Date)] = [:]
     
@@ -21,7 +21,7 @@ class WorkoutActivityManager: ObservableObject {
         return currentActivity != nil
     }
     
-    private init() {}
+    private init() { }
     
     func startWorkoutActivity(for workoutLog: WorkoutLog) {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
@@ -33,7 +33,7 @@ class WorkoutActivityManager: ObservableObject {
         
         endCurrentActivity()
         
-        let attributes = WorkoutActivityAttributes(workoutId: workoutLog.id.uuidString)
+        let attributes = WorkoutLiveActivityAttributes(workoutId: workoutLog.id.uuidString)
         let contentState = createContentState(from: workoutLog)
         
         do {
@@ -134,12 +134,12 @@ class WorkoutActivityManager: ObservableObject {
         }
     }
     
-    private func createContentState(from workoutLog: WorkoutLog) -> WorkoutActivityAttributes.ContentState {
+    private func createContentState(from workoutLog: WorkoutLog) -> WorkoutLiveActivityAttributes.ContentState {
         let currentExercise = getCurrentExercise(from: workoutLog)
         let currentSet = getCurrentSet(from: workoutLog)
         let nextSet = getNextSet(from: workoutLog)
         
-        return WorkoutActivityAttributes.ContentState(
+        return WorkoutLiveActivityAttributes.ContentState(
             workoutName: workoutLog.workout?.name ?? "Workout",
             currentExerciseName: currentExercise?.exercise?.exercise?.name ?? "No Exercise",
             currentSetText: formatCurrentSet(currentSet),

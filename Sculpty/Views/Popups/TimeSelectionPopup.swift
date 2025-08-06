@@ -74,7 +74,7 @@ struct TimeSelectionPopup: View {
                         .padding(.horizontal, .spacingL)
                 }
                 .textColor()
-                .background(Color.accentColor)
+                .background(ColorManager.accent)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .animatedButton(feedback: .selection)
             }

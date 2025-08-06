@@ -27,7 +27,7 @@ struct OptionsDataSection: View {
         !((try? context.fetch(FetchDescriptor<WorkoutLog>()))?.isEmpty ?? true)
     }
     private var hasCaloriesLogs: Bool {
-        !((try? context.fetch(FetchDescriptor<CaloriesLog>()))?.isEmpty ?? true)
+        !((try? context.fetch(FetchDescriptor<CaloriesLog>()))?.filter { !$0.entries.isEmpty }.isEmpty ?? true)
     }
     
     private var isCreating: Bool {
@@ -165,6 +165,7 @@ struct OptionsDataSection: View {
                     let workouts = try backgroundContext.fetch(FetchDescriptor<Workout>())
                     let workoutLogs = try backgroundContext.fetch(FetchDescriptor<WorkoutLog>())
                     let measurements = try backgroundContext.fetch(FetchDescriptor<Measurement>())
+                    let customFoods = try backgroundContext.fetch(FetchDescriptor<CustomFood>())
                     let caloriesLogs = try backgroundContext.fetch(FetchDescriptor<CaloriesLog>())
 
                     let defaultExerciseIDs = Set(defaultExercises.map { $0.id })
@@ -175,6 +176,7 @@ struct OptionsDataSection: View {
                         workouts: workouts,
                         workoutLogs: workoutLogs,
                         measurements: measurements,
+                        customFoods: customFoods,
                         caloriesLogs: caloriesLogs,
                         includeSettings: true
                     )
@@ -317,8 +319,6 @@ struct OptionsDataSection: View {
     private func clearContext() {
         do {
             try DataTransferManager.shared.clearAllData(in: context)
-            
-            Toast.show("Data reset successfully", "arrow.clockwise")
             
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 settings.resetAllSettings()

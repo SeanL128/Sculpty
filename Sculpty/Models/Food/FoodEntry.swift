@@ -14,9 +14,11 @@ class FoodEntry: Identifiable {
     var caloriesLog: CaloriesLog?
     
     var fatSecretFood: FatSecretFood?
+    var customFood: CustomFood?
     
     var servings: Double?
-    var servingOption: Serving?
+    var fatSecretServingOption: Serving?
+    var customServingOption: CustomServing?
     
     var name: String = ""
     var calories: Double = 0
@@ -26,11 +28,23 @@ class FoodEntry: Identifiable {
     
     var date: Date = Date()
     
+    var type: FoodEntryType {
+        if fatSecretFood != nil {
+            return .fatSecret
+        } else if customFood != nil {
+            return .custom
+        } else {
+            return .oneshot
+        }
+    }
+    
     init(
         caloriesLog: CaloriesLog? = nil,
         fatSecretFood: FatSecretFood? = nil,
+        customFood: CustomFood? = nil,
         servings: Double? = nil,
-        servingOption: Serving? = nil,
+        fatSecretServingOption: Serving? = nil,
+        customServingOption: CustomServing? = nil,
         name: String = "",
         calories: Double = 0,
         carbs: Double = 0,
@@ -41,9 +55,11 @@ class FoodEntry: Identifiable {
         self.caloriesLog = caloriesLog
         
         self.fatSecretFood = fatSecretFood
+        self.customFood = customFood
         
         self.servings = servings
-        self.servingOption = servingOption
+        self.fatSecretServingOption = fatSecretServingOption
+        self.customServingOption = customServingOption
         
         self.name = name
         self.calories = calories
@@ -57,8 +73,10 @@ class FoodEntry: Identifiable {
         id: UUID,
         caloriesLog: CaloriesLog? = nil,
         fatSecretFood: FatSecretFood? = nil,
+        customFood: CustomFood? = nil,
         servings: Double? = nil,
-        servingOption: Serving? = nil,
+        fatSecretServingOption: Serving? = nil,
+        customServingOption: CustomServing? = nil,
         name: String = "",
         calories: Double = 0,
         carbs: Double = 0,
@@ -71,9 +89,11 @@ class FoodEntry: Identifiable {
         self.caloriesLog = caloriesLog
         
         self.fatSecretFood = fatSecretFood
+        self.customFood = customFood
         
         self.servings = servings
-        self.servingOption = servingOption
+        self.fatSecretServingOption = fatSecretServingOption
+        self.customServingOption = customServingOption
         
         self.name = name
         self.calories = calories

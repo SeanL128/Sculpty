@@ -28,11 +28,20 @@ struct FoodEntryRow: View {
                 Spacer()
                 
                 Button {
-                    if let food = entry.fatSecretFood {
-                        Popup.show(content: {
-                            LogFoodEntryPopup(log: log, entry: entry, food: food)
-                        })
-                    } else {
+                    switch entry.type {
+                    case .fatSecret:
+                        if let food = entry.fatSecretFood {
+                            Popup.show(content: {
+                                LogFatSecretFoodEntryPopup(log: log, entry: entry, food: food)
+                            })
+                        }
+                    case .custom:
+                        if let customFood = entry.customFood {
+                            Popup.show(content: {
+                                LogCustomFoodEntryPopup(log: log, entry: entry, customFood: customFood)
+                            })
+                        }
+                    case .oneshot:
                         Popup.show(content: {
                             AddFoodEntryPopup(entry: entry, log: log)
                         })

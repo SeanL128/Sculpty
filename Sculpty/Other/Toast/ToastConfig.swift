@@ -13,6 +13,6 @@ struct ToastConfig {
     var horizontalPadding: CGFloat = .spacingM
     var verticalPadding: CGFloat = .spacingM
     var tapToDismiss: Bool = true
-    var animation: Animation = .spring(response: 1.0, dampingFraction: 0.8)
+    var animation: Animation = .spring(response: 0.6, dampingFraction: 0.8)
     var autoDismissAfter: TimeInterval = 3.0
 }

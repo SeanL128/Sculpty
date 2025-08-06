@@ -36,4 +36,11 @@ enum UserKeys: String, CaseIterable {
     case measurementReminderWeekday = "MEASUREMENT_REMINDER_WEEKDAY"
     case measurementReminderHour = "MEASUREMENT_REMINDER_HOUR"
     case measurementReminderMinute = "MEASUREMENT_REMINDER_MINUTE"
+    
+    // Widgets
+    case widgetCaloriesLogged = "WIDGET_CALORIES_LOGGED"
+    case widgetCaloriesTarget = "WIDGET_CALORIES_TARGET"
+    case widgetCarbs = "WIDGET_CARBS"
+    case widgetProtein = "WIDGET_PROTEIN"
+    case widgetFat = "WIDGET_FAT"
 }

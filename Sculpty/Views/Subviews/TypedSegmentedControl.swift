@@ -96,7 +96,7 @@ private struct SegmentButton: View {
             ZStack {
                 if isSelected {
                     RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.accentColor)
+                        .fill(ColorManager.accent)
                         .matchedGeometryEffect(id: "selectedBackground", in: namespace)
                         .scaleEffect(isPressed ? 0.98 : 1.0)
                         .animation(.easeInOut(duration: 0.1), value: isPressed)

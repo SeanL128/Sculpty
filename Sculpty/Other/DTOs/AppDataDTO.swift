@@ -12,6 +12,7 @@ struct AppDataDTO: Codable {
     var workouts: [WorkoutDTO]
     var workoutLogs: [WorkoutLogDTO]
     var measurements: [MeasurementDTO]
+    var customFoods: [CustomFoodDTO]
     var caloriesLogs: [CaloriesLogDTO]
     var userSettings: UserSettingsDTO?
     
@@ -20,6 +21,7 @@ struct AppDataDTO: Codable {
         workouts: [Workout],
         workoutLogs: [WorkoutLog],
         measurements: [Measurement],
+        customFoods: [CustomFood],
         caloriesLogs: [CaloriesLog]
     ) {
         let exerciseModels = exercises.map { $0.toModel() }
@@ -37,6 +39,7 @@ struct AppDataDTO: Codable {
         
         let workoutLogModels = workoutLogs.map { $0.toModel(exerciseMap: exerciseMap, setMap: setMap) }
         let measurementModels = measurements.map { $0.toModel() }
+        let customFoodModels = customFoods.map { $0.toModel() }
         let caloriesLogModels = caloriesLogs.map { $0.toModel() }
         
         return (
@@ -44,15 +47,17 @@ struct AppDataDTO: Codable {
             workouts: workoutModels,
             workoutLogs: workoutLogModels,
             measurements: measurementModels,
+            customFoods: customFoodModels,
             caloriesLogs: caloriesLogModels
         )
     }
     
-    static func export(
+    static func export( // swiftlint:disable:this function_parameter_count
         exercises: [Exercise],
         workouts: [Workout],
         workoutLogs: [WorkoutLog],
         measurements: [Measurement],
+        customFoods: [CustomFood],
         caloriesLogs: [CaloriesLog],
         includeSettings: Bool = true
     ) -> Data? {
@@ -60,6 +65,7 @@ struct AppDataDTO: Codable {
         let workoutDTOs = workouts.map { WorkoutDTO(from: $0) }
         let workoutLogDTOs = workoutLogs.map { WorkoutLogDTO(from: $0) }
         let measurementDTOs = measurements.map { MeasurementDTO(from: $0) }
+        let customFoodDTOs = customFoods.map { CustomFoodDTO(from: $0) }
         let caloriesLogDTOs = caloriesLogs.map { CaloriesLogDTO(from: $0) }
         
         let userSettingsDTO = includeSettings ? UserSettingsDTO(from: CloudSettings.shared) : nil
@@ -69,6 +75,7 @@ struct AppDataDTO: Codable {
             workouts: workoutDTOs,
             workoutLogs: workoutLogDTOs,
             measurements: measurementDTOs,
+            customFoods: customFoodDTOs,
             caloriesLogs: caloriesLogDTOs,
             userSettings: userSettingsDTO
         )
@@ -80,6 +87,7 @@ struct AppDataDTO: Codable {
             return try encoder.encode(appData)
         } catch {
             debugLog("Error encoding app data: \(error.localizedDescription)")
+            
             return nil
         }
     }
@@ -92,6 +100,7 @@ struct AppDataDTO: Codable {
             return try decoder.decode(AppDataDTO.self, from: data)
         } catch {
             debugLog("Error decoding app data: \(error.localizedDescription)")
+            
             return nil
         }
     }

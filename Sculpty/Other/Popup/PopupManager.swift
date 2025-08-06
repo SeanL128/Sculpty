@@ -13,7 +13,7 @@ class PopupManager: ObservableObject {
     
     @Published var popups: [PopupItem] = []
     
-    private init() {}
+    private init() { }
     
     func show<Content: View>(
         @ViewBuilder content: () -> Content,

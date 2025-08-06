@@ -1,5 +1,5 @@
 //
-//  LogFoodEntryPopup.swift
+//  LogFatSecretFoodEntryPopup.swift
 //  Sculpty
 //
 //  Created by Sean Lindsay on 6/28/25.
@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-struct LogFoodEntryPopup: View {
+struct LogFatSecretFoodEntryPopup: View {
     @Environment(\.modelContext) private var context
     
     @StateObject private var api: FatSecretAPI = FatSecretAPI()
@@ -210,7 +210,7 @@ struct LogFoodEntryPopup: View {
                 do {
                     servingOptions = try await api.getServingOptions(for: food)
                     
-                    if let servingOption = entry?.servingOption {
+                    if let servingOption = entry?.fatSecretServingOption {
                         selectedServingString = servingOption.fullServingDescription
                         selectedServing = servingOption
                     } else {
@@ -236,7 +236,7 @@ struct LogFoodEntryPopup: View {
     private func save() {
         if let entry = entry {
             entry.servings = Double(servingsInput)
-            entry.servingOption = selectedServing
+            entry.fatSecretServingOption = selectedServing
             
             entry.calories = calories
             entry.carbs = carbs
@@ -247,7 +247,7 @@ struct LogFoodEntryPopup: View {
                 caloriesLog: log,
                 fatSecretFood: food,
                 servings: Double(servingsInput),
-                servingOption: selectedServing,
+                fatSecretServingOption: selectedServing,
                 name: formatFoodName(food),
                 calories: calories,
                 carbs: carbs,
@@ -263,7 +263,7 @@ struct LogFoodEntryPopup: View {
         do {
             try context.save()
             
-            Toast.show("\(formatFoodName(food)) entry saved", "checkmark")
+            Toast.show("Food entry saved", "checkmark")
         } catch {
             debugLog("Error: \(error.localizedDescription)")
         }

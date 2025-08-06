@@ -7,49 +7,12 @@
 
 import Foundation
 import SwiftData
-import UniformTypeIdentifiers
-
-extension UTType {
-    static var sculptyData: UTType {
-        UTType(exportedAs: "app.sculpty.SculptyApp.sculptydata")
-    }
-}
 
 class DataTransferManager {
     static let shared = DataTransferManager()
     
-    private init() {}
+    private init() { }
     
-    // MARK: - Export Methods
-    func exportAllData(
-        from context: ModelContext,
-        excludingExercisesWithIDs defaultExerciseIDs: Set<UUID> = [],
-        includeSettings: Bool = true
-    ) -> Data? {
-        do {
-            let exercises = try context.fetch(FetchDescriptor<Exercise>())
-            let workouts = try context.fetch(FetchDescriptor<Workout>())
-            let workoutLogs = try context.fetch(FetchDescriptor<WorkoutLog>())
-            let measurements = try context.fetch(FetchDescriptor<Measurement>())
-            let caloriesLogs = try context.fetch(FetchDescriptor<CaloriesLog>())
-            
-            let filteredExercises = exercises.filter { !defaultExerciseIDs.contains($0.id) }
-            
-            return AppDataDTO.export(
-                exercises: filteredExercises,
-                workouts: workouts,
-                workoutLogs: workoutLogs,
-                measurements: measurements,
-                caloriesLogs: caloriesLogs,
-                includeSettings: includeSettings
-            )
-        } catch {
-            debugLog("Error exporting data: \(error.localizedDescription)")
-            return nil
-        }
-    }
-    
-    // MARK: - Import Methods
     @MainActor
     func importAllData(
         from data: Data,
@@ -169,8 +132,12 @@ class DataTransferManager {
             }
         }
         
-        for measurement in appData.measurements {
-            context.insert(measurement.toModel())
+        for measurementDTO in appData.measurements {
+            context.insert(measurementDTO.toModel())
+        }
+        
+        for customFoodDTO in appData.customFoods {
+            context.insert(customFoodDTO.toModel())
         }
         
         for caloriesLogDTO in appData.caloriesLogs {
@@ -188,9 +155,12 @@ class DataTransferManager {
         }
         
         try context.save()
+        
+        if context.hasChanges {
+            try context.save()
+        }
     }
     
-    // MARK: - Helper Methods
     @MainActor
     func clearAllData(
         in context: ModelContext,
@@ -226,6 +196,7 @@ class DataTransferManager {
             
             try deleteAllEntities(of: FoodEntry.self, in: context)
             try deleteAllEntities(of: CaloriesLog.self, in: context)
+            try deleteAllEntities(of: CustomFood.self, in: context)
             try deleteAllEntities(of: Measurement.self, in: context)
             
             try context.save()
@@ -242,10 +213,5 @@ class DataTransferManager {
         for entity in entities {
             context.delete(entity)
         }
-    }
-    
-    enum ImportError: Error {
-        case invalidData
-        case conversionFailed
     }
 }

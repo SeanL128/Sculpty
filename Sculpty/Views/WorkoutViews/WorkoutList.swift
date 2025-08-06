@@ -44,7 +44,7 @@ struct WorkoutList: View {
                     Image(systemName: "chevron.up.chevron.down")
                         .bodyText()
                 }
-                .foregroundStyle(editing ? Color.accentColor : ColorManager.text)
+                .foregroundStyle(editing ? ColorManager.accent : ColorManager.text)
                 .animatedButton()
                 .animation(.easeInOut(duration: 0.3), value: editing)
             }

@@ -17,30 +17,38 @@ struct SearchFood: View {
     @State var log: CaloriesLog
     @State private var foodAdded: Bool = false
     
-    @State private var recentFoods: [FatSecretFood] = []
+    @State private var recentFatSecretFoods: [FatSecretFood] = []
+    @State private var recentCustomFoods: [CustomFood] = []
     @State private var recentFoodsLoaded: Bool = false
     
     @State private var searchInput = ""
     @FocusState private var isSearchFocused: Bool
     
     @State private var searchTask: Task<Void, Never>?
-    @State private var searchResults: [FatSecretFood] = []
+    @State private var fatSecretResults: [FatSecretFood] = []
+    @State private var customFoodResults: [CustomFood] = []
     
     @State private var error: Bool = false
     
-    @State private var foodToAdd: FatSecretFood?
-    @State private var foodsToAdd: [FatSecretFood] = []
+    @State private var customFoodToAdd: CustomFood?
+    
+    @State private var fatSecretFoodToAdd: FatSecretFood?
+    @State private var fatSecretFoodsToAdd: [FatSecretFood] = []
     
     @State private var looping: Bool = false
+    
+    private var hasResults: Bool {
+        !fatSecretResults.isEmpty || !customFoodResults.isEmpty
+    }
     
     private var image: String {
         if error {
             return "exclamationmark.triangle"
         } else {
-            if searchResults.isEmpty {
-                return "magnifyingglass"
-            } else {
+            if hasResults {
                 return ""
+            } else {
+                return "magnifyingglass"
             }
         }
     }
@@ -49,7 +57,9 @@ struct SearchFood: View {
         if error {
             return "Error searching"
         } else {
-            if searchResults.isEmpty {
+            if hasResults {
+                return "Didn't find what you're looking for?"
+            } else {
                 if api.isLoading {
                     return "Loading..."
                 } else if api.loaded {
@@ -57,8 +67,6 @@ struct SearchFood: View {
                 } else {
                     return "Search for a food to begin"
                 }
-            } else {
-                return "Didn't find what you're looking for?"
             }
         }
     }
@@ -66,12 +74,24 @@ struct SearchFood: View {
     var body: some View {
         ContainerView(title: "Search Food", spacing: .spacingL, lazy: true, trailingItems: {
             NavigationLink {
-                BarcodeScanner(log: log, foodAdded: $foodAdded, foodToAdd: $foodToAdd, foodsToAdd: $foodsToAdd)
+                CustomFoodList(foodToAdd: $customFoodToAdd)
             } label: {
-                HStack(alignment: .center) {
-                    Image(systemName: "barcode.viewfinder")
-                        .pageTitleImage()
-                }
+                Image(systemName: "list.bullet")
+                    .pageTitleImage()
+            }
+            .textColor()
+            .animatedButton()
+            
+            NavigationLink {
+                BarcodeScanner(
+                    log: log,
+                    foodAdded: $foodAdded,
+                    foodToAdd: $fatSecretFoodToAdd,
+                    foodsToAdd: $fatSecretFoodsToAdd
+                )
+            } label: {
+                Image(systemName: "barcode.viewfinder")
+                    .pageTitleImage()
             }
             .textColor()
             .animatedButton()
@@ -90,13 +110,33 @@ struct SearchFood: View {
                 .padding(.bottom, .spacingXS)
                 .onChange(of: searchInput) { searchFoods() }
             
-            if !searchResults.isEmpty {
+            if hasResults {
                 VStack(alignment: .leading, spacing: .listSpacing) {
-                    ForEach(searchResults, id: \.food_id) { food in
+                    ForEach(customFoodResults, id: \.id) { food in
                         Button {
-                            Popup.show(content: {
-                                LogFoodEntryPopup(log: log, food: food, foodAdded: $foodAdded)
-                            })
+                            customFoodToAdd = food
+                        } label: {
+                            HStack(alignment: .center, spacing: .spacingXS) {
+                                Text(food.name)
+                                    .bodyText(weight: .regular)
+                                    .lineLimit(1)
+                                    .truncationMode(.tail)
+                                
+                                Image(systemName: "chevron.right")
+                                    .bodyImage()
+                            }
+                        }
+                        .textColor()
+                        .hapticButton(.selection)
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .move(edge: .leading)),
+                            removal: .opacity.combined(with: .move(edge: .trailing))
+                        ))
+                    }
+                    
+                    ForEach(fatSecretResults, id: \.food_id) { food in
+                        Button {
+                            fatSecretFoodToAdd = food
                         } label: {
                             HStack(alignment: .center, spacing: .spacingXS) {
                                 Text("\(food.food_name)\(food.brand_name == nil ? "" : " (\(food.brand_name ?? ""))")")
@@ -127,10 +167,24 @@ struct SearchFood: View {
                                 .textColor()
                         }
                         
-                        VStack(alignment: .center, spacing: .spacingXS) {
+                        VStack(alignment: .center, spacing: .spacingS) {
                             Text(text)
-                                .bodyText()
+                                .bodyText(weight: .bold)
                                 .textColor()
+                            
+                            NavigationLink {
+                                AddCustomFood(foodToAdd: $customFoodToAdd)
+                            } label: {
+                                HStack(alignment: .center, spacing: .spacingXS) {
+                                    Text("Add Custom Food")
+                                        .bodyText(weight: .regular)
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .bodyImage()
+                                }
+                            }
+                            .textColor()
+                            .animatedButton()
                             
                             Button {
                                 Popup.show(content: {
@@ -138,11 +192,11 @@ struct SearchFood: View {
                                 })
                             } label: {
                                 HStack(alignment: .center, spacing: .spacingXS) {
-                                    Text("Add Custom Entry")
-                                        .secondaryText()
+                                    Text("Add One-Time Entry")
+                                        .bodyText(weight: .regular)
                                     
                                     Image(systemName: "chevron.right")
-                                        .secondaryImage()
+                                        .bodyImage()
                                 }
                             }
                             .textColor()
@@ -165,48 +219,69 @@ struct SearchFood: View {
         }
         .onAppear {
             do {
-                let foods = try context.fetch(FetchDescriptor<FoodEntry>())
+                let fatSecretFoods = try context.fetch(FetchDescriptor<FoodEntry>())
+                    .filter { $0.type == .fatSecret }
                     .sorted { $0.date > $1.date }
                     .compactMap { $0.fatSecretFood }
                     .prefix(15)
                 
-                for food in foods where !recentFoods.contains(where: { $0.food_id == food.food_id }) {
-                    recentFoods.append(food)
+                for food in fatSecretFoods where !recentFatSecretFoods.contains(where: { $0.food_id == food.food_id }) {
+                    recentFatSecretFoods.append(food)
+                }
+                
+                let customFoods = try context.fetch(FetchDescriptor<FoodEntry>())
+                    .filter { $0.type == .custom && $0.customFood?.hidden == false }
+                    .sorted { $0.date > $1.date }
+                    .compactMap { $0.customFood }
+                    .prefix(15)
+                
+                for food in customFoods where !recentCustomFoods.contains(where: { $0.id == food.id }) {
+                    recentCustomFoods.append(food)
                 }
             } catch {
                 debugLog("Error: \(error.localizedDescription)")
             }
             
-            if searchResults.isEmpty {
-                searchResults = recentFoods
+            if !hasResults {
+                customFoodResults = recentCustomFoods
+                fatSecretResults = recentFatSecretFoods
             }
             
             recentFoodsLoaded = true
         }
         .onChange(of: foodAdded) {
-            if foodAdded && foodsToAdd.isEmpty {
+            if foodAdded && fatSecretFoodsToAdd.isEmpty {
                 dismiss()
             }
         }
-        .onChange(of: foodToAdd) {
-            if let food = foodToAdd {
+        .onChange(of: fatSecretFoodToAdd) {
+            if let food = fatSecretFoodToAdd {
                 Popup.show(content: {
-                    LogFoodEntryPopup(log: log, food: food, foodAdded: $foodAdded)
+                    LogFatSecretFoodEntryPopup(log: log, food: food, foodAdded: $foodAdded)
                 })
                 
-                foodToAdd = nil
+                fatSecretFoodToAdd = nil
             }
         }
-        .onChange(of: foodsToAdd) {
-            if !foodsToAdd.isEmpty {
+        .onChange(of: customFoodToAdd) {
+            if let customFood = customFoodToAdd {
+                Popup.show(content: {
+                    LogCustomFoodEntryPopup(log: log, customFood: customFood, foodAdded: $foodAdded)
+                })
+                
+                customFoodToAdd = nil
+            }
+        }
+        .onChange(of: fatSecretFoodsToAdd) {
+            if !fatSecretFoodsToAdd.isEmpty {
                 Task {
-                    for food in foodsToAdd {
+                    for food in fatSecretFoodsToAdd {
                         await Popup.showAndWait(content: {
-                            LogFoodEntryPopup(log: log, food: food, foodAdded: $foodAdded)
+                            LogFatSecretFoodEntryPopup(log: log, food: food, foodAdded: $foodAdded)
                         })
                     }
                     
-                    foodsToAdd = []
+                    fatSecretFoodsToAdd = []
                     
                     dismiss()
                 }
@@ -217,7 +292,7 @@ struct SearchFood: View {
                 KeyboardDoneButton()
             }
         }
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: searchResults.count)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: hasResults)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: text)
     }
     
@@ -228,8 +303,9 @@ struct SearchFood: View {
             let length = searchInput.count
             
             guard searchInput.count >= 2 else {
-                if searchResults.isEmpty || length == 0 {
-                    searchResults = recentFoods
+                if !hasResults || length == 0 {
+                    customFoodResults = recentCustomFoods
+                    fatSecretResults = recentFatSecretFoods
                 }
                 
                 return
@@ -243,10 +319,17 @@ struct SearchFood: View {
             api.isLoading = true
             api.loaded = false
             
+            async let customResults = searchCustomFoods(searchInput)
+            async let fatSecretResults = api.searchFoods(searchInput)
+            
             do {
-                searchResults = try await api.searchFoods(searchInput)
+                let (custom, fatSecret) = try await (customResults, fatSecretResults)
+                
+                self.customFoodResults = custom
+                self.fatSecretResults = fatSecret
             } catch {
                 debugLog("Search error: \(error.localizedDescription)")
+                
                 if error.localizedDescription != "cancelled" {
                     self.error = true
                 }
@@ -254,6 +337,25 @@ struct SearchFood: View {
             
             api.isLoading = false
             api.loaded = true
+        }
+    }
+    
+    private func searchCustomFoods(_ query: String) async -> [CustomFood] {
+        return await MainActor.run {
+            let descriptor = FetchDescriptor<CustomFood>(
+                predicate: #Predicate<CustomFood> { customFood in
+                    !customFood.hidden &&
+                    customFood.name.localizedStandardContains(query)
+                },
+                sortBy: [SortDescriptor(\.name)]
+            )
+            
+            do {
+                return try context.fetch(descriptor)
+            } catch {
+                debugLog("Error searching custom foods: \(error.localizedDescription)")
+                return []
+            }
         }
     }
 }

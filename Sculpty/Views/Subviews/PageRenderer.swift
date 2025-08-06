@@ -30,9 +30,3 @@ struct PageRenderer: View {
         }
     }
 }
-
-enum PageRendererType {
-    case exerciseList
-    case upsertWorkout
-    case upsertExercise
-}
