@@ -14,6 +14,8 @@ struct SearchFood: View {
     
     @StateObject private var api: FatSecretAPI = FatSecretAPI()
     
+    @Query private var customFoods: [CustomFood]
+    
     @State var log: CaloriesLog
     @State private var foodAdded: Bool = false
     
@@ -336,20 +338,7 @@ struct SearchFood: View {
     
     private func searchCustomFoods(_ query: String) async -> [CustomFood] {
         return await MainActor.run {
-            let descriptor = FetchDescriptor<CustomFood>(
-                predicate: #Predicate<CustomFood> { customFood in
-                    !customFood.hidden &&
-                    customFood.name.localizedStandardContains(query)
-                },
-                sortBy: [SortDescriptor(\.name)]
-            )
-            
-            do {
-                return try context.fetch(descriptor)
-            } catch {
-                debugLog("Error searching custom foods: \(error.localizedDescription)")
-                return []
-            }
+            return customFoods.search(query, by: \.name).sorted { $0.name < $1.name }
         }
     }
 }

@@ -18,13 +18,7 @@ struct ExerciseList: View {
     @FocusState private var isSearchFocused: Bool
     
     var filteredExercises: [Exercise] {
-        if searchText.isEmpty {
-            return exercises
-        } else {
-            return exercises.filter { exercise in
-                exercise.name.lowercased().contains(searchText.lowercased())
-            }
-        }
+        return exercises.search(searchText, by: \.name)
     }
     
     var groupedExercises: [MuscleGroup: [Exercise]] {

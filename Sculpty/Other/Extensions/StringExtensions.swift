@@ -20,13 +20,10 @@ extension String {
         return filtered.count > 1 ? filtered.replacing(/^([+-])?0+/, with: {$0.output.1 ?? ""}) : filtered
     }
     
-    func sanitize(_ replacements: [(String, String)]) -> String {
-        var sanitized: String = self
-        
-        for (search, replace) in replacements {
-            sanitized = sanitized.replacingOccurrences(of: search, with: replace)
-        }
-        
-        return sanitized
+    func normalized() -> String {
+        return self
+            .lowercased()
+            .replacingOccurrences(of: "-", with: " ")
+            .trimmingCharacters(in: .whitespaces)
     }
 }

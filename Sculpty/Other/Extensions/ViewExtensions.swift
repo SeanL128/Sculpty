@@ -70,14 +70,6 @@ extension View {
         self.buttonStyle(FilledToBorderedButtonStyle(color: color, scale: scale, feedback: feedback, isValid: isValid))
     }
     
-    // Limit Text
-    func limitText(_ text: Binding<String>, to characterLimit: Int) -> some View {
-        self
-            .onChange(of: text.wrappedValue) {
-                text.wrappedValue = String(text.wrappedValue.prefix(characterLimit))
-            }
-    }
-    
     // Blinking
     func blinking(_ min: Double = 0.3, _ max: Double = 0.7) -> some View {
         self.modifier(BlinkViewModifier(min: min, max: max))

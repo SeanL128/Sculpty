@@ -9,9 +9,12 @@ import SwiftUI
 import SwiftData
 
 struct WorkoutList: View {
-    @Environment(\.modelContext) private var context
+    @Environment(\.modelContext) private var contexst
     
-    @Query(filter: #Predicate<Workout> { $0.index >= 0 && !$0.hidden }) private var workouts: [Workout]
+    @Query(
+        filter: #Predicate<Workout> { $0.index >= 0 && !$0.hidden },
+        sort: \Workout.index
+    ) private var workouts: [Workout]
     
     @Binding var workoutToStart: WorkoutLog?
     
@@ -21,16 +24,7 @@ struct WorkoutList: View {
     @State private var editing: Bool = false
     
     var filteredWorkouts: [Workout] {
-        if searchText.isEmpty {
-            return workouts
-                .sorted { $0.index < $1.index }
-        } else {
-            return workouts
-                .filter { workout in
-                    workout.name.lowercased().contains(searchText.lowercased())
-                }
-                .sorted { $0.index < $1.index }
-        }
+        return workouts.search(searchText, by: \.name)
     }
     
     var body: some View {

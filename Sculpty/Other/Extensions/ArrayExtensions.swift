@@ -20,3 +20,18 @@ extension Array where Element: Hashable {
         self = self.removingDuplicates()
     }
 }
+
+extension Array {
+    func search<T: StringProtocol>(
+        _ query: T,
+        by keyPath: KeyPath<Element, String>
+    ) -> [Element] {
+        guard !String(query).normalized().isEmpty else { return self }
+        
+        let normalizedQuery = String(query).normalized()
+        
+        return self.filter { element in
+            element[keyPath: keyPath].normalized().contains(normalizedQuery)
+        }
+    }
+}

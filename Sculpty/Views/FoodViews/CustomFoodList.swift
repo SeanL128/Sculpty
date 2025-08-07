@@ -20,13 +20,7 @@ struct CustomFoodList: View {
     @Binding var foodToAdd: CustomFood?
     
     private var filteredFoods: [CustomFood] {
-        if searchText.isEmpty {
-            return foods
-        } else {
-            return foods.filter { food in
-                food.name.lowercased().contains(searchText.lowercased())
-            }
-        }
+        return foods.search(searchText, by: \.name)
     }
     
     var body: some View {

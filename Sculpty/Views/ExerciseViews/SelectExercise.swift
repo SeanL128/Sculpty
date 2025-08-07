@@ -35,13 +35,7 @@ struct SelectExercise: View {
     @State private var addButtonPressed: Bool = false
     
     private var filteredExercises: [Exercise] {
-        if searchText.isEmpty {
-            return exercises
-        } else {
-            return exercises.filter { exercise in
-                exercise.name.lowercased().contains(searchText.lowercased())
-            }
-        }
+        return exercises.search(searchText, by: \.name)
     }
     
     private var groupedExercises: [MuscleGroup: [Exercise]] {

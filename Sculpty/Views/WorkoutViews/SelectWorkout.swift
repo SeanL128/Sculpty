@@ -12,7 +12,10 @@ struct SelectWorkout: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     
-    @Query(filter: #Predicate<Workout> { $0.index >= 0 && !$0.hidden }) private var workouts: [Workout]
+    @Query(
+        filter: #Predicate<Workout> { $0.index >= 0 && !$0.hidden },
+        sort: \Workout.index
+    ) private var workouts: [Workout]
     
     @Binding var selectedWorkout: Workout?
     
@@ -20,16 +23,7 @@ struct SelectWorkout: View {
     @FocusState private var isSearchFocused: Bool
     
     var filteredWorkouts: [Workout] {
-        if searchText.isEmpty {
-            return workouts
-                .sorted { $0.index < $1.index }
-        } else {
-            return workouts
-                .filter { workout in
-                    workout.name.lowercased().contains(searchText.lowercased())
-                }
-                .sorted { $0.index < $1.index }
-        }
+        return workouts.search(searchText, by: \.name)
     }
     
     var body: some View {

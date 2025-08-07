@@ -64,3 +64,35 @@ func openSettings() {
         UIApplication.shared.open(settingsUrl)
     }
 }
+
+func levenshteinDistance(_ string1: String, _ string2: String) -> Int {
+    let s1 = Array(string1)
+    let s2 = Array(string2)
+    
+    let m = s1.count
+    let n = s2.count
+    
+    if m == 0 { return n }
+    if n == 0 { return m }
+    
+    var previousRow = Array(0...n)
+    var currentRow = Array(repeating: 0, count: n + 1)
+    
+    for i in 1...m {
+        currentRow[0] = i
+        
+        for j in 1...n {
+            let cost = s1[i - 1] == s2[j - 1] ? 0 : 1
+            
+            currentRow[j] = min(
+                currentRow[j - 1] + 1,
+                previousRow[j] + 1,
+                previousRow[j - 1] + cost
+            )
+        }
+        
+        (previousRow, currentRow) = (currentRow, previousRow)
+    }
+    
+    return previousRow[n]
+}
