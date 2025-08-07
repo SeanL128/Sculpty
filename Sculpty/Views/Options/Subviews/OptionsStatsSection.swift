@@ -14,7 +14,7 @@ struct OptionsStatsSection: View {
         VStack(alignment: .leading, spacing: .spacingS) {
             OptionsSectionHeader(title: "Stats", image: "chart.xyaxis.line")
             
-            VStack(alignment: .leading, spacing: .spacingS) {
+            VStack(alignment: .leading, spacing: .listSpacing) {
                 OptionsToggleRow(
                     text: "Include Warm Up Sets",
                     isOn: $settings.includeWarmUp

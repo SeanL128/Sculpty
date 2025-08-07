@@ -61,11 +61,41 @@ struct CustomFoodList: View {
             } else {
                 VStack(alignment: .leading, spacing: .listSpacing) {
                     ForEach(filteredFoods, id: \.id) { food in
-                        CustomFoodListRow(food: food, foodToAdd: $foodToAdd)
-                            .transition(.asymmetric(
-                                insertion: .opacity.combined(with: .move(edge: .leading)),
-                                removal: .opacity.combined(with: .move(edge: .trailing))
-                            ))
+                        HStack(alignment: .center) {
+                            Button {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    foodToAdd = food
+                                }
+                                
+                                dismiss()
+                            } label: {
+                                HStack(alignment: .center, spacing: .spacingXS) {
+                                    Text(food.name)
+                                        .bodyText(weight: .regular)
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .bodyImage(weight: .medium)
+                                }
+                            }
+                            .textColor()
+                            .animatedButton(feedback: .selection)
+                            
+                            Spacer()
+                            
+                            NavigationLink {
+                                AddCustomFood(food: food)
+                            } label: {
+                                Image(systemName: "pencil")
+                                    .bodyText(weight: .regular)
+                            }
+                            .animatedButton()
+                        }
+                        .textColor()
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .move(edge: .leading)),
+                            removal: .opacity.combined(with: .move(edge: .trailing))
+                        ))
                     }
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: filteredFoods)
                 }

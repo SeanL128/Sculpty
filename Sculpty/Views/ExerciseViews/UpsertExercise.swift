@@ -174,7 +174,7 @@ struct UpsertExercise: View {
         .disableEdgeSwipe(hasUnsavedChanges)
     }
     
-    private func save() {
+    private func save() async {
         if let exercise = exercise {
             exercise.name = exerciseName
             exercise.notes = exerciseNotes

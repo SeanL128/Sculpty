@@ -233,7 +233,7 @@ struct LogFatSecretFoodEntryPopup: View {
         }
     }
     
-    private func save() {
+    private func save() async {
         if let entry = entry {
             entry.servings = Double(servingsInput)
             entry.fatSecretServingOption = selectedServing

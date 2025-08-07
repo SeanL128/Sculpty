@@ -31,6 +31,7 @@ struct UpsertWorkout: View {
     
     @State private var hasUnsavedChanges: Bool = false
     @State private var originalExerciseIndices: [UUID: Int] = [:]
+    @State private var originalExerciseSelections: [UUID: Exercise?] = [:]
     
     @State private var dismissTrigger: Int = 0
     
@@ -262,6 +263,7 @@ struct UpsertWorkout: View {
             }
             
             originalExerciseIndices = Dictionary(uniqueKeysWithValues: exercises.map { ($0.id, $0.index) })
+            originalExerciseSelections = Dictionary(uniqueKeysWithValues: exercises.map { ($0.id, $0.exercise) })
         }
         .onChange(of: workoutName) { hasUnsavedChanges = true }
         .onChange(of: workoutNotes) { hasUnsavedChanges = true }
@@ -291,7 +293,7 @@ struct UpsertWorkout: View {
         exercises.removeAll { $0.exercise == nil }
     }
     
-    private func save() {
+    private func save() async {
         let validExercises = exercises.filter { $0.exercise != nil }
             
         guard !validExercises.isEmpty else { return }
@@ -386,6 +388,12 @@ struct UpsertWorkout: View {
             for (exerciseId, originalIndex) in originalExerciseIndices {
                 if let exercise = exercises.first(where: { $0.id == exerciseId }) {
                     exercise.index = originalIndex
+                }
+            }
+            
+            for (exerciseId, originalExercise) in originalExerciseSelections {
+                if let exercise = exercises.first(where: { $0.id == exerciseId }) {
+                    exercise.exercise = originalExercise
                 }
             }
             

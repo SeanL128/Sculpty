@@ -212,7 +212,7 @@ struct AddCustomFood: View {
         .disableEdgeSwipe(hasUnsavedChanges)
     }
     
-    private func save() {
+    private func save() async {
         let servings = servingOptions.filter { !$0.desc.trimmingCharacters(in: .whitespaces).isEmpty }
         
         if let food = food {

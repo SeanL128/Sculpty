@@ -15,13 +15,11 @@ struct OptionsDataSection: View {
     
     @EnvironmentObject private var settings: CloudSettings
     
+    @StateObject private var iCloudManager = iCloudBackupManager()
+    
     @State private var isCreatingBackup: Bool = false
     @State private var isCreatingWorkoutLogsCSV: Bool = false
     @State private var isCreatingCaloriesLogsCSV: Bool = false
-    
-    @State private var resetConfirmation1: Bool = false
-    @State private var resetConfirmation2: Bool = false
-    @State private var resetConfirmation3: Bool = false
     
     private var hasWorkoutLogs: Bool {
         !((try? context.fetch(FetchDescriptor<WorkoutLog>()))?.isEmpty ?? true)
@@ -31,7 +29,7 @@ struct OptionsDataSection: View {
     }
     
     private var isCreating: Bool {
-        isCreatingBackup || isCreatingWorkoutLogsCSV || isCreatingCaloriesLogsCSV
+        isCreatingBackup || isCreatingWorkoutLogsCSV || isCreatingCaloriesLogsCSV || iCloudManager.isBackingUp
     }
     
     var body: some View {
@@ -39,90 +37,82 @@ struct OptionsDataSection: View {
             OptionsSectionHeader(title: "Data Management", image: "folder")
             
             HStack {
-                VStack(alignment: .leading, spacing: .spacingS) {
-                    OptionsButtonRow(
-                        title: isCreatingBackup ? "Creating Backup..." : "Back Up All Data",
-                        isValid: !isCreating,
-                        action: shareBackup,
-                        feedback: .impact(weight: .medium)
-                    )
+                VStack(alignment: .leading, spacing: .spacingM) {
+                    VStack(alignment: .leading, spacing: .spacingS) {
+                        OptionsButtonRow(
+                            title: isCreatingBackup ? "Creating Backup..." : "Backup Data Locally",
+                            isValid: !isCreating,
+                            action: shareBackup,
+                            feedback: .impact(weight: .medium)
+                        )
+                    }
                     
-                    OptionsButtonRow(
-                        title: isCreatingWorkoutLogsCSV ? "Creating CSV..." : "Export Workout Logs to CSV",
-                        isValid: hasWorkoutLogs && !isCreating,
-                        action: { shareCSV(csvString: getWorkoutLogsCSV(), name: "SculptyWorkoutLogs") },
-                        feedback: .impact(weight: .medium)
-                    )
-                    
-                    OptionsButtonRow(
-                        title: isCreatingCaloriesLogsCSV ? "Creating CSV..." : "Export Calories Data to CSV",
-                        isValid: hasCaloriesLogs && !isCreating,
-                        action: { shareCSV(csvString: getCaloriesCSV(), name: "SculptyCaloriesLogs") },
-                        feedback: .impact(weight: .medium)
-                    )
-                    
-                    OptionsButtonRow(
-                        title: "Reset Data",
-                        isValid: !isCreating,
-                        action: {
-                            Popup.show(content: {
-                                ConfirmationPopup(
-                                    selection: $resetConfirmation1,
-                                    promptText: "Are you sure?",
-                                    resultText: "This will reset all data.",
-                                    cancelText: "Cancel",
-                                    confirmText: "Reset"
-                                )
-                            })
-                        },
-                        feedback: .warning
-                    )
-                    .onChange(of: resetConfirmation1) {
-                        if resetConfirmation1 {
-                            Popup.dismissAll()
+                    VStack(alignment: .leading, spacing: .spacingS) {
+                        if iCloudManager.isICloudAvailable {
+                            OptionsButtonRow(
+                                title: iCloudManager.isBackingUp ? "Saving to iCloud..." : "Backup to iCloud",
+                                isValid: !isCreating,
+                                action: {
+                                    Task {
+                                        await iCloudManager.backupToiCloud(context: context)
+                                        
+                                        Toast.show(
+                                            "Saved to iCloud successfully",
+                                            "square.and.arrow.up.badge.checkmark"
+                                        )
+                                    }
+                                },
+                                feedback: .impact(weight: .medium)
+                            )
                             
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                Popup.show(content: {
-                                    ConfirmationPopup(
-                                        selection: $resetConfirmation2,
-                                        promptText: "Are you 100% sure?",
-                                        resultText: "This cannot be undone.",
-                                        cancelText: "Cancel",
-                                        confirmText: "Reset"
-                                    )
-                                })
+                            OptionsToggleRow(
+                                text: "Automatic iCloud Backups",
+                                isOn: $settings.enableAutoBackup
+                            )
+                            .onAppear {
+                                if settings.enableAutoBackup {
+                                    iCloudManager.setupAutoBackup(with: context.container)
+                                }
                             }
-                            
-                            resetConfirmation1 = false
+                            .onChange(of: settings.enableAutoBackup) {
+                                if settings.enableAutoBackup {
+                                    iCloudManager.setupAutoBackup(with: context.container)
+                                }
+                            }
+                        } else {
+                            Text("iCloud not available")
+                                .bodyText()
+                                .secondaryColor()
                         }
                     }
-                    .onChange(of: resetConfirmation2) {
-                        if resetConfirmation2 {
-                            Popup.dismissAll()
-                            
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    
+                    VStack(alignment: .leading, spacing: .spacingS) {
+                        OptionsButtonRow(
+                            title: "Restore from Backup",
+                            isValid: !isCreating,
+                            action: {
                                 Popup.show(content: {
-                                    ConfirmationPopup(
-                                        selection: $resetConfirmation3,
-                                        promptText: "You should consider backing up your data before resetting.",
-                                        resultText: "If not, all data will be lost.",
-                                        cancelText: "Cancel",
-                                        confirmText: "Reset"
-                                    )
+                                    BackupRestorePopup(iCloudManager: iCloudManager)
                                 })
-                            }
-                            
-                            resetConfirmation2 = false
-                        }
+                            },
+                            feedback: .impact(weight: .medium)
+                        )
                     }
-                    .onChange(of: resetConfirmation3) {
-                        if resetConfirmation3 {
-                            Popup.dismissAll()
-                            
-                            clearContext()
-                            
-                            resetConfirmation3 = false
-                        }
+                    
+                    VStack(alignment: .leading, spacing: .spacingS) {
+                        OptionsButtonRow(
+                            title: isCreatingWorkoutLogsCSV ? "Creating CSV..." : "Export Workout Logs to CSV",
+                            isValid: hasWorkoutLogs && !isCreating,
+                            action: { shareCSV(csvString: getWorkoutLogsCSV(), name: "SculptyWorkoutLogs") },
+                            feedback: .impact(weight: .medium)
+                        )
+                        
+                        OptionsButtonRow(
+                            title: isCreatingCaloriesLogsCSV ? "Creating CSV..." : "Export Calories Data to CSV",
+                            isValid: hasCaloriesLogs && !isCreating,
+                            action: { shareCSV(csvString: getCaloriesCSV(), name: "SculptyCaloriesLogs") },
+                            feedback: .impact(weight: .medium)
+                        )
                     }
                 }
                 
@@ -203,13 +193,6 @@ struct OptionsDataSection: View {
                let rootVC = windowScene.windows.first?.rootViewController {
                 rootVC.present(activityVC, animated: true)
             }
-            
-            Popup.show(content: {
-                InfoPopup(
-                    title: "Restoring from Backup",
-                    text: "To restore data from a backup, reset your data and select \"Returning? Import Backup\" from the start screen." // swiftlint:disable:this line_length
-                )
-            })
         } catch {
             debugLog("Error writing backup file: \(error.localizedDescription)")
         }
@@ -313,20 +296,6 @@ struct OptionsDataSection: View {
             }
         } catch {
             debugLog("Error writing CSV file: \(error.localizedDescription)")
-        }
-    }
-    
-    private func clearContext() {
-        do {
-            try DataTransferManager.shared.clearAllData(in: context)
-            
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                settings.resetAllSettings()
-                
-                dismiss()
-            }
-        } catch {
-            debugLog("Failed to clear context: \(error.localizedDescription)")
         }
     }
 }

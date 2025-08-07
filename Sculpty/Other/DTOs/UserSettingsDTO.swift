@@ -10,6 +10,7 @@ import Foundation
 struct UserSettingsDTO: Codable {
     var accentColorHex: String?
     var dailyCalories: Int?
+    var enableAutoBackup: Bool?
     var enableHaptics: Bool?
     var enableToasts: Bool?
     var gender: String?
@@ -36,6 +37,7 @@ struct UserSettingsDTO: Codable {
     init(from settings: CloudSettings) {
         self.accentColorHex = settings.accentColorHex
         self.dailyCalories = settings.dailyCalories
+        self.enableAutoBackup = settings.enableAutoBackup
         self.enableHaptics = settings.enableHaptics
         self.enableToasts = settings.enableToasts
         self.gender = settings.gender
@@ -67,6 +69,10 @@ struct UserSettingsDTO: Codable {
         
         if let dailyCalories = dailyCalories {
             settings.dailyCalories = dailyCalories
+        }
+        
+        if let enableAutoBackup = enableAutoBackup {
+            settings.enableAutoBackup = enableAutoBackup
         }
         
         if let enableHaptics = enableHaptics {

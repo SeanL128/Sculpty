@@ -13,7 +13,7 @@ struct Onboarding: View {
     
     @EnvironmentObject private var settings: CloudSettings
     
-    @State private var restoring: Bool = false
+    @StateObject private var iCloudManager = iCloudBackupManager()
     
     @State private var sectionsVisible: Bool = false
     
@@ -126,7 +126,18 @@ struct Onboarding: View {
                         .animation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.5), value: sectionsVisible)
                     
                     Button {
-                        preloadData()
+                        if let existingExercises = try? context.fetch(FetchDescriptor<Exercise>()),
+                           existingExercises.isEmpty {
+                            for exercise in defaultExercises {
+                                context.insert(exercise)
+                            }
+                            
+                            do {
+                                try context.save()
+                            } catch {
+                                debugLog("Error preloading data: \(error.localizedDescription)")
+                            }
+                        }
                         
                         withAnimation {
                             settings.onboarded = true
@@ -139,7 +150,9 @@ struct Onboarding: View {
                     .filledToBorderedButton()
                     
                     Button {
-                        restoring = true
+                        Popup.show(content: {
+                            BackupRestorePopup(iCloudManager: iCloudManager)
+                        })
                     } label: {
                         Text("RESTORE FROM BACKUP")
                             .bodyText()
@@ -158,91 +171,6 @@ struct Onboarding: View {
         .onAppear {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.3)) {
                 sectionsVisible = true
-            }
-        }
-        .fileImporter(
-            isPresented: $restoring,
-            allowedContentTypes: [.sculptyData],
-            allowsMultipleSelection: false
-        ) { result in
-            switch result {
-            case .success(let urls):
-                guard let url = urls.first else { return }
-                
-                guard url.startAccessingSecurityScopedResource() else {
-                    restoreFailAlert()
-                    
-                    return
-                }
-                
-                guard let importedData = try? Data(contentsOf: url) else {
-                    url.stopAccessingSecurityScopedResource()
-                    restoreFailAlert()
-                    
-                    return
-                }
-                
-                url.stopAccessingSecurityScopedResource()
-                
-                Task {
-                    do {
-                        try DataTransferManager.shared.importAllData(
-                            from: importedData,
-                            into: context,
-                            importSettings: true
-                        )
-                        
-                        await MainActor.run {
-                            
-                            Toast.show("Data imported successfully", "square.and.arrow.down.badge.checkmark")
-                            
-                            withAnimation {
-                                settings.onboarded = true
-                            }
-                        }
-                    } catch {
-                        debugLog("Failed to import data: \(error.localizedDescription)")
-                        
-                        await MainActor.run {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                restoreFailAlert()
-                            }
-                        }
-                    }
-                }
-                
-                restoring = false
-                
-                withAnimation {
-                    settings.onboarded = true
-                }
-            case .failure(let error):
-                debugLog(error.localizedDescription)
-                
-                restoreFailAlert()
-            }
-        }
-    }
-    
-    private func restoreFailAlert() {
-        Popup.show(content: {
-            InfoPopup(
-                title: "Error",
-                text: "There was an error when attempting to restore your data. Please make sure that you are uploading the correct file." // swiftlint:disable:this line_length
-            )
-        })
-    }
-    
-    private func preloadData() {
-        if let existingExercises = try? context.fetch(FetchDescriptor<Exercise>()), existingExercises.isEmpty {
-            for exercise in defaultExercises {
-                context.insert(exercise)
-            }
-            
-            do {
-                try context.save()
-            } catch {
-                debugLog("Error preloading data: \(error.localizedDescription)")
             }
         }
     }

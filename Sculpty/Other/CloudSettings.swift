@@ -33,6 +33,7 @@ class CloudSettings: ObservableObject {
         let defaults: [String: Any] = [
             UserKeys.accentColorHex.rawValue: "#2563EB",
             UserKeys.dailyCalories.rawValue: 2000,
+            UserKeys.enableAutoBackup.rawValue: false,
             UserKeys.enableHaptics.rawValue: true,
             UserKeys.enableToasts.rawValue: true,
             UserKeys.gender.rawValue: "Male",
@@ -229,6 +230,14 @@ class CloudSettings: ObservableObject {
         set {
             objectWillChange.send()
             setValue(newValue, for: .showTempo)
+        }
+    }
+    
+    var enableAutoBackup: Bool {
+        get { userDefaults.bool(forKey: UserKeys.enableAutoBackup.rawValue) }
+        set {
+            objectWillChange.send()
+            setValue(newValue, for: .enableAutoBackup)
         }
     }
     

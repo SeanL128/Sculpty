@@ -197,7 +197,7 @@ struct AddMeasurementPopup: View {
         }
     }
     
-    private func save() {
+    private func save() async {
         if settings.units == "Imperial" && type == .height {
             text = "\(((Double(heightFeet) ?? 0) * 12) + (Double(heightInches) ?? 0))"
         }

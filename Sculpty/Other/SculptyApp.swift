@@ -12,7 +12,6 @@ import IQKeyboardManagerSwift
 
 @main
 struct SculptyApp: App {
-    @Environment(\.modelContext) private var context
     @Environment(\.scenePhase) private var scenePhase
     
     @StateObject private var settings = CloudSettings()
@@ -21,22 +20,41 @@ struct SculptyApp: App {
         IQKeyboardManager.shared.resignOnTouchOutside = true
     }
     
+    var modelContainer: ModelContainer = {
+        let schema = Schema([
+            Workout.self,
+            WorkoutExercise.self,
+            ExerciseSet.self,
+            Exercise.self,
+            WorkoutLog.self,
+            ExerciseLog.self,
+            SetLog.self,
+            CaloriesLog.self,
+            FoodEntry.self,
+            Measurement.self,
+            CustomFood.self
+        ])
+        
+        let modelConfiguration = ModelConfiguration(
+            schema: schema,
+            isStoredInMemoryOnly: false,
+            cloudKitDatabase: .none
+        )
+        
+        do {
+            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+        } catch {
+            fatalError("Could not create ModelContainer: \(error)")
+        }
+    }()
+    
     var body: some Scene {
         WindowGroup {
             Main()
                 .preferredColorScheme(.dark)
                 .accentColor(Color(hex: settings.accentColorHex))
                 .dynamicTypeSize(.medium ... .xxxLarge)
-                .modelContainer(
-                    for: [
-                        Workout.self,
-                        Exercise.self,
-                        WorkoutLog.self,
-                        CaloriesLog.self,
-                        Measurement.self,
-                        CustomFood.self
-                    ]
-                )
+                .modelContainer(modelContainer)
                 .environmentObject(settings)
                 .onChange(of: scenePhase) {
                     if scenePhase == .active {

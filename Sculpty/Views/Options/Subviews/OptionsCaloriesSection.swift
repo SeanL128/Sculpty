@@ -23,12 +23,14 @@ struct OptionsCaloriesSection: View {
                     text: $settings.dailyCaloriesString
                 )
                 .onChange(of: settings.dailyCalories) {
+                    guard let sharedDefaults = UserDefaults(suiteName: "group.app.sculpty.SculptyApp") else { return }
+                    
                     WidgetDataUpdater.shared.updateWidgetData(
-                        caloriesLogged: UserDefaults.standard.integer(forKey: UserKeys.widgetCaloriesLogged.rawValue),
+                        caloriesLogged: sharedDefaults.integer(forKey: UserKeys.widgetCaloriesLogged.rawValue),
                         targetCalories: settings.dailyCalories,
-                        carbs: UserDefaults.standard.integer(forKey: UserKeys.widgetCarbs.rawValue),
-                        protein: UserDefaults.standard.integer(forKey: UserKeys.widgetProtein.rawValue),
-                        fat: UserDefaults.standard.integer(forKey: UserKeys.widgetFat.rawValue)
+                        carbs: sharedDefaults.integer(forKey: UserKeys.widgetCarbs.rawValue),
+                        protein: sharedDefaults.integer(forKey: UserKeys.widgetProtein.rawValue),
+                        fat: sharedDefaults.integer(forKey: UserKeys.widgetFat.rawValue)
                     )
                 }
                 

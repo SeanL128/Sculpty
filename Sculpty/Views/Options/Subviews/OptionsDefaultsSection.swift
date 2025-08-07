@@ -14,7 +14,7 @@ struct OptionsDefaultsSection: View {
         VStack(alignment: .leading, spacing: .spacingS) {
             OptionsSectionHeader(title: "Defaults", image: "doc.plaintext")
             
-            VStack(alignment: .leading, spacing: .spacingS) {
+            VStack(alignment: .leading, spacing: .listSpacing) {
                 OptionsPickerRow(
                     title: "Units",
                     text: settings.units == "Imperial" ? "Imperial (mi, ft, in, lbs)" : "Metric (km, m, cm, kg)",

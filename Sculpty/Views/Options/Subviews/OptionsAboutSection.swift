@@ -48,7 +48,7 @@ struct OptionsAboutSection: View {
                         Link(destination: URL(string: "https://sculpty.app")!) { // swiftlint:disable:this line_length force_unwrapping
                             HStack(alignment: .center, spacing: .spacingXS) {
                                 Text("Website")
-                                    .bodyText(weight: .regular)
+                                    .bodyText()
                                 
                                 Image(systemName: "chevron.right")
                                     .bodyImage()

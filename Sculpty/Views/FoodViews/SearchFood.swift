@@ -44,30 +44,24 @@ struct SearchFood: View {
     private var image: String {
         if error {
             return "exclamationmark.triangle"
+        } else if hasResults {
+            return ""
         } else {
-            if hasResults {
-                return ""
-            } else {
-                return "magnifyingglass"
-            }
+            return "magnifyingglass"
         }
     }
     
     private var text: String {
         if error {
             return "Error searching"
+        } else if hasResults {
+            return "Didn't find what you're looking for?"
+        } else if api.isLoading {
+            return "Loading..."
+        } else if api.loaded {
+            return "No results"
         } else {
-            if hasResults {
-                return "Didn't find what you're looking for?"
-            } else {
-                if api.isLoading {
-                    return "Loading..."
-                } else if api.loaded {
-                    return "No results"
-                } else {
-                    return "Search for a food to begin"
-                }
-            }
+            return "Search for a food to begin"
         }
     }
     

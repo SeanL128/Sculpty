@@ -39,7 +39,7 @@ struct OptionsNotificationsSection: View {
         VStack(alignment: .leading, spacing: .spacingS) {
             OptionsSectionHeader(title: "Notifications", image: "bell")
             
-            VStack(alignment: .leading, spacing: .spacingS) {
+            VStack(alignment: .leading, spacing: .listSpacing) {
                 OptionsToggleRow(
                     text: "Enable Notifications",
                     isOn: $settings.enableNotifications

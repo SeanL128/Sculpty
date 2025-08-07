@@ -16,7 +16,7 @@ struct OptionsPickerRow<PopupContent: View>: View {
     var onDismiss: (() -> Void)?
     
     var body: some View {
-        HStack(alignment: .center) {
+        HStack(alignment: .center, spacing: .spacingXS) {
             Text(title)
                 .bodyText()
             

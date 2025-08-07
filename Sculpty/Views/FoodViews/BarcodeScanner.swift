@@ -126,8 +126,7 @@ struct BarcodeScanner: View {
                             }
                         }
                     }
-                    .padding(.top, .spacingM)
-                    .padding(.bottom, .spacingS)
+                    .padding(.vertical, .spacingM)
                     .padding(.horizontal, .spacingL)
                     .background(ColorManager.background)
                     
@@ -359,6 +358,9 @@ struct BarcodeScanner: View {
                 coordinator.onPhotoCaptured = nil
                 
                 cooldownTimer?.invalidate()
+                cooldownTimer = nil
+                
+                api.resetState()
             }
             .onChange(of: foodAdded) {
                 if foodAdded {
@@ -378,7 +380,7 @@ struct BarcodeScanner: View {
             let now = Date()
             let timeSinceLastScan = now.timeIntervalSince(lastScanTime)
             
-            if timeSinceLastScan < 1.0 {
+            if timeSinceLastScan < 1.5 {
                 return
             }
             
@@ -388,20 +390,25 @@ struct BarcodeScanner: View {
             isScanning = false
         }
         
+        api.cancelAllOperations()
+        
         Task {
             await lookupBarcode(barcode)
+            
+            isScanning = true
         }
     }
     
     private func startCooldownTimer() {
         cooldownTimer?.invalidate()
         
-        cooldownTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+        cooldownTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
             let now = Date()
             let timeSinceLastScan = now.timeIntervalSince(lastScanTime)
             
-            if timeSinceLastScan >= 1.0 {
-                cooldownTimer?.invalidate()
+            if timeSinceLastScan >= 1.5 {
+                timer.invalidate()
+                
                 cooldownTimer = nil
             }
         }
@@ -472,6 +479,8 @@ struct BarcodeScanner: View {
     
     @MainActor
     private func lookupBarcode(_ barcode: String) async {
+        api.resetState()
+        
         api.isLoading = true
         api.loaded = false
         
@@ -498,8 +507,6 @@ struct BarcodeScanner: View {
             
             if isBatchMode {
                 showingErrorPopup = true
-            } else {
-                isScanning = false
             }
             
             Popup.show(content: {

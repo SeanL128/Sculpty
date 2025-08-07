@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SmallToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
-        HStack(alignment: .center) {
+        HStack(alignment: .center, spacing: .spacingXS) {
             configuration.label
             
             Spacer()

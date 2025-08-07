@@ -39,8 +39,8 @@ struct HomeMeasurementSection: View {
             
             VStack(alignment: .center, spacing: .spacingS) {
                 if !measurements.isEmpty {
-                    ForEach(0..<min(measurements.count, 3), id: \.self) { index in
-                        HomeMeasusrementRow(measurement: measurements[index])
+                    ForEach(Array(measurements.prefix(3)), id: \.id) { measurement in
+                        HomeMeasusrementRow(measurement: measurement)
                     }
                 } else {
                     VStack(alignment: .center, spacing: .spacingXS) {

@@ -61,7 +61,9 @@ struct ExerciseInfo: View {
     var body: some View {
         ContainerView(title: "Exercise Info", spacing: .spacingXXL, onDismiss: {
             if !workoutExercise.sets.isEmpty {
-                save(false)
+                Task {
+                    await save(false)
+                }
             }
         }) {
             VStack(alignment: .leading, spacing: .spacingXL) {
@@ -235,9 +237,9 @@ struct ExerciseInfo: View {
         }
     }
     
-    private func save() { save(true) }
+    private func save() async { await save(true) }
     
-    private func save(_ dismissAfter: Bool = true) {
+    private func save(_ dismissAfter: Bool = true) async {
         if !sortedSets.isEmpty {
             workoutExercise.exercise = exercise
             

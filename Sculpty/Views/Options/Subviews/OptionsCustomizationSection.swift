@@ -14,7 +14,7 @@ struct OptionsCustomizationSection: View {
         VStack(alignment: .leading, spacing: .spacingS) {
             OptionsSectionHeader(title: "Customization", image: "paintbrush.pointed.fill")
             
-            VStack(alignment: .leading, spacing: .spacingS) {
+            VStack(alignment: .leading, spacing: .listSpacing) {
                 HStack {
                     Text("Accent Color")
                         .bodyText()

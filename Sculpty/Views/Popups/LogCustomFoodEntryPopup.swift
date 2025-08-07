@@ -225,7 +225,7 @@ struct LogCustomFoodEntryPopup: View {
         }
     }
     
-    private func save() {
+    private func save() async {
         if let entry = entry {
             entry.fatSecretFood = nil
             entry.customFood = customFood
