@@ -15,7 +15,8 @@ struct ChartDateRangeControl: View {
             selection: $selectedRangeIndex,
             options: [0, 1, 2, 3, 4],
             displayNames: ["Last 7 Days", "Last 30 Days", "Last 6 Months", "Last Year", "Last 5 Years"],
-            animate: false
+            animate: false,
+            minPremiumIndex: 2
         )
         .padding(.bottom, -.spacingS)
     }

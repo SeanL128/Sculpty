@@ -13,7 +13,7 @@ struct Onboarding: View {
     
     @EnvironmentObject private var settings: CloudSettings
     
-    @StateObject private var iCloudManager = iCloudBackupManager()
+    @StateObject private var iCloudManager: iCloudBackupManager = iCloudBackupManager()
     
     @State private var sectionsVisible: Bool = false
     

@@ -10,6 +10,8 @@ import SwiftUI
 struct OptionsNotificationsSection: View {
     @EnvironmentObject private var settings: CloudSettings
     
+    @StateObject private var storeManager: StoreKitManager = StoreKitManager.shared
+    
     @State private var tempCalorieTime = Date()
     
     @State private var tempMeasurementTime = Date()
@@ -40,17 +42,112 @@ struct OptionsNotificationsSection: View {
             OptionsSectionHeader(title: "Notifications", image: "bell")
             
             VStack(alignment: .leading, spacing: .listSpacing) {
-                OptionsToggleRow(
-                    text: "Enable Notifications",
-                    isOn: $settings.enableNotifications
-                )
-                .onChange(of: settings.enableNotifications) {
-                    if settings.enableNotifications {
-                        handleNotificationToggle()
+                if storeManager.hasPremiumAccess {
+                    OptionsToggleRow(
+                        text: "Enable Notifications",
+                        isOn: $settings.enableNotifications
+                    )
+                    .onChange(of: settings.enableNotifications) {
+                        if settings.enableNotifications {
+                            handleNotificationToggle()
+                        }
                     }
+                } else {
+                    NavigationLink {
+                        PurchasePremium()
+                    } label: {
+                        HStack(alignment: .center, spacing: .spacingXS) {
+                            HStack(alignment: .center, spacing: .spacingXS) {
+                                Text("Enable Notifications")
+                                    .bodyText()
+                                    .secondaryColor()
+                                
+                                Image(systemName: "crown.fill")
+                                    .bodyImage()
+                                    .accentColor()
+                            }
+                            
+                            Spacer()
+                            
+                            RoundedRectangle(cornerRadius: 40, style: .continuous)
+                                .stroke(ColorManager.border, lineWidth: 2)
+                                .frame(width: 45, height: 25)
+                                .background(ColorManager.background)
+                                .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+                                .overlay(alignment: .center) {
+                                    Circle()
+                                        .frame(width: 19, height: 19)
+                                        .foregroundStyle(ColorManager.text)
+                                        .offset(x: -9)
+                                }
+                        }
+                    }
+                    .hapticButton(.selection)
                 }
                 
-                if settings.enableNotifications {
+                if !storeManager.hasPremiumAccess {
+                    NavigationLink {
+                        PurchasePremium()
+                    } label: {
+                        HStack(alignment: .center, spacing: .spacingXS) {
+                            HStack(alignment: .center, spacing: .spacingXS) {
+                                Text("Daily Calorie Reminders")
+                                    .bodyText()
+                                    .secondaryColor()
+                                
+                                Image(systemName: "crown.fill")
+                                    .bodyImage()
+                                    .accentColor()
+                            }
+                            
+                            Spacer()
+                            
+                            RoundedRectangle(cornerRadius: 40, style: .continuous)
+                                .stroke(ColorManager.border, lineWidth: 2)
+                                .frame(width: 45, height: 25)
+                                .background(ColorManager.background)
+                                .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+                                .overlay(alignment: .center) {
+                                    Circle()
+                                        .frame(width: 19, height: 19)
+                                        .foregroundStyle(ColorManager.text)
+                                        .offset(x: -9)
+                                }
+                        }
+                    }
+                    .hapticButton(.selection)
+                    
+                    NavigationLink {
+                        PurchasePremium()
+                    } label: {
+                        HStack(alignment: .center, spacing: .spacingXS) {
+                            HStack(alignment: .center, spacing: .spacingXS) {
+                                Text("Weekly Measurement Reminders")
+                                    .bodyText()
+                                    .secondaryColor()
+                                
+                                Image(systemName: "crown.fill")
+                                    .bodyImage()
+                                    .accentColor()
+                            }
+                            
+                            Spacer()
+                            
+                            RoundedRectangle(cornerRadius: 40, style: .continuous)
+                                .stroke(ColorManager.border, lineWidth: 2)
+                                .frame(width: 45, height: 25)
+                                .background(ColorManager.background)
+                                .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+                                .overlay(alignment: .center) {
+                                    Circle()
+                                        .frame(width: 19, height: 19)
+                                        .foregroundStyle(ColorManager.text)
+                                        .offset(x: -9)
+                                }
+                        }
+                    }
+                    .hapticButton(.selection)
+                } else if settings.enableNotifications {
                     OptionsToggleRow(
                         text: "Daily Calorie Reminders",
                         isOn: $settings.enableCaloriesNotifications

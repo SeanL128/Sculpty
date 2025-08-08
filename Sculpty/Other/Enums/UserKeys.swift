@@ -12,6 +12,7 @@ enum UserKeys: String, CaseIterable {
     case dailyCalories = "DAILY_CALORIES"
     case enableAutoBackup = "ENABLE_AUTO_BACKUP"
     case enableHaptics = "ENABLE_HAPTICS"
+    case enableLiveActivities = "ENABLE_LIVE_ACTIVITIES"
     case enableToasts = "ENABLE_TOASTS"
     case gender = "GENDER"
     case includeWarmUp = "INCLUDE_WARM_UP"
@@ -25,6 +26,11 @@ enum UserKeys: String, CaseIterable {
     case showTempo = "SHOW_TEMPO"
     case targetWeeklyWorkouts = "TARGET_WEEKLY_WORKOUTS"
     case units = "UNITS"
+    
+    // FatSecret Limits
+    case lastNutritionResetDate = "LAST_NUTRITION_RESET_DATE"
+    case weeklyBarcodeScans = "WEEKLY_BARCODE_SCANS"
+    case weeklyNutritionSearches = "WEEKLY_NUTRITION_SEARCHES"
     
     // Notifications
     case enableNotifications = "ENABLE_NOTIFICATIONS"

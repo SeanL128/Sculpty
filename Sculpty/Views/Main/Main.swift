@@ -12,8 +12,9 @@ struct Main: View {
     @Environment(\.modelContext) private var context
     @EnvironmentObject private var settings: CloudSettings
     
-    @StateObject private var popupManager = PopupManager.shared
-    @StateObject private var toastManager = ToastManager.shared
+    @StateObject private var popupManager: PopupManager = PopupManager.shared
+    @StateObject private var toastManager: ToastManager = ToastManager.shared
+    @StateObject private var storeManager: StoreKitManager = StoreKitManager.shared
     
     @State private var hasPerformedLaunchTasks = false
     
@@ -93,27 +94,15 @@ struct Main: View {
     }
     
     private func performAppLaunchTasks() {
-        requestNotificationPermission()
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            NotificationManager.shared.scheduleAllNotifications()
+        if storeManager.hasPremiumAccess, settings.enableNotifications {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                NotificationManager.shared.scheduleAllNotifications()
+            }
         }
         
         Task {
             await MainActor.run {
                 performDataCleanup()
-            }
-        }
-    }
-    
-    private func requestNotificationPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
-            DispatchQueue.main.async {
-                if granted {
-                    settings.enableNotifications = true
-                } else {
-                    settings.enableNotifications = false
-                }
             }
         }
     }

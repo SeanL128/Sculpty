@@ -15,7 +15,8 @@ struct OptionsDataSection: View {
     
     @EnvironmentObject private var settings: CloudSettings
     
-    @StateObject private var iCloudManager = iCloudBackupManager()
+    @StateObject private var iCloudManager: iCloudBackupManager = iCloudBackupManager()
+    @StateObject private var storeManager: StoreKitManager = StoreKitManager.shared
     
     @State private var isCreatingBackup: Bool = false
     @State private var isCreatingWorkoutLogsCSV: Bool = false
@@ -40,7 +41,7 @@ struct OptionsDataSection: View {
                 VStack(alignment: .leading, spacing: .spacingM) {
                     VStack(alignment: .leading, spacing: .spacingS) {
                         OptionsButtonRow(
-                            title: isCreatingBackup ? "Creating Backup..." : "Backup Data Locally",
+                            title: isCreatingBackup ? "Creating Backup..." : "Create Local Backup",
                             isValid: !isCreating,
                             action: shareBackup,
                             feedback: .impact(weight: .medium)
@@ -50,7 +51,7 @@ struct OptionsDataSection: View {
                     VStack(alignment: .leading, spacing: .spacingS) {
                         if iCloudManager.isICloudAvailable {
                             OptionsButtonRow(
-                                title: iCloudManager.isBackingUp ? "Saving to iCloud..." : "Backup to iCloud",
+                                title: iCloudManager.isBackingUp ? "Saving to iCloud..." : "Create iCloud Backup",
                                 isValid: !isCreating,
                                 action: {
                                     Task {
@@ -65,19 +66,52 @@ struct OptionsDataSection: View {
                                 feedback: .impact(weight: .medium)
                             )
                             
-                            OptionsToggleRow(
-                                text: "Automatic iCloud Backups",
-                                isOn: $settings.enableAutoBackup
-                            )
-                            .onAppear {
-                                if settings.enableAutoBackup {
-                                    iCloudManager.setupAutoBackup(with: context.container)
+                            if storeManager.hasPremiumAccess {
+                                OptionsToggleRow(
+                                    text: "Automatic iCloud Backups",
+                                    isOn: $settings.enableAutoBackup
+                                )
+                                .onAppear {
+                                    if storeManager.hasPremiumAccess, settings.enableAutoBackup {
+                                        iCloudManager.setupAutoBackup(with: context.container)
+                                    }
                                 }
-                            }
-                            .onChange(of: settings.enableAutoBackup) {
-                                if settings.enableAutoBackup {
-                                    iCloudManager.setupAutoBackup(with: context.container)
+                                .onChange(of: settings.enableAutoBackup) {
+                                    if storeManager.hasPremiumAccess, settings.enableAutoBackup {
+                                        iCloudManager.setupAutoBackup(with: context.container)
+                                    }
                                 }
+                            } else {
+                                NavigationLink {
+                                    PurchasePremium()
+                                } label: {
+                                    HStack(alignment: .center, spacing: .spacingXS) {
+                                        HStack(alignment: .center, spacing: .spacingXS) {
+                                            Text("Automatic iCloud Backups")
+                                                .bodyText()
+                                                .secondaryColor()
+                                            
+                                            Image(systemName: "crown.fill")
+                                                .bodyImage()
+                                                .accentColor()
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        RoundedRectangle(cornerRadius: 40, style: .continuous)
+                                            .stroke(ColorManager.border, lineWidth: 2)
+                                            .frame(width: 45, height: 25)
+                                            .background(ColorManager.background)
+                                            .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+                                            .overlay(alignment: .center) {
+                                                Circle()
+                                                    .frame(width: 19, height: 19)
+                                                    .foregroundStyle(ColorManager.text)
+                                                    .offset(x: -9)
+                                            }
+                                    }
+                                }
+                                .hapticButton(.selection)
                             }
                         } else {
                             Text("iCloud not available")

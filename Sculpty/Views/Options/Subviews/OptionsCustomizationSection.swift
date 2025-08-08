@@ -26,18 +26,20 @@ struct OptionsCustomizationSection: View {
                             AccentColorMenuPopup(selection: $settings.accentColorHex)
                         })
                     } label: {
-                        HStack(alignment: .center, spacing: .spacingXS) {
+                        HStack(alignment: .center, spacing: .spacingS) {
                             Circle()
-                                .fill(Color(hex: settings.accentColorHex))
+                                .fill(Color.accentColor)
                                 .frame(width: 10, height: 10)
                             
-                            if let accent = AccentColor.fromHex(settings.accentColorHex) {
-                                Text(accent.rawValue)
-                                    .bodyText()
+                            HStack(alignment: .center, spacing: .spacingXS) {
+                                if let accent = AccentColor.fromHex(settings.accentColorHex) {
+                                    Text(accent.rawValue)
+                                        .bodyText()
+                                }
+                                
+                                Image(systemName: "chevron.up.chevron.down")
+                                    .captionText(weight: .bold)
                             }
-                            
-                            Image(systemName: "chevron.up.chevron.down")
-                                .captionText(weight: .bold)
                         }
                     }
                     .textColor()
@@ -52,6 +54,11 @@ struct OptionsCustomizationSection: View {
                 OptionsToggleRow(
                     text: "Enable Toasts",
                     isOn: $settings.enableToasts
+                )
+                
+                OptionsToggleRow(
+                    text: "Enable Live Activities",
+                    isOn: $settings.enableLiveActivities
                 )
             }
             .card()

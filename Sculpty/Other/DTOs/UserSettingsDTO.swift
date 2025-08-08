@@ -12,6 +12,7 @@ struct UserSettingsDTO: Codable {
     var dailyCalories: Int?
     var enableAutoBackup: Bool?
     var enableHaptics: Bool?
+    var enableLiveActivities: Bool?
     var enableToasts: Bool?
     var gender: String?
     var includeWarmUp: Bool?
@@ -25,6 +26,9 @@ struct UserSettingsDTO: Codable {
     var showTempo: Bool?
     var targetWeeklyWorkouts: Int?
     var units: String?
+    var lastNutritionResetDate: Date?
+    var weeklyBarcodeScans: Int?
+    var weeklyNutritionSearches: Int?
     var enableNotifications: Bool?
     var enableCaloriesNotifications: Bool?
     var calorieReminderHour: Int?
@@ -39,6 +43,7 @@ struct UserSettingsDTO: Codable {
         self.dailyCalories = settings.dailyCalories
         self.enableAutoBackup = settings.enableAutoBackup
         self.enableHaptics = settings.enableHaptics
+        self.enableLiveActivities = settings.enableLiveActivities
         self.enableToasts = settings.enableToasts
         self.gender = settings.gender
         self.includeWarmUp = settings.includeWarmUp
@@ -52,6 +57,9 @@ struct UserSettingsDTO: Codable {
         self.showTempo = settings.showTempo
         self.targetWeeklyWorkouts = settings.targetWeeklyWorkouts
         self.units = settings.units
+        self.lastNutritionResetDate = settings.lastNutritionResetDate
+        self.weeklyBarcodeScans = settings.weeklyBarcodeScans
+        self.weeklyNutritionSearches = settings.weeklyNutritionSearches
         self.enableNotifications = settings.enableNotifications
         self.enableCaloriesNotifications = settings.enableCaloriesNotifications
         self.calorieReminderHour = settings.calorieReminderHour
@@ -77,6 +85,10 @@ struct UserSettingsDTO: Codable {
         
         if let enableHaptics = enableHaptics {
             settings.enableHaptics = enableHaptics
+        }
+        
+        if let enableLiveActivities = enableLiveActivities {
+            settings.enableLiveActivities = enableLiveActivities
         }
         
         if let enableToasts = enableToasts {
@@ -139,11 +151,11 @@ struct UserSettingsDTO: Codable {
             settings.enableCaloriesNotifications = enableCaloriesNotifications
         }
         
-        if let calorieReminderHour = settings.calorieReminderHour {
+        if let calorieReminderHour = calorieReminderHour {
             settings.calorieReminderHour = calorieReminderHour
         }
         
-        if let calorieReminderMinute = settings.calorieReminderMinute {
+        if let calorieReminderMinute = calorieReminderMinute {
             settings.calorieReminderMinute = calorieReminderMinute
         }
         
@@ -151,16 +163,28 @@ struct UserSettingsDTO: Codable {
             settings.enableMeasurementsNotifications = enableMeasurementsNotifications
         }
         
-        if let measurementReminderWeekdayIndex = settings.measurementReminderWeekday {
+        if let measurementReminderWeekdayIndex = measurementReminderWeekday {
             settings.measurementReminderWeekday = measurementReminderWeekdayIndex
         }
         
-        if let measurementReminderHour = settings.measurementReminderHour {
+        if let measurementReminderHour = measurementReminderHour {
             settings.measurementReminderHour = measurementReminderHour
         }
         
-        if let measurementReminderMinute = settings.measurementReminderMinute {
+        if let measurementReminderMinute = measurementReminderMinute {
             settings.measurementReminderMinute = measurementReminderMinute
+        }
+        
+        if let lastNutritionResetDate = lastNutritionResetDate {
+            settings.lastNutritionResetDate = lastNutritionResetDate
+        }
+        
+        if let weeklyBarcodeScans = weeklyBarcodeScans {
+            settings.weeklyBarcodeScans = weeklyBarcodeScans
+        }
+        
+        if let weeklyNutritionSearches = weeklyNutritionSearches {
+            settings.weeklyNutritionSearches = weeklyNutritionSearches
         }
     }
 }

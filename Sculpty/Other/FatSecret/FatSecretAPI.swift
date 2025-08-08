@@ -9,7 +9,7 @@ import Foundation
 
 @MainActor
 class FatSecretAPI: ObservableObject {
-    private let baseURL = "https://sculpty-api.up.railway.app"
+    private let baseURL = "https://api.sculpty.app"
     
     @Published var isLoading: Bool = false
     @Published var loaded: Bool = false
@@ -17,7 +17,9 @@ class FatSecretAPI: ObservableObject {
     private var activeOperations: Set<String> = []
     
     func searchFoods(_ query: String) async throws -> [FatSecretFood] {
-        guard !query.isEmpty else { return [] }
+        CloudSettings.shared.checkAndResetWeeklyUsage()
+        
+        guard StoreKitManager.shared.canPerformNutritionSearch, !query.isEmpty else { return [] }
         
         let operationId = "search_\(query.hashValue)"
         
@@ -35,6 +37,10 @@ class FatSecretAPI: ObservableObject {
         
         let (data, _) = try await URLSession.shared.data(from: url)
         let response = try JSONDecoder().decode(FatSecretSearchResponse.self, from: data)
+        
+        if !StoreKitManager.shared.hasPremiumAccess {
+            CloudSettings.shared.weeklyNutritionSearches += 1
+        }
         
         return response.foods?.food ?? []
     }
@@ -71,6 +77,12 @@ class FatSecretAPI: ObservableObject {
             throw BarcodeError.invalidBarcode
         }
         
+        CloudSettings.shared.checkAndResetWeeklyUsage()
+        
+        guard StoreKitManager.shared.canPerformBarcodeScans else {
+            throw BarcodeError.limitReached
+        }
+        
         let operationId = "barcode_\(barcode)"
         
         guard !activeOperations.contains(operationId) else {
@@ -96,6 +108,10 @@ class FatSecretAPI: ObservableObject {
         }
         
         let barcodeResponse = try JSONDecoder().decode(BarcodeResponse.self, from: data)
+        
+        if !StoreKitManager.shared.hasPremiumAccess {
+            CloudSettings.shared.weeklyBarcodeScans += 1
+        }
         
         return barcodeResponse.toFatSecretFood()
     }

@@ -22,7 +22,7 @@ struct SmallToggleStyle: ToggleStyle {
                 RoundedRectangle(cornerRadius: 40, style: .continuous)
                     .stroke(ColorManager.border, lineWidth: 2)
                     .frame(width: 45, height: 25)
-                    .background(configuration.isOn ? ColorManager.accent : ColorManager.background)
+                    .background(configuration.isOn ? Color.accentColor : ColorManager.background)
                     .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
                     .overlay(alignment: .center) {
                         Circle()

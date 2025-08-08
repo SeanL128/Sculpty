@@ -110,3 +110,6 @@ let defaultExercises = [
     Exercise(name: "Walking", muscleGroup: .cardio, type: .distance),
     Exercise(name: "Running", muscleGroup: .cardio, type: .distance)
 ]
+
+let maxWeeklyNutritionSearches = 30
+let maxWeeklyBarcodeScans = 5

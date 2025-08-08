@@ -38,7 +38,7 @@ struct AcknowledgementsPopup: View {
                         .padding(.horizontal, .spacingL)
                 }
                 .textColor()
-                .background(ColorManager.accent)
+                .background(Color.accentColor)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .animatedButton(feedback: .selection)
             }

@@ -105,7 +105,7 @@ extension View {
     }
     
     func accentColor() -> some View {
-        self.foregroundStyle(ColorManager.accent)
+        self.foregroundStyle(Color.accentColor)
     }
     
     func backgroundColor() -> some View {

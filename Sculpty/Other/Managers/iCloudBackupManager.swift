@@ -132,6 +132,8 @@ class iCloudBackupManager: ObservableObject {
     private var modelContainer: ModelContainer?
     
     func setupAutoBackup(with container: ModelContainer) {
+        guard StoreKitManager.shared.hasPremiumAccess else { return }
+        
         self.modelContainer = container
         
         NotificationCenter.default.addObserver(
@@ -146,7 +148,8 @@ class iCloudBackupManager: ObservableObject {
     }
     
     private func performAutoBackupIfNeeded() async {
-        guard CloudSettings.shared.enableAutoBackup,
+        guard StoreKitManager.shared.hasPremiumAccess,
+              CloudSettings.shared.enableAutoBackup,
               let container = modelContainer else { return }
         
         let lastBackupTime = UserDefaults.standard.double(forKey: "LAST_AUTO_BACKUP_TIME")

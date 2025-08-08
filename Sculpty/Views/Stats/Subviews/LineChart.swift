@@ -61,7 +61,7 @@ struct LineChart: View {
                             )
                             .foregroundStyle(
                                 LinearGradient(
-                                    colors: [ColorManager.accent.opacity(0.2), .clear],
+                                    colors: [Color.accentColor.opacity(0.2), .clear],
                                     startPoint: .top,
                                     endPoint: .bottom
                                 )
@@ -71,7 +71,7 @@ struct LineChart: View {
                                 x: .value("Date", item.date),
                                 y: .value("Value", item.value)
                             )
-                            .foregroundStyle(ColorManager.accent)
+                            .foregroundStyle(Color.accentColor)
                             
                             if selectedRangeIndex <= 1,
                                animationStates[item.date] == true {
@@ -79,7 +79,7 @@ struct LineChart: View {
                                     x: .value("Date", item.date),
                                     y: .value("Value", item.value)
                                 )
-                                .foregroundStyle(ColorManager.accent)
+                                .foregroundStyle(Color.accentColor)
                                 .symbolSize(24)
                             }
                         }

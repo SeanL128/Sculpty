@@ -8,6 +8,10 @@
 import SwiftUI
 
 struct OptionsAboutSection: View {
+    @Environment(\.dismiss) private var dismiss
+    
+    @StateObject private var storeManager: StoreKitManager = StoreKitManager.shared
+    
     var body: some View {
         VStack(alignment: .leading, spacing: .spacingS) {
             OptionsSectionHeader(title: "About", image: "info.circle")
@@ -15,33 +19,49 @@ struct OptionsAboutSection: View {
             HStack {
                 VStack(alignment: .leading, spacing: .spacingM) {
                     VStack(alignment: .leading, spacing: .spacingS) {
-                        OptionsButtonRow(
-                            title: "Upgrade",
-                            isValid: true,
-                            action: {
-                                Popup.show(content: {
-                                    InfoPopup(
-                                        title: "N/A",
-                                        text: "This feature is in development and will be made available at a later date." // swiftlint:disable:this line_length
-                                    )
-                                })
-                            },
-                            feedback: .selection
-                        )
-                        
-                        OptionsButtonRow(
-                            title: "Restore Purchases",
-                            isValid: true,
-                            action: {
-                                Popup.show(content: {
-                                    InfoPopup(
-                                        title: "N/A",
-                                        text: "This feature is in development and will be made available at a later date." // swiftlint:disable:this line_length
-                                    )
-                                })
-                            },
-                            feedback: .selection
-                        )
+                        if !storeManager.hasPremiumAccess {
+                            NavigationLink {
+                                PurchasePremium()
+                            } label: {
+                                HStack(alignment: .center, spacing: .spacingXS) {
+                                    Text("Upgrade")
+                                        .bodyText()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .bodyImage()
+                                }
+                            }
+                            .foregroundStyle(ColorManager.text)
+                            .hapticButton(.selection)
+                            
+                            OptionsButtonRow(
+                                title: "Restore Purchases",
+                                isValid: true,
+                                action: {
+                                    Task {
+                                        await storeManager.restorePurchases()
+                                        
+                                        dismiss()
+                                    }
+                                },
+                                feedback: .selection
+                            )
+                        } else {
+                            VStack(alignment: .leading, spacing: .spacingXS) {
+                                HStack(alignment: .center, spacing: .spacingS) {
+                                    Text("Premium Activated")
+                                        .bodyText(weight: .regular)
+                                    
+                                    Image(systemName: "crown.fill")
+                                        .bodyImage()
+                                }
+                                .accentColor()
+                                
+                                Text("Thank you for supporting Sculpty!")
+                                    .secondaryText()
+                                    .secondaryColor()
+                            }
+                        }
                     }
                     
                     VStack(alignment: .leading, spacing: .spacingS) {
@@ -95,7 +115,7 @@ struct OptionsAboutSection: View {
                     
                     if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
                        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
-                        Text("Version \(version) Build \(build)")
+                        Text("Version \(version) (\(build))")
                             .secondaryText()
                     }
                 }

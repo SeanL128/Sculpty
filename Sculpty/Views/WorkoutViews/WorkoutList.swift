@@ -9,8 +9,6 @@ import SwiftUI
 import SwiftData
 
 struct WorkoutList: View {
-    @Environment(\.modelContext) private var contexst
-    
     @Query(
         filter: #Predicate<Workout> { $0.index >= 0 && !$0.hidden },
         sort: \Workout.index
@@ -38,7 +36,7 @@ struct WorkoutList: View {
                     Image(systemName: "chevron.up.chevron.down")
                         .bodyText()
                 }
-                .foregroundStyle(editing ? ColorManager.accent : ColorManager.text)
+                .foregroundStyle(editing ? Color.accentColor : ColorManager.text)
                 .animatedButton()
                 .animation(.easeInOut(duration: 0.3), value: editing)
             }

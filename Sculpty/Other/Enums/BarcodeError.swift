@@ -11,6 +11,7 @@ enum BarcodeError: LocalizedError {
     case invalidBarcode
     case barcodeNotFound
     case serverError(String)
+    case limitReached
     
     var errorDescription: String? {
         switch self {
@@ -20,6 +21,8 @@ enum BarcodeError: LocalizedError {
             return "Barcode not found in database"
         case .serverError(let message):
             return "Server error: \(message)"
+        case .limitReached:
+            return "You have reached your weekly limit for barcode scans."
         }
     }
 }

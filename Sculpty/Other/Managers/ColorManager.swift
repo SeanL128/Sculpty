@@ -17,7 +17,7 @@ final class ColorManager {
     static let raisedSurface: Color = Color("RaisedSurfaceColor")
     static let border: Color = Color("BorderColor")
     
-    static let accent: Color = Color(hex: CloudSettings.shared.accentColorHex)
+    static let warning: Color = Color("WarningColor")
     static let destructive: Color = Color("DestructiveColor")
     
     static let carbs: Color = Color("CarbsColor")

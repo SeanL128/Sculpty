@@ -19,6 +19,7 @@ struct BarcodeScanner: View {
     
     @StateObject private var coordinator: BarcodeScannerCoordinator = BarcodeScannerCoordinator()
     @StateObject private var api: FatSecretAPI = FatSecretAPI()
+    @StateObject private var storeManager: StoreKitManager = StoreKitManager.shared
     
     @State private var isScanning: Bool = true
     @State private var showingErrorPopup = false
@@ -374,6 +375,14 @@ struct BarcodeScanner: View {
     }
     
     private func handleBarcodeDetected(_ barcode: String) {
+        guard storeManager.canPerformBarcodeScans else {
+            Popup.show(content: {
+                InfoPopup(title: "Limit Reached", text: "You have reached your weekly limit for barcode scans.")
+            })
+            
+            return
+        }
+        
         guard isScanning && !showBatchList && !showingErrorPopup else { return }
         
         if isBatchMode {
@@ -415,6 +424,16 @@ struct BarcodeScanner: View {
     }
     
     private func handlePhotoCaptured(_ image: UIImage) {
+        guard storeManager.canPerformBarcodeScans else {
+            showingErrorPopup = true
+            
+            Popup.show(content: {
+                InfoPopup(title: "Limit Reached", text: "You have reached your weekly limit for barcode scans.")
+            }, onDismiss: { showingErrorPopup = false })
+            
+            return
+        }
+        
         isCapturingPhoto = true
         
         guard let cgImage = image.cgImage else {

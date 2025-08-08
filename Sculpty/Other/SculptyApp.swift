@@ -18,6 +18,9 @@ struct SculptyApp: App {
     
     init() {
         IQKeyboardManager.shared.resignOnTouchOutside = true
+        
+        _ = StoreKitManager.shared
+        CloudSettings.shared.checkAndResetWeeklyUsage()
     }
     
     var modelContainer: ModelContainer = {

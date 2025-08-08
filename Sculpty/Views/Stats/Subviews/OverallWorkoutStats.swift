@@ -216,7 +216,7 @@ struct OverallWorkoutStats: View {
                                         )
                                         .foregroundStyle(
                                             LinearGradient(
-                                                colors: [ColorManager.accent, ColorManager.accent.opacity(0.8)],
+                                                colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
                                                 startPoint: .top,
                                                 endPoint: .bottom
                                             )
@@ -346,7 +346,8 @@ struct OverallWorkoutStats: View {
                                     "Last 6 Months",
                                     "Last Year"
                                 ],
-                                animate: false
+                                animate: false,
+                                minPremiumIndex: 1
                             )
                         }
                     }

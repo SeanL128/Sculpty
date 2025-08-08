@@ -54,8 +54,9 @@ class NotificationManager {
         }
     }
     
+    @MainActor
     func scheduleAllNotifications() {
-        guard CloudSettings.shared.enableNotifications else { return }
+        guard StoreKitManager.shared.hasPremiumAccess, CloudSettings.shared.enableNotifications else { return }
         
         if CloudSettings.shared.enableCaloriesNotifications {
             scheduleDailyCalorieReminders()
@@ -66,34 +67,48 @@ class NotificationManager {
         }
     }
     
+    @MainActor
     func enableNotifications() {
-        scheduleAllNotifications()
+        if StoreKitManager.shared.hasPremiumAccess {
+            scheduleAllNotifications()
+        }
     }
     
     func disableNotifications() {
         cancelAllNotifications()
     }
     
+    @MainActor
     func enableCaloriesNotifications() {
-        cancelCalorieNotifications()
-        scheduleDailyCalorieReminders()
+        if StoreKitManager.shared.hasPremiumAccess {
+            cancelCalorieNotifications()
+            
+            scheduleDailyCalorieReminders()
+        }
     }
     
     func disableCaloriesNotifications() {
         cancelCalorieNotifications()
     }
     
+    @MainActor
     func enableMeasurementsNotifications() {
-        cancelMeasurementNotifications()
-        scheduleWeeklyMeasurementReminders()
+        if StoreKitManager.shared.hasPremiumAccess {
+            cancelMeasurementNotifications()
+            
+            scheduleWeeklyMeasurementReminders()
+        }
     }
     
     func disableMeasurementsNotifications() {
         cancelMeasurementNotifications()
     }
     
+    @MainActor
     private func scheduleDailyCalorieReminders() {
-        guard CloudSettings.shared.enableCaloriesNotifications else { return }
+        guard StoreKitManager.shared.hasPremiumAccess,
+              CloudSettings.shared.enableNotifications,
+              CloudSettings.shared.enableCaloriesNotifications else { return }
         
         let calendar = Calendar.current
         let settings = CloudSettings.shared
@@ -136,8 +151,11 @@ class NotificationManager {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
     }
     
+    @MainActor
     private func scheduleWeeklyMeasurementReminders() {
-        guard CloudSettings.shared.enableMeasurementsNotifications else { return }
+        guard StoreKitManager.shared.hasPremiumAccess,
+              CloudSettings.shared.enableNotifications,
+              CloudSettings.shared.enableMeasurementsNotifications else { return }
         
         let settings = CloudSettings.shared
         
@@ -166,7 +184,10 @@ class NotificationManager {
         }
     }
     
+    @MainActor
     private func scheduleGentleReminder() {
+        guard StoreKitManager.shared.hasPremiumAccess, CloudSettings.shared.enableNotifications else { return }
+        
         let content = UNMutableNotificationContent()
         content.title = "How's your fitness journey going?"
         content.body = "Check your progress and start your next workout! 💪"

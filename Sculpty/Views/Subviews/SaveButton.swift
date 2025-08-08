@@ -38,7 +38,7 @@ struct SaveButton: View {
                 .padding(.horizontal, isSaving ? .spacingM : .spacingL)
             }
             .foregroundStyle(isValid && !isSaving ? ColorManager.text : ColorManager.secondary)
-            .background(isValid && !isSaving ? ColorManager.accent : ColorManager.secondary.opacity(0.3))
+            .background(isValid && !isSaving ? Color.accentColor : ColorManager.secondary.opacity(0.3))
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .disabled(!isValid || isSaving)
             .animatedButton(feedback: .success, isValid: isValid && !isSaving)

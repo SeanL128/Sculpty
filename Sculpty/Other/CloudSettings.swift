@@ -35,6 +35,7 @@ class CloudSettings: ObservableObject {
             UserKeys.dailyCalories.rawValue: 2000,
             UserKeys.enableAutoBackup.rawValue: false,
             UserKeys.enableHaptics.rawValue: true,
+            UserKeys.enableLiveActivities.rawValue: true,
             UserKeys.enableToasts.rawValue: true,
             UserKeys.gender.rawValue: "Male",
             UserKeys.includeWarmUp.rawValue: true,
@@ -48,11 +49,14 @@ class CloudSettings: ObservableObject {
             UserKeys.showTempo.rawValue: false,
             UserKeys.targetWeeklyWorkouts.rawValue: 3,
             UserKeys.units.rawValue: "Imperial",
-            UserKeys.enableNotifications.rawValue: true,
-            UserKeys.enableCaloriesNotifications.rawValue: true,
+            UserKeys.lastNutritionResetDate.rawValue: Date(),
+            UserKeys.weeklyBarcodeScans.rawValue: 0,
+            UserKeys.weeklyNutritionSearches.rawValue: 0,
+            UserKeys.enableNotifications.rawValue: false,
+            UserKeys.enableCaloriesNotifications.rawValue: false,
             UserKeys.calorieReminderHour.rawValue: 19,
             UserKeys.calorieReminderMinute.rawValue: 0,
-            UserKeys.enableMeasurementsNotifications.rawValue: true,
+            UserKeys.enableMeasurementsNotifications.rawValue: false,
             UserKeys.measurementReminderWeekday.rawValue: 1,
             UserKeys.measurementReminderHour.rawValue: 9,
             UserKeys.measurementReminderMinute.rawValue: 0
@@ -108,6 +112,7 @@ class CloudSettings: ObservableObject {
         get { userDefaults.string(forKey: UserKeys.accentColorHex.rawValue) ?? "#2563EB" }
         set {
             objectWillChange.send()
+            
             setValue(newValue, for: .accentColorHex)
         }
     }
@@ -249,6 +254,14 @@ class CloudSettings: ObservableObject {
         }
     }
     
+    var enableLiveActivities: Bool {
+        get { userDefaults.bool(forKey: UserKeys.enableLiveActivities.rawValue) }
+        set {
+            objectWillChange.send()
+            setValue(newValue, for: .enableLiveActivities)
+        }
+    }
+    
     var enableToasts: Bool {
         get { userDefaults.bool(forKey: UserKeys.enableToasts.rawValue) }
         set {
@@ -265,7 +278,9 @@ class CloudSettings: ObservableObject {
             setValue(newValue, for: .enableNotifications)
             
             if newValue {
-                NotificationManager.shared.enableNotifications()
+                Task { @MainActor in
+                    NotificationManager.shared.enableNotifications()
+                }
             } else {
                 NotificationManager.shared.disableNotifications()
             }
@@ -280,7 +295,9 @@ class CloudSettings: ObservableObject {
             setValue(newValue, for: .enableCaloriesNotifications)
             
             if newValue {
-                NotificationManager.shared.enableCaloriesNotifications()
+                Task { @MainActor in
+                    NotificationManager.shared.enableCaloriesNotifications()
+                }
             } else {
                 NotificationManager.shared.disableCaloriesNotifications()
             }
@@ -295,7 +312,9 @@ class CloudSettings: ObservableObject {
             setValue(newValue, for: .enableMeasurementsNotifications)
             
             if newValue {
-                NotificationManager.shared.enableMeasurementsNotifications()
+                Task { @MainActor in
+                    NotificationManager.shared.enableMeasurementsNotifications()
+                }
             } else {
                 NotificationManager.shared.disableMeasurementsNotifications()
             }
@@ -312,7 +331,9 @@ class CloudSettings: ObservableObject {
             setValue(newValue ?? 19, for: .calorieReminderHour)
             
             if enableCaloriesNotifications {
-                NotificationManager.shared.enableCaloriesNotifications()
+                Task { @MainActor in
+                    NotificationManager.shared.enableCaloriesNotifications()
+                }
             }
         }
     }
@@ -327,7 +348,9 @@ class CloudSettings: ObservableObject {
             setValue(newValue ?? 0, for: .calorieReminderMinute)
             
             if enableCaloriesNotifications {
-                NotificationManager.shared.enableCaloriesNotifications()
+                Task { @MainActor in
+                    NotificationManager.shared.enableCaloriesNotifications()
+                }
             }
         }
     }
@@ -342,7 +365,9 @@ class CloudSettings: ObservableObject {
             setValue(newValue ?? 1, for: .measurementReminderWeekday)
             
             if enableMeasurementsNotifications {
-                NotificationManager.shared.enableMeasurementsNotifications()
+                Task { @MainActor in
+                    NotificationManager.shared.enableMeasurementsNotifications()
+                }
             }
         }
     }
@@ -357,7 +382,9 @@ class CloudSettings: ObservableObject {
             setValue(newValue ?? 9, for: .measurementReminderHour)
             
             if enableMeasurementsNotifications {
-                NotificationManager.shared.enableMeasurementsNotifications()
+                Task { @MainActor in
+                    NotificationManager.shared.enableMeasurementsNotifications()
+                }
             }
         }
     }
@@ -372,7 +399,9 @@ class CloudSettings: ObservableObject {
             setValue(newValue ?? 0, for: .measurementReminderMinute)
             
             if enableMeasurementsNotifications {
-                NotificationManager.shared.enableMeasurementsNotifications()
+                Task { @MainActor in
+                    NotificationManager.shared.enableMeasurementsNotifications()
+                }
             }
         }
     }
@@ -401,5 +430,51 @@ class CloudSettings: ObservableObject {
         measurementReminderWeekday = weekday
         measurementReminderHour = hour
         measurementReminderMinute = minute
+    }
+    
+    var weeklyNutritionSearches: Int {
+        get { userDefaults.integer(forKey: UserKeys.weeklyNutritionSearches.rawValue) }
+        set {
+            objectWillChange.send()
+            userDefaults.set(newValue, forKey: UserKeys.weeklyNutritionSearches.rawValue)
+        }
+    }
+    
+    var weeklyBarcodeScans: Int {
+        get { userDefaults.integer(forKey: UserKeys.weeklyBarcodeScans.rawValue) }
+        set {
+            objectWillChange.send()
+            userDefaults.set(newValue, forKey: UserKeys.weeklyBarcodeScans.rawValue)
+        }
+    }
+    
+    var lastNutritionResetDate: Date? {
+        get { userDefaults.object(forKey: UserKeys.lastNutritionResetDate.rawValue) as? Date }
+        set {
+            objectWillChange.send()
+            userDefaults.set(newValue, forKey: UserKeys.lastNutritionResetDate.rawValue)
+        }
+    }
+    
+    func checkAndResetWeeklyUsage() {
+        let now = Date()
+        
+        if lastNutritionResetDate == nil {
+            lastNutritionResetDate = now
+            return
+        }
+        
+        guard let lastReset = lastNutritionResetDate else { return }
+        
+        let calendar = Calendar.current
+        let weeksSinceReset = calendar.dateComponents([.weekOfYear], from: lastReset, to: now).weekOfYear ?? 0
+        
+        if weeksSinceReset >= 1 {
+            weeklyNutritionSearches = 0
+            weeklyBarcodeScans = 0
+            lastNutritionResetDate = now
+            
+            debugLog("Weekly usage counters reset")
+        }
     }
 }

@@ -13,6 +13,7 @@ struct SearchFood: View {
     @Environment(\.dismiss) private var dismiss
     
     @StateObject private var api: FatSecretAPI = FatSecretAPI()
+    @StateObject private var storeManager: StoreKitManager = StoreKitManager.shared
     
     @Query private var customFoods: [CustomFood]
     
@@ -40,7 +41,7 @@ struct SearchFood: View {
     @State private var looping: Bool = false
     
     private var hasResults: Bool {
-        !fatSecretResults.isEmpty || !customFoodResults.isEmpty
+        storeManager.canPerformNutritionSearch && (!fatSecretResults.isEmpty || !customFoodResults.isEmpty)
     }
     
     private var image: String {
@@ -48,6 +49,8 @@ struct SearchFood: View {
             return "exclamationmark.triangle"
         } else if hasResults {
             return ""
+        } else if !storeManager.canPerformNutritionSearch {
+            return "exclamationmark.magnifyingglass"
         } else {
             return "magnifyingglass"
         }
@@ -62,6 +65,8 @@ struct SearchFood: View {
             return "Loading..."
         } else if api.loaded {
             return "No results"
+        } else if !storeManager.canPerformNutritionSearch {
+            return "Limit reached"
         } else {
             return "Search for a food to begin"
         }
@@ -69,87 +74,97 @@ struct SearchFood: View {
     
     var body: some View {
         ContainerView(title: "Search Food", spacing: .spacingL, lazy: true, trailingItems: {
-            NavigationLink {
-                CustomFoodList(foodToAdd: $customFoodToAdd)
-            } label: {
-                Image(systemName: "list.bullet")
-                    .pageTitleImage()
+            if storeManager.hasPremiumAccess {
+                NavigationLink {
+                    CustomFoodList(foodToAdd: $customFoodToAdd)
+                } label: {
+                    Image(systemName: "list.bullet")
+                        .pageTitleImage()
+                }
+                .textColor()
+                .animatedButton(feedback: .selection)
             }
-            .textColor()
-            .animatedButton()
             
             NavigationLink {
-                BarcodeScanner(
-                    log: log,
-                    foodAdded: $foodAdded,
-                    foodToAdd: $fatSecretFoodToAdd,
-                    foodsToAdd: $fatSecretFoodsToAdd
-                )
+                if storeManager.canPerformBarcodeScans {
+                    BarcodeScanner(
+                        log: log,
+                        foodAdded: $foodAdded,
+                        foodToAdd: $fatSecretFoodToAdd,
+                        foodsToAdd: $fatSecretFoodsToAdd
+                    )
+                } else {
+                    PurchasePremium()
+                }
             } label: {
                 Image(systemName: "barcode.viewfinder")
                     .pageTitleImage()
             }
             .textColor()
-            .animatedButton()
+            .animatedButton(feedback: .selection)
         }) {
-            TextField("Search Foods", text: $searchInput)
-                .focused($isSearchFocused)
-                .textFieldStyle(
-                    UnderlinedTextFieldStyle(
-                        isFocused: Binding<Bool>(
-                            get: { isSearchFocused },
-                            set: { isSearchFocused = $0 }
-                        ),
-                        text: $searchInput
+            if storeManager.canPerformNutritionSearch {
+                TextField("Search Foods", text: $searchInput)
+                    .focused($isSearchFocused)
+                    .textFieldStyle(
+                        UnderlinedTextFieldStyle(
+                            isFocused: Binding<Bool>(
+                                get: { isSearchFocused },
+                                set: { isSearchFocused = $0 }
+                            ),
+                            text: $searchInput
+                        )
                     )
-                )
-                .padding(.bottom, .spacingXS)
-                .onChange(of: searchInput) { searchFoods() }
-            
-            if hasResults {
-                VStack(alignment: .leading, spacing: .listSpacing) {
-                    ForEach(customFoodResults, id: \.id) { food in
-                        Button {
-                            customFoodToAdd = food
-                        } label: {
-                            HStack(alignment: .center, spacing: .spacingXS) {
-                                Text(food.name)
-                                    .bodyText(weight: .regular)
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
-                                
-                                Image(systemName: "chevron.right")
-                                    .bodyImage()
+                    .padding(.bottom, .spacingXS)
+                    .onChange(of: searchInput) { searchFoods() }
+                
+                if hasResults {
+                    VStack(alignment: .leading, spacing: .listSpacing) {
+                        if storeManager.hasPremiumAccess {
+                            ForEach(customFoodResults, id: \.id) { food in
+                                Button {
+                                    customFoodToAdd = food
+                                } label: {
+                                    HStack(alignment: .center, spacing: .spacingXS) {
+                                        Text(food.name)
+                                            .bodyText(weight: .regular)
+                                            .lineLimit(1)
+                                            .truncationMode(.tail)
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .bodyImage()
+                                    }
+                                }
+                                .textColor()
+                                .hapticButton(.selection)
+                                .transition(.asymmetric(
+                                    insertion: .opacity.combined(with: .move(edge: .leading)),
+                                    removal: .opacity.combined(with: .move(edge: .trailing))
+                                ))
                             }
                         }
-                        .textColor()
-                        .hapticButton(.selection)
-                        .transition(.asymmetric(
-                            insertion: .opacity.combined(with: .move(edge: .leading)),
-                            removal: .opacity.combined(with: .move(edge: .trailing))
-                        ))
-                    }
-                    
-                    ForEach(fatSecretResults, id: \.food_id) { food in
-                        Button {
-                            fatSecretFoodToAdd = food
-                        } label: {
-                            HStack(alignment: .center, spacing: .spacingXS) {
-                                Text("\(food.food_name)\(food.brand_name == nil ? "" : " (\(food.brand_name ?? ""))")")
-                                    .bodyText(weight: .regular)
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
-                                
-                                Image(systemName: "chevron.right")
-                                    .bodyImage()
+                        
+                        ForEach(fatSecretResults, id: \.food_id) { food in
+                            Button {
+                                fatSecretFoodToAdd = food
+                            } label: {
+                                HStack(alignment: .center, spacing: .spacingXS) {
+                                    Text("\(food.food_name)\(food.brand_name == nil ? "" : " (\(food.brand_name ?? ""))")") // swiftlint:disable:this line_length
+                                        .bodyText(weight: .regular)
+                                        .lineLimit(1)
+                                        .truncationMode(.tail)
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .bodyImage()
+                                }
                             }
+                            .textColor()
+                            .hapticButton(.selection)
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .move(edge: .leading)),
+                                removal: .opacity.combined(with: .move(edge: .trailing))
+                            ))
                         }
-                        .textColor()
-                        .hapticButton(.selection)
-                        .transition(.asymmetric(
-                            insertion: .opacity.combined(with: .move(edge: .leading)),
-                            removal: .opacity.combined(with: .move(edge: .trailing))
-                        ))
                     }
                 }
             }
@@ -168,19 +183,36 @@ struct SearchFood: View {
                                 .bodyText(weight: .bold)
                                 .textColor()
                             
-                            NavigationLink {
-                                AddCustomFood(foodToAdd: $customFoodToAdd)
-                            } label: {
-                                HStack(alignment: .center, spacing: .spacingXS) {
-                                    Text("Add Custom Food")
-                                        .bodyText(weight: .regular)
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .bodyImage()
+                            if storeManager.hasPremiumAccess {
+                                NavigationLink {
+                                    AddCustomFood(foodToAdd: $customFoodToAdd)
+                                } label: {
+                                    HStack(alignment: .center, spacing: .spacingXS) {
+                                        Text("Add Custom Food")
+                                            .bodyText(weight: .regular)
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .bodyImage()
+                                    }
                                 }
+                                .textColor()
+                                .animatedButton()
+                            } else {
+                                NavigationLink {
+                                    PurchasePremium()
+                                } label: {
+                                    HStack(alignment: .center, spacing: .spacingXS) {
+                                        Text("Add Custom Food")
+                                            .bodyText(weight: .regular)
+                                            .secondaryColor()
+                                        
+                                        Image(systemName: "crown.fill")
+                                            .bodyImage()
+                                            .accentColor()
+                                    }
+                                }
+                                .hapticButton(.selection)
                             }
-                            .textColor()
-                            .animatedButton()
                             
                             Button {
                                 Popup.show(content: {
@@ -197,6 +229,37 @@ struct SearchFood: View {
                             }
                             .textColor()
                             .animatedButton(feedback: .selection)
+                        }
+                        
+                        if !storeManager.hasPremiumAccess {
+                            HStack(spacing: .spacingL) {
+                                UsageIndicator(
+                                    title: "Searches",
+                                    used: CloudSettings.shared.weeklyNutritionSearches,
+                                    total: maxWeeklyNutritionSearches
+                                )
+                                
+                                UsageIndicator(
+                                    title: "Scans",
+                                    used: CloudSettings.shared.weeklyBarcodeScans,
+                                    total: maxWeeklyBarcodeScans
+                                )
+                            }
+                            .padding(.spacingM)
+                            
+                            NavigationLink {
+                                PurchasePremium()
+                            } label: {
+                                HStack(alignment: .center, spacing: .spacingXS) {
+                                    Text("Upgrade")
+                                        .bodyText(weight: .regular)
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .bodyImage()
+                                }
+                            }
+                            .textColor()
+                            .hapticButton(.selection)
                         }
                     }
                     .padding(.top, .spacingXL)
@@ -215,32 +278,43 @@ struct SearchFood: View {
         }
         .onAppear {
             do {
-                let fatSecretFoods = try context.fetch(FetchDescriptor<FoodEntry>())
-                    .filter { $0.type == .fatSecret }
-                    .sorted { $0.date > $1.date }
-                    .compactMap { $0.fatSecretFood }
-                    .prefix(15)
-                
-                for food in fatSecretFoods where !recentFatSecretFoods.contains(where: { $0.food_id == food.food_id }) {
-                    recentFatSecretFoods.append(food)
+                if storeManager.canPerformNutritionSearch {
+                    let fatSecretFoods = try context.fetch(FetchDescriptor<FoodEntry>())
+                        .filter { $0.type == .fatSecret }
+                        .sorted { $0.date > $1.date }
+                        .compactMap { $0.fatSecretFood }
+                        .prefix(15)
+                    
+                    for food in fatSecretFoods where !recentFatSecretFoods.contains(where: {
+                        $0.food_id == food.food_id
+                    }) {
+                        recentFatSecretFoods.append(food)
+                    }
                 }
                 
-                let customFoods = try context.fetch(FetchDescriptor<FoodEntry>())
-                    .filter { $0.type == .custom && $0.customFood?.hidden == false }
-                    .sorted { $0.date > $1.date }
-                    .compactMap { $0.customFood }
-                    .prefix(15)
-                
-                for food in customFoods where !recentCustomFoods.contains(where: { $0.id == food.id }) {
-                    recentCustomFoods.append(food)
+                if storeManager.hasPremiumAccess {
+                    let customFoods = try context.fetch(FetchDescriptor<FoodEntry>())
+                        .filter { $0.type == .custom && $0.customFood?.hidden == false }
+                        .sorted { $0.date > $1.date }
+                        .compactMap { $0.customFood }
+                        .prefix(15)
+                    
+                    for food in customFoods where !recentCustomFoods.contains(where: { $0.id == food.id }) {
+                        recentCustomFoods.append(food)
+                    }
                 }
             } catch {
                 debugLog("Error: \(error.localizedDescription)")
             }
             
             if !hasResults {
-                customFoodResults = recentCustomFoods
-                fatSecretResults = recentFatSecretFoods
+                if storeManager.canPerformNutritionSearch {
+                    fatSecretResults = recentFatSecretFoods
+                }
+                
+                if storeManager.hasPremiumAccess {
+                    customFoodResults = recentCustomFoods
+                }
             }
             
             recentFoodsLoaded = true
@@ -337,6 +411,8 @@ struct SearchFood: View {
     }
     
     private func searchCustomFoods(_ query: String) async -> [CustomFood] {
+        guard storeManager.hasPremiumAccess else { return [] }
+        
         return await MainActor.run {
             return customFoods.search(query, by: \.name).sorted { $0.name < $1.name }
         }

@@ -12,6 +12,8 @@ struct AddCustomFood: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     
+    @StateObject private var storeManager: StoreKitManager = StoreKitManager.shared
+    
     @State private var food: CustomFood?
     
     @Binding private var foodToAdd: CustomFood?
@@ -29,6 +31,7 @@ struct AddCustomFood: View {
     @State private var dismissTrigger: Int = 0
     
     private var isValid: Bool {
+        storeManager.hasPremiumAccess &&
         !name.trimmingCharacters(in: .whitespaces).isEmpty &&
         servingOptions.contains(where: { !$0.desc.trimmingCharacters(in: .whitespaces).isEmpty })
     }
@@ -213,6 +216,8 @@ struct AddCustomFood: View {
     }
     
     private func save() async {
+        guard storeManager.hasPremiumAccess else { return }
+        
         let servings = servingOptions.filter { !$0.desc.trimmingCharacters(in: .whitespaces).isEmpty }
         
         if let food = food {

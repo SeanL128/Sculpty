@@ -13,6 +13,8 @@ struct PerformWorkout: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     
+    @EnvironmentObject private var settings: CloudSettings
+    
     let log: WorkoutLog
     
     @StateObject private var restTimer: RestTimer = RestTimer()
@@ -177,14 +179,16 @@ struct PerformWorkout: View {
                     totalTime = log.getLength()
                 }
                 
-                activityManager.registerActiveWorkout(log)
-                
-                if !activityManager.hasActiveLiveActivity {
-                    activityManager.startWorkoutActivity(for: log)
-                }
-                
-                activityUpdateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-                    activityManager.updateWorkoutActivity(for: log)
+                if settings.enableLiveActivities {
+                    activityManager.registerActiveWorkout(log)
+                    
+                    if !activityManager.hasActiveLiveActivity {
+                        activityManager.startWorkoutActivity(for: log)
+                    }
+                    
+                    activityUpdateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+                        activityManager.updateWorkoutActivity(for: log)
+                    }
                 }
                 
                 NotificationManager.shared.requestPermissionIfNeeded { granted in
