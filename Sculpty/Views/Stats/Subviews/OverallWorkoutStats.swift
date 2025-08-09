@@ -41,15 +41,18 @@ struct OverallWorkoutStats: View {
         }
         
         var streak = 0
-        var weekToCheck = currentWeekStart
         
         let currentWeekWorkouts = weeklyData[currentWeekStart] ?? 0.0
         if currentWeekWorkouts >= Double(settings.targetWeeklyWorkouts) {
             streak = 1
         }
         
+        var weekToCheck = currentWeekStart
+        
         while true {
-            weekToCheck = calendar.date(byAdding: .weekOfYear, value: -1, to: weekToCheck)! // swiftlint:disable:this line_length force_unwrapping
+            guard let week = calendar.date(byAdding: .weekOfYear, value: -1, to: weekToCheck) else { break }
+            
+            weekToCheck = week
             let weekWorkouts = weeklyData[weekToCheck] ?? 0.0
             
             if weekWorkouts >= Double(settings.targetWeeklyWorkouts) {
@@ -72,7 +75,6 @@ struct OverallWorkoutStats: View {
     @State private var isInteracting: Bool = false
     @State private var animationStates: [Date: Bool] = [:]
     
-    // swiftlint:disable force_unwrapping
     private var data: [BarChartData] {
         let calendar = Calendar.current
         
@@ -91,19 +93,19 @@ struct OverallWorkoutStats: View {
         switch selectedRangeIndex {
         case 0:
             numberOfPeriods = 4
-            startDate = calendar.date(byAdding: .weekOfYear, value: -numberOfPeriods + 1, to: today)!
+            startDate = calendar.date(byAdding: .weekOfYear, value: -numberOfPeriods + 1, to: today) ?? Date()
         case 1:
             numberOfPeriods = 12
-            startDate = calendar.date(byAdding: .weekOfYear, value: -numberOfPeriods + 1, to: today)!
+            startDate = calendar.date(byAdding: .weekOfYear, value: -numberOfPeriods + 1, to: today) ?? Date()
         case 2:
             numberOfPeriods = 6
-            startDate = calendar.date(byAdding: .month, value: -numberOfPeriods + 1, to: today)!
+            startDate = calendar.date(byAdding: .month, value: -numberOfPeriods + 1, to: today) ?? Date()
         case 3:
             numberOfPeriods = 12
-            startDate = calendar.date(byAdding: .month, value: -numberOfPeriods + 1, to: today)!
+            startDate = calendar.date(byAdding: .month, value: -numberOfPeriods + 1, to: today) ?? Date()
         default:
             numberOfPeriods = 4
-            startDate = calendar.date(byAdding: .weekOfYear, value: -numberOfPeriods + 1, to: today)!
+            startDate = calendar.date(byAdding: .weekOfYear, value: -numberOfPeriods + 1, to: today) ?? Date()
         }
         
         if groupByWeek {
@@ -124,7 +126,7 @@ struct OverallWorkoutStats: View {
             for _ in 0..<numberOfPeriods {
                 let value = weeklyData[currentWeekStart] ?? 0.0
                 result.append(BarChartData(date: currentWeekStart, value: value))
-                currentWeekStart = calendar.date(byAdding: .weekOfYear, value: 1, to: currentWeekStart)!
+                currentWeekStart = calendar.date(byAdding: .weekOfYear, value: 1, to: currentWeekStart) ?? Date()
             }
             
             return result.sorted { $0.date < $1.date }
@@ -132,7 +134,7 @@ struct OverallWorkoutStats: View {
             let monthlyData = Dictionary(grouping: dailyData) { (dateValue) in
                 let (date, _) = dateValue
                 let components = calendar.dateComponents([.year, .month], from: date)
-                return calendar.date(from: components)!
+                return calendar.date(from: components) ?? Date()
             }.mapValues { dateValuePairs in
                 dateValuePairs.reduce(0.0) { sum, pair in
                     sum + pair.value
@@ -140,7 +142,7 @@ struct OverallWorkoutStats: View {
             }
             
             let monthComponents = calendar.dateComponents([.year, .month], from: startDate)
-            let monthStartDate = calendar.date(from: monthComponents)!
+            let monthStartDate = calendar.date(from: monthComponents) ?? Date()
             
             var result: [BarChartData] = []
             var currentMonthStart = monthStartDate
@@ -148,13 +150,12 @@ struct OverallWorkoutStats: View {
             for _ in 0..<numberOfPeriods {
                 let value = monthlyData[currentMonthStart] ?? 0.0
                 result.append(BarChartData(date: currentMonthStart, value: value))
-                currentMonthStart = calendar.date(byAdding: .month, value: 1, to: currentMonthStart)!
+                currentMonthStart = calendar.date(byAdding: .month, value: 1, to: currentMonthStart) ?? Date()
             }
             
             return result.sorted { $0.date < $1.date }
         }
     }
-    // swiftlint:enable force_unwrapping
     
     private var labelIndexes: [Int] {
         switch selectedRangeIndex {
@@ -175,7 +176,7 @@ struct OverallWorkoutStats: View {
     var body: some View {
         VStack(alignment: .leading) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: .spacingL) {
                     // Consistency
                     VStack(alignment: .leading, spacing: .spacingXS) {
                         Text("CONSISTENCY")

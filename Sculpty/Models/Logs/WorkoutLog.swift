@@ -48,16 +48,6 @@ class WorkoutLog: Identifiable {
         workout.started(date: start)
     }
     
-    func updateWorkoutLog() {
-        for exercise in workout?.exercises ?? [] where exerciseLogs.firstIndex(where: { $0.exercise?.id == exercise.id }) == -1 { // swiftlint:disable:this line_length
-            exerciseLogs.append(ExerciseLog(index: exercise.index, exercise: exercise))
-        }
-        
-        for exerciseLog in exerciseLogs where workout?.exercises.firstIndex(where: { $0.id == exerciseLog.exercise?.id }) == -1 { // swiftlint:disable:this line_length
-            exerciseLogs.remove(at: exerciseLogs.firstIndex(of: exerciseLog)!) // swiftlint:disable:this line_length force_unwrapping
-        }
-    }
-    
     func startWorkout() {
         start = Date()
         started = true

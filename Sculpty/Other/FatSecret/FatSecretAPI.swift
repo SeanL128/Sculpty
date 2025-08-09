@@ -33,16 +33,26 @@ class FatSecretAPI: ObservableObject {
             activeOperations.remove(operationId)
         }
         
-        let url = URL(string: "\(baseURL)/search?q=\(query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")! // swiftlint:disable:this line_length force_unwrapping
-        
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let response = try JSONDecoder().decode(FatSecretSearchResponse.self, from: data)
-        
-        if !StoreKitManager.shared.hasPremiumAccess {
-            CloudSettings.shared.weeklyNutritionSearches += 1
+        guard let url = URL(string: "\(baseURL)/search?q=\(query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")") else { // swiftlint:disable:this line_length
+            throw APIError.invalidURL
         }
         
-        return response.foods?.food ?? []
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let response = try JSONDecoder().decode(FatSecretSearchResponse.self, from: data)
+            
+            if !StoreKitManager.shared.hasPremiumAccess {
+                CloudSettings.shared.weeklyNutritionSearches += 1
+            }
+            
+            return response.foods?.food ?? []
+        } catch {
+            await MainActor.run {
+                Toast.show("Unable to search. Please check your connection.", "wifi.slash")
+            }
+            
+            throw error
+        }
     }
     
     func getFoodDetails(_ foodId: String) async throws -> FoodDetail {
@@ -58,12 +68,22 @@ class FatSecretAPI: ObservableObject {
             activeOperations.remove(operationId)
         }
         
-        let url = URL(string: "\(baseURL)/food/\(foodId)")! // swiftlint:disable:this force_unwrapping
+        guard let url = URL(string: "\(baseURL)/food/\(foodId)") else {
+            throw APIError.invalidURL
+        }
         
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let response = try JSONDecoder().decode(FatSecretFoodDetail.self, from: data)
-        
-        return response.food
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let response = try JSONDecoder().decode(FatSecretFoodDetail.self, from: data)
+            
+            return response.food
+        } catch {
+            await MainActor.run {
+                Toast.show("Unable to load food details.", "exclamationmark.triangle")
+            }
+            
+            throw error
+        }
     }
     
     func getServingOptions(for food: FatSecretFood) async throws -> [Serving] {
@@ -95,25 +115,37 @@ class FatSecretAPI: ObservableObject {
             activeOperations.remove(operationId)
         }
         
-        let url = URL(string: "\(baseURL)/barcode/\(barcode)")! // swiftlint:disable:this force_unwrapping
+        guard let url = URL(string: "\(baseURL)/barcode/\(barcode)") else {
+            throw APIError.invalidURL
+        }
         
-        let (data, response) = try await URLSession.shared.data(from: url)
-        
-        if let httpResponse = response as? HTTPURLResponse {
-            if httpResponse.statusCode == 404 {
-                throw BarcodeError.barcodeNotFound
-            } else if httpResponse.statusCode != 200 {
-                throw BarcodeError.serverError("HTTP \(httpResponse.statusCode)")
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 404 {
+                    throw BarcodeError.barcodeNotFound
+                } else if httpResponse.statusCode != 200 {
+                    throw BarcodeError.serverError("HTTP \(httpResponse.statusCode)")
+                }
             }
+            
+            let barcodeResponse = try JSONDecoder().decode(BarcodeResponse.self, from: data)
+            
+            if !StoreKitManager.shared.hasPremiumAccess {
+                CloudSettings.shared.weeklyBarcodeScans += 1
+            }
+            
+            return barcodeResponse.toFatSecretFood()
+        } catch {
+            if !(error is BarcodeError) {
+                await MainActor.run {
+                    Toast.show("Network error. Please try again.", "wifi.slash")
+                }
+            }
+            
+            throw error
         }
-        
-        let barcodeResponse = try JSONDecoder().decode(BarcodeResponse.self, from: data)
-        
-        if !StoreKitManager.shared.hasPremiumAccess {
-            CloudSettings.shared.weeklyBarcodeScans += 1
-        }
-        
-        return barcodeResponse.toFatSecretFood()
     }
     
     func cancelAllOperations() {

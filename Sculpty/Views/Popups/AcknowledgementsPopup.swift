@@ -17,9 +17,17 @@ struct AcknowledgementsPopup: View {
                     .multilineTextAlignment(.center)
                 
                 VStack(alignment: .center, spacing: .listSpacing) {
-                    Link("Lottie", destination: URL(string: "https://github.com/airbnb/lottie-ios")!) // swiftlint:disable:this line_length force_unwrapping
+                    if let url = URL(string: "https://github.com/airbnb/lottie-ios") {
+                        Link("Lottie", destination: url)
+                    } else {
+                        Text("Lottie")
+                    }
                     
-                    Link("IQKeyboardManager", destination: URL(string: "https://github.com/hackiftekhar/IQKeyboardManager")!) // swiftlint:disable:this line_length force_unwrapping
+                    if let url = URL(string: "https://github.com/hackiftekhar/IQKeyboardManager") {
+                        Link("IQKeyboardManager", destination: url)
+                    } else {
+                        Text("IQKeyboardManager")
+                    }
                 }
                 .bodyText()
                 .accentColor()

@@ -17,7 +17,7 @@ struct OptionsAboutSection: View {
             OptionsSectionHeader(title: "About", image: "info.circle")
             
             HStack {
-                VStack(alignment: .leading, spacing: .spacingM) {
+                VStack(alignment: .leading, spacing: 20) {
                     VStack(alignment: .leading, spacing: .spacingS) {
                         if !storeManager.hasPremiumAccess {
                             NavigationLink {
@@ -40,14 +40,12 @@ struct OptionsAboutSection: View {
                                 action: {
                                     Task {
                                         await storeManager.restorePurchases()
-                                        
-                                        dismiss()
                                     }
                                 },
                                 feedback: .selection
                             )
                         } else {
-                            VStack(alignment: .leading, spacing: .spacingXS) {
+                            VStack(alignment: .leading, spacing: 0) {
                                 HStack(alignment: .center, spacing: .spacingS) {
                                     Text("Premium Activated")
                                         .bodyText(weight: .regular)
@@ -64,8 +62,8 @@ struct OptionsAboutSection: View {
                         }
                     }
                     
-                    VStack(alignment: .leading, spacing: .spacingS) {
-                        Link(destination: URL(string: "https://sculpty.app")!) { // swiftlint:disable:this line_length force_unwrapping
+                    if let url = URL(string: "https://sculpty.app") {
+                        Link(destination: url) {
                             HStack(alignment: .center, spacing: .spacingXS) {
                                 Text("Website")
                                     .bodyText()
@@ -74,18 +72,22 @@ struct OptionsAboutSection: View {
                                     .bodyImage()
                             }
                         }
-                        
-//                        Link(destination: URL(string: "https://sculpty.app/privacy")!) {
-//                            HStack(alignment: .center, spacing: .spacingXS) {
-//                                Text("Privacy Policy")
-//                                    .bodyText(weight: .regular)
-//                                
-//                                Image(systemName: "chevron.right")
-//                                    .bodyImage()
-//                            }
-//                        }
+                        .textColor()
                     }
-                    .textColor()
+                    
+                    NavigationLink {
+                        FeedbackView()
+                    } label: {
+                        HStack(alignment: .center, spacing: .spacingXS) {
+                            Text("Send Feedback")
+                                .bodyText()
+                            
+                            Image(systemName: "chevron.right")
+                                .bodyImage()
+                        }
+                    }
+                    .foregroundStyle(ColorManager.text)
+                    .hapticButton(.selection)
                     
                     OptionsButtonRow(
                         title: "Acknowledgements",

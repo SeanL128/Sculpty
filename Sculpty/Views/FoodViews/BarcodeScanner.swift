@@ -84,7 +84,7 @@ struct BarcodeScanner: View {
                                         selection: $stayOnPage,
                                         promptText: "Unsaved Scanned Items",
                                         resultText: "Are you sure you want to leave without saving scanned items?",
-                                        cancelText: "Discared Items",
+                                        cancelText: "Discard Items",
                                         cancelColor: ColorManager.destructive,
                                         cancelFeedback: .impact(weight: .medium),
                                         confirmText: "Stay on Page",
@@ -283,7 +283,6 @@ struct BarcodeScanner: View {
                                     scannedItems.removeAll()
                                     showBatchList = false
                                     cooldownTimer?.invalidate()
-                                    lastScanTime = Date.distantPast
                                     
                                     stayOnBatch = true
                                 }
@@ -312,9 +311,7 @@ struct BarcodeScanner: View {
                             .padding(.bottom, 12)
                         
                         Button {
-                            if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
-                                UIApplication.shared.open(settingsUrl)
-                            }
+                            openSettings()
                         } label: {
                             Text("Open Settings")
                                 .headingText()
@@ -375,6 +372,14 @@ struct BarcodeScanner: View {
     }
     
     private func handleBarcodeDetected(_ barcode: String) {
+        startCooldownTimer()
+        
+        let now = Date()
+        let timeSinceLastScan = now.timeIntervalSince(lastScanTime)
+        lastScanTime = now
+        
+        guard timeSinceLastScan >= 1.5 else { return }
+        
         guard storeManager.canPerformBarcodeScans else {
             Popup.show(content: {
                 InfoPopup(title: "Limit Reached", text: "You have reached your weekly limit for barcode scans.")
@@ -385,17 +390,7 @@ struct BarcodeScanner: View {
         
         guard isScanning && !showBatchList && !showingErrorPopup else { return }
         
-        if isBatchMode {
-            let now = Date()
-            let timeSinceLastScan = now.timeIntervalSince(lastScanTime)
-            
-            if timeSinceLastScan < 1.5 {
-                return
-            }
-            
-            lastScanTime = now
-            startCooldownTimer()
-        } else {
+        if !isBatchMode {
             isScanning = false
         }
         

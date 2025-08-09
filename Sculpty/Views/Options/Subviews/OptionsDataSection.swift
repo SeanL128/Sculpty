@@ -38,7 +38,7 @@ struct OptionsDataSection: View {
             OptionsSectionHeader(title: "Data Management", image: "folder")
             
             HStack {
-                VStack(alignment: .leading, spacing: .spacingM) {
+                VStack(alignment: .leading, spacing: 20) {
                     VStack(alignment: .leading, spacing: .spacingS) {
                         OptionsButtonRow(
                             title: isCreatingBackup ? "Creating Backup..." : "Create Local Backup",

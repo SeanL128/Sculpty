@@ -22,11 +22,11 @@ class WidgetDataUpdater {
     ) {
         guard let sharedDefaults = UserDefaults(suiteName: "group.app.sculpty.SculptyApp") else { return }
         
-        sharedDefaults.set(caloriesLogged, forKey: UserKeys.widgetCaloriesLogged.rawValue)
-        sharedDefaults.set(targetCalories, forKey: UserKeys.widgetCaloriesTarget.rawValue)
-        sharedDefaults.set(carbs, forKey: UserKeys.widgetCarbs.rawValue)
-        sharedDefaults.set(protein, forKey: UserKeys.widgetProtein.rawValue)
-        sharedDefaults.set(fat, forKey: UserKeys.widgetFat.rawValue)
+        sharedDefaults.set(max(0, caloriesLogged), forKey: UserKeys.widgetCaloriesLogged.rawValue)
+        sharedDefaults.set(max(0, targetCalories), forKey: UserKeys.widgetCaloriesTarget.rawValue)
+        sharedDefaults.set(max(0, carbs), forKey: UserKeys.widgetCarbs.rawValue)
+        sharedDefaults.set(max(0, protein), forKey: UserKeys.widgetProtein.rawValue)
+        sharedDefaults.set(max(0, fat), forKey: UserKeys.widgetFat.rawValue)
         
         WidgetCenter.shared.reloadAllTimelines()
     }

@@ -12,14 +12,20 @@ struct FatSecretLink: View {
         HStack(alignment: .center) {
             Spacer()
             
-            Link(destination: URL(string: "https://www.fatsecret.com")!) { // swiftlint:disable:this force_unwrapping
-                HStack(alignment: .center, spacing: .spacingXS) {
-                    Text("Powered by fatsecret")
-                        .bodyText(weight: .regular)
-                    
-                    Image(systemName: "chevron.right")
-                        .bodyImage()
+            if let url = URL(string: "https://www.fatsecret.com") {
+                Link(destination: url) {
+                    HStack(alignment: .center, spacing: .spacingXS) {
+                        Text("Powered by fatsecret")
+                            .bodyText(weight: .regular)
+                        
+                        Image(systemName: "chevron.right")
+                            .bodyImage()
+                    }
                 }
+            } else {
+                Text("Powered by fatsecret")
+                    .bodyText(weight: .regular)
+                    .textColor()
             }
             
             Spacer()

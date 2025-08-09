@@ -16,5 +16,5 @@ enum Goal: String, CaseIterable {
         .lose, .maintain, .gain
     ]
     
-    static let stringDisplayOrder: [String] = displayOrder.map(\.self.rawValue)
+    static let stringDisplayOrder: [String] = displayOrder.map { $0.rawValue }
 }

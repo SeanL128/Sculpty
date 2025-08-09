@@ -123,19 +123,21 @@ class NotificationManager {
             dateComponents.hour = hour
             dateComponents.minute = minute
             
-            let content = UNMutableNotificationContent()
-            content.title = "Calories Check-In"
-            content.body = "Log your nutrition and stay consistent!"
-            content.sound = .default
-            content.categoryIdentifier = "CALORIE_REMINDER"
-            
-            let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
-            let identifier = "\(NotificationIdentifiers.dailyCaloriePrefix)-\(dateComponents.year!)-\(dateComponents.month!)-\(dateComponents.day!)" // swiftlint:disable:this line_length force_unwrapping
-            let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
-            
-            UNUserNotificationCenter.current().add(request) { error in
-                if let error = error {
-                    debugLog("Failed to schedule daily calorie reminder: \(error.localizedDescription)")
+            if let year = dateComponents.year, let month = dateComponents.month, let day = dateComponents.day {
+                let content = UNMutableNotificationContent()
+                content.title = "Calories Check-In"
+                content.body = "Log your nutrition and stay consistent!"
+                content.sound = .default
+                content.categoryIdentifier = "CALORIE_REMINDER"
+                
+                let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+                let identifier = "\(NotificationIdentifiers.dailyCaloriePrefix)-\(year)-\(month)-\(day)"
+                let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+                
+                UNUserNotificationCenter.current().add(request) { error in
+                    if let error = error {
+                        debugLog("Failed to schedule daily calorie reminder: \(error.localizedDescription)")
+                    }
                 }
             }
         }
@@ -146,9 +148,11 @@ class NotificationManager {
     func cancelTodaysCalorieReminder() {
         let calendar = Calendar.current
         let today = calendar.dateComponents([.year, .month, .day], from: Date())
-        let identifier = "\(NotificationIdentifiers.dailyCaloriePrefix)-\(today.year!)-\(today.month!)-\(today.day!)" // swiftlint:disable:this line_length force_unwrapping
-        
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
+        if let year = today.year, let month = today.month, let day = today.day {
+            let identifier = "\(NotificationIdentifiers.dailyCaloriePrefix)-\(year)-\(month)-\(day)"
+            
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
+        }
     }
     
     @MainActor
@@ -214,8 +218,13 @@ class NotificationManager {
         
         for i in 0..<30 {
             guard let date = calendar.date(byAdding: .day, value: i, to: Date()) else { continue }
+            
             let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
-            let identifier = "\(NotificationIdentifiers.dailyCaloriePrefix)-\(dateComponents.year!)-\(dateComponents.month!)-\(dateComponents.day!)" // swiftlint:disable:this line_length force_unwrapping
+            guard let year = dateComponents.year,
+                  let month = dateComponents.month,
+                  let day = dateComponents.day else { continue }
+            
+            let identifier = "\(NotificationIdentifiers.dailyCaloriePrefix)-\(year)-\(month)-\(day)"
             identifiers.append(identifier)
         }
         

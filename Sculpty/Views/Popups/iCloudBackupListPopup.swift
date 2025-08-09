@@ -34,7 +34,7 @@ struct iCloudBackupListPopup: View {
             }
             
             ScrollView {
-                LazyVStack(spacing: .listSpacing) {
+                LazyVStack(alignment: .leading, spacing: .listSpacing) {
                     if iCloudManager.isLoadingBackups {
                         HStack {
                             Spacer()

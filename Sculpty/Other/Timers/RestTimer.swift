@@ -83,23 +83,25 @@ class RestTimer: ObservableObject {
     private func scheduleBackgroundNotification(delay: TimeInterval) {
         backgroundNotificationId = "sculpty-rest-timer-\(UUID().uuidString)"
         
-        let content = UNMutableNotificationContent()
-        content.title = "Rest Complete"
-        content.body = "Time for your next set!"
-        content.sound = .default
-        
-        let actualDelay = max(delay, 2.0)
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: actualDelay, repeats: false)
-        
-        let request = UNNotificationRequest(
-            identifier: backgroundNotificationId!, // swiftlint:disable:this force_unwrapping
-            content: content,
-            trigger: trigger
-        )
-        
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                debugLog("Failed to schedule rest timer notification: \(error.localizedDescription)")
+        if let notificationId = backgroundNotificationId {
+            let content = UNMutableNotificationContent()
+            content.title = "Rest Complete"
+            content.body = "Time for your next set!"
+            content.sound = .default
+            
+            let actualDelay = max(delay, 2.0)
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: actualDelay, repeats: false)
+            
+            let request = UNNotificationRequest(
+                identifier: notificationId,
+                content: content,
+                trigger: trigger
+            )
+            
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error = error {
+                    debugLog("Failed to schedule rest timer notification: \(error.localizedDescription)")
+                }
             }
         }
     }
@@ -107,6 +109,7 @@ class RestTimer: ObservableObject {
     private func cancelBackgroundNotification() {
         if let notificationId = backgroundNotificationId {
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [notificationId])
+            
             backgroundNotificationId = nil
         }
     }

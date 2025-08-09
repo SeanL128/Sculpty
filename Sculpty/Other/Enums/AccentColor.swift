@@ -18,7 +18,7 @@ enum AccentColor: String, CaseIterable, Identifiable {
         .blue, .purple, .green
     ]
     
-    static let stringDisplayOrder: [String] = displayOrder.map(\.self.rawValue)
+    static let stringDisplayOrder: [String] = displayOrder.map { $0.rawValue }
     
     static let colorMap: [AccentColor: String] = [
         .blue: "#2563EB",

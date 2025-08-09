@@ -25,15 +25,13 @@ struct PerformExercise: View {
                             .textColor()
                         
                         if settings.showTempo {
-                            let tempoArr = Array(exercise.tempo)
-                            
                             Button {
                                 Popup.show(content: {
                                     TempoPopup(tempo: exercise.tempo)
                                 })
                             } label: {
                                 HStack(alignment: .center, spacing: .spacingXS) {
-                                    Text("Tempo: \(tempoArr[0])\(tempoArr[1])\(tempoArr[2])\(tempoArr[3])")
+                                    Text("Tempo: \(exercise.tempo)")
                                         .secondaryText()
                                     
                                     Image(systemName: "chevron.right")

@@ -369,52 +369,45 @@ struct SearchFood: View {
     private func searchFoods() {
         searchTask?.cancel()
             
-        searchTask = Task {
-            let length = searchInput.count
-            
-            guard searchInput.count >= 2 else {
-                if !hasResults || length == 0 {
-                    customFoodResults = recentCustomFoods
-                    fatSecretResults = recentFatSecretFoods
+        searchTask = Task { @MainActor in
+            do {
+                let length = searchInput.count
+                
+                guard length >= 2 else {
+                    if !hasResults || length == 0 {
+                        customFoodResults = recentCustomFoods
+                        fatSecretResults = recentFatSecretFoods
+                    }
+                    
+                    return
                 }
                 
-                return
-            }
-            
-            try? await Task.sleep(nanoseconds: 200_000_000)
-            
-            guard !Task.isCancelled else { return }
-            
-            error = false
-            api.isLoading = true
-            api.loaded = false
-            
-            async let customResults = searchCustomFoods(searchInput)
-            async let fatSecretResults = api.searchFoods(searchInput)
-            
-            do {
-                let (custom, fatSecret) = try await (customResults, fatSecretResults)
+                try await Task.sleep(nanoseconds: 200_000_000)
+                guard !Task.isCancelled else { return }
                 
-                self.customFoodResults = custom
-                self.fatSecretResults = fatSecret
+                error = false
+                api.isLoading = true
+                api.loaded = false
+                
+                let customResults = storeManager.hasPremiumAccess ? customFoods.search(searchInput, by: \.name).sorted { $0.name < $1.name } : [] // swiftlint:disable:this line_length
+                let fatSecretResults = try await api.searchFoods(searchInput)
+                
+                guard !Task.isCancelled else { return }
+                
+                self.customFoodResults = customResults
+                self.fatSecretResults = fatSecretResults
+            } catch is CancellationError {
+                return
             } catch {
                 debugLog("Search error: \(error.localizedDescription)")
                 
-                if error.localizedDescription != "cancelled" {
+                if !Task.isCancelled {
                     self.error = true
                 }
             }
             
             api.isLoading = false
             api.loaded = true
-        }
-    }
-    
-    private func searchCustomFoods(_ query: String) async -> [CustomFood] {
-        guard storeManager.hasPremiumAccess else { return [] }
-        
-        return await MainActor.run {
-            return customFoods.search(query, by: \.name).sorted { $0.name < $1.name }
         }
     }
 }

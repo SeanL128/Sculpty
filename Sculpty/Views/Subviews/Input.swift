@@ -15,13 +15,31 @@ struct Input: View {
     var type: UIKeyboardType = .default
     var autoCapitalization: TextInputAutocapitalization = .never
     var axis: Axis = .horizontal
+    var optional: Bool = false
+    var maxCharacters: Int?
     
     var body: some View {
         VStack(alignment: .leading, spacing: .spacingXS) {
             if !title.isEmpty {
-                Text(title)
-                    .captionText()
-                    .textColor()
+                HStack(alignment: .center, spacing: .spacingXS) {
+                    Text(title)
+                        .captionText()
+                        .textColor()
+                    
+                    if optional {
+                        Text("(Optional)")
+                            .captionText()
+                            .secondaryColor()
+                    }
+                    
+                    if let max = maxCharacters {
+                        Spacer()
+                        
+                        Text("\(text.count)/\(max)")
+                            .captionText()
+                            .foregroundStyle(text.count == max ? ColorManager.destructive : Double(text.count) >= Double(max) * 0.85 ? ColorManager.warning : ColorManager.text) // swiftlint:disable:this line_length
+                    }
+                }
             }
             
             HStack(alignment: .bottom, spacing: .spacingXS) {
@@ -38,6 +56,11 @@ struct Input: View {
                             text: $text
                         )
                     )
+                    .onChange(of: text) {
+                        if let max = maxCharacters {
+                            text = String(text.prefix(max))
+                        }
+                    }
                 
                 if let unit = unit {
                     Text(unit)

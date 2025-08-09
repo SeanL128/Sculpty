@@ -84,7 +84,16 @@ struct AppDataDTO: Codable {
         encoder.dateEncodingStrategy = .iso8601
         
         do {
-            return try encoder.encode(appData)
+            let jsonData = try encoder.encode(appData)
+            
+            let base64String = jsonData.base64EncodedString()
+            guard let base64Data = base64String.data(using: .utf8) else {
+                debugLog("Error converting base64 string to data")
+                
+                return nil
+            }
+            
+            return base64Data
         } catch {
             debugLog("Error encoding app data: \(error.localizedDescription)")
             
@@ -95,6 +104,15 @@ struct AppDataDTO: Codable {
     static func `import`(from data: Data) -> AppDataDTO? {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
+        
+        if let base64String = String(data: data, encoding: .utf8),
+           let decodedData = Data(base64Encoded: base64String) {
+            do {
+                return try decoder.decode(AppDataDTO.self, from: decodedData)
+            } catch {
+                debugLog("Error decoding Base64 encoded app data: \(error.localizedDescription)")
+            }
+        }
         
         do {
             return try decoder.decode(AppDataDTO.self, from: data)

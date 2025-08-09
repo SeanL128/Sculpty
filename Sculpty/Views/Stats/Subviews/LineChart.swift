@@ -159,7 +159,6 @@ struct LineChart: View {
                         
                         initializeAnimations()
                     }
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: selectedRangeIndex)
                     .hapticFeedback(.selection, trigger: interactingTrigger)
                     
                     if isInteracting,
@@ -194,6 +193,7 @@ struct LineChart: View {
             .frame(height: 250)
             .padding()
         }
+        .animation(.easeInOut(duration: 0.5), value: selectedRangeIndex)
         .drawingGroup()
     }
     

@@ -7,9 +7,12 @@
 
 import SwiftUI
 import SwiftData
+import StoreKit
 
 struct Main: View {
     @Environment(\.modelContext) private var context
+    @Environment(\.requestReview) var requestReview
+    
     @EnvironmentObject private var settings: CloudSettings
     
     @StateObject private var popupManager: PopupManager = PopupManager.shared
@@ -81,6 +84,16 @@ struct Main: View {
         .background(ColorManager.background)
         .onAppear {
             if !hasPerformedLaunchTasks {
+                var launchCount = UserDefaults.standard.integer(forKey: "LAUNCH_COUNT")
+                launchCount += 1
+                UserDefaults.standard.set(launchCount, forKey: "LAUNCH_COUNT")
+                
+                if launchCount >= 5 {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                        requestReview()
+                    }
+                }
+                
                 performAppLaunchTasks()
                 
                 hasPerformedLaunchTasks = true

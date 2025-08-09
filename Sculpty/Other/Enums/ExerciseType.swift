@@ -17,5 +17,5 @@ enum ExerciseType: String, CaseIterable, Codable, Identifiable {
         .weight, .distance
     ]
     
-    static let stringDisplayOrder: [String] = displayOrder.map(\.self.rawValue)
+    static let stringDisplayOrder: [String] = displayOrder.map { $0.rawValue }
 }

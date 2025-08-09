@@ -26,7 +26,11 @@ class CloudSettings: ObservableObject {
             object: store
         )
         
-        store.synchronize()
+        if FileManager.default.ubiquityIdentityToken != nil {
+            store.synchronize()
+        } else {
+            debugLog("iCloud not available - skipping sync")
+        }
     }
     
     private func registerDefaults() {
@@ -80,7 +84,9 @@ class CloudSettings: ObservableObject {
         
         registerDefaults()
         
-        store.synchronize()
+        if FileManager.default.ubiquityIdentityToken != nil {
+            store.synchronize()
+        }
         
         objectWillChange.send()
     }

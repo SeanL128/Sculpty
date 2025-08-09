@@ -25,139 +25,141 @@ class DataTransferManager {
             throw ImportError.invalidData
         }
         
-        try clearAllData(
-            in: context,
-            preserveDefaultExercises: preserveDefaultExercises,
-            defaultExerciseIDs: defaultExerciseIDs
-        )
-        
-        var defaultExercises: [Exercise] = []
-        if preserveDefaultExercises && !defaultExerciseIDs.isEmpty {
-            let descriptor = FetchDescriptor<Exercise>()
-            defaultExercises = try context.fetch(descriptor)
-        }
-        
-        let defaultExerciseIDSet = Set(defaultExercises.map { $0.id })
-        let filteredExerciseModels = appData.exercises
-            .filter { !defaultExerciseIDSet.contains($0.id) }
-            .map { $0.toModel() }
-        
-        for model in filteredExerciseModels {
-            context.insert(model)
-        }
-        
-        var exerciseMap = Dictionary(uniqueKeysWithValues: filteredExerciseModels.map { ($0.id, $0) })
-        for exercise in defaultExercises {
-            exerciseMap[exercise.id] = exercise
-        }
-        
-        let workoutModels = appData.workouts.map { $0.toModel(exerciseMap: exerciseMap) }
-        for workout in workoutModels {
-            for workoutExercise in workout.exercises {
-                workoutExercise.workout = workout
-                
-                for set in workoutExercise.sets {
-                    set.workoutExercise = workoutExercise
+        do {
+            try clearAllData(
+                in: context,
+                preserveDefaultExercises: preserveDefaultExercises,
+                defaultExerciseIDs: defaultExerciseIDs
+            )
+            
+            var defaultExercises: [Exercise] = []
+            if preserveDefaultExercises && !defaultExerciseIDs.isEmpty {
+                let descriptor = FetchDescriptor<Exercise>()
+                defaultExercises = try context.fetch(descriptor)
+            }
+            
+            let defaultExerciseIDSet = Set(defaultExercises.map { $0.id })
+            let filteredExerciseModels = appData.exercises
+                .filter { !defaultExerciseIDSet.contains($0.id) }
+                .map { $0.toModel() }
+            
+            for model in filteredExerciseModels {
+                context.insert(model)
+            }
+            
+            var exerciseMap = Dictionary(uniqueKeysWithValues: filteredExerciseModels.map { ($0.id, $0) })
+            for exercise in defaultExercises {
+                exerciseMap[exercise.id] = exercise
+            }
+            
+            let workoutModels = appData.workouts.map { $0.toModel(exerciseMap: exerciseMap) }
+            for workout in workoutModels {
+                for workoutExercise in workout.exercises {
+                    workoutExercise.workout = workout
                     
-                    if set.unit.isEmpty {
-                        set.unit = set.exerciseType == .weight ? UnitsManager.weight : UnitsManager.longLength
+                    for set in workoutExercise.sets {
+                        set.workoutExercise = workoutExercise
+                        
+                        if set.unit.isEmpty {
+                            set.unit = set.exerciseType == .weight ? UnitsManager.weight : UnitsManager.longLength
+                        }
                     }
+                }
+                
+                context.insert(workout)
+            }
+            
+            var allSetModels: [ExerciseSet] = []
+            for workout in workoutModels {
+                for workoutExercise in workout.exercises {
+                    allSetModels.append(contentsOf: workoutExercise.sets)
                 }
             }
             
-            context.insert(workout)
-        }
-        
-        var allSetModels: [ExerciseSet] = []
-        for workout in workoutModels {
-            for workoutExercise in workout.exercises {
-                allSetModels.append(contentsOf: workoutExercise.sets)
-            }
-        }
-        
-        let setMap = Dictionary(uniqueKeysWithValues: allSetModels.map { ($0.id, $0) })
-        
-        let workoutMap = Dictionary(uniqueKeysWithValues: workoutModels.map { ($0.id, $0) })
-        
-        for workoutLogDTO in appData.workoutLogs {
-            if let workout = workoutMap[workoutLogDTO.workout.id] {
-                let workoutLog = WorkoutLog(
-                    workout: workout,
-                    started: workoutLogDTO.started,
-                    completed: workoutLogDTO.completed,
-                    start: workoutLogDTO.start,
-                    end: workoutLogDTO.end
-                )
-                workoutLog.id = workoutLogDTO.id
-                
-                workoutLog.exerciseLogs = []
-                
-                for exerciseLogDTO in workoutLogDTO.exerciseLogs {
-                    var workoutExercise: WorkoutExercise?
+            let setMap = Dictionary(uniqueKeysWithValues: allSetModels.map { ($0.id, $0) })
+            
+            let workoutMap = Dictionary(uniqueKeysWithValues: workoutModels.map { ($0.id, $0) })
+            
+            for workoutLogDTO in appData.workoutLogs {
+                if let workout = workoutMap[workoutLogDTO.workout.id] {
+                    let workoutLog = WorkoutLog(
+                        workout: workout,
+                        started: workoutLogDTO.started,
+                        completed: workoutLogDTO.completed,
+                        start: workoutLogDTO.start,
+                        end: workoutLogDTO.end
+                    )
+                    workoutLog.id = workoutLogDTO.id
                     
-                    if workoutExercise == nil, let exerciseId = exerciseLogDTO.exercise.exerciseId {
-                        workoutExercise = workout.exercises.first(where: { $0.exercise?.id == exerciseId })
-                    }
+                    workoutLog.exerciseLogs = []
                     
-                    if let workoutExercise = workoutExercise {
-                        let exerciseLog = ExerciseLog(index: exerciseLogDTO.index, exercise: workoutExercise)
-                        exerciseLog.id = exerciseLogDTO.id
-                        exerciseLog.completed = exerciseLogDTO.completed
-                        exerciseLog.start = exerciseLogDTO.start
-                        exerciseLog.end = exerciseLogDTO.end
-                        exerciseLog.workoutLog = workoutLog
+                    for exerciseLogDTO in workoutLogDTO.exerciseLogs {
+                        var workoutExercise: WorkoutExercise?
                         
-                        exerciseLog.setLogs = []
-                        
-                        for setLogDTO in exerciseLogDTO.setLogs {
-                            let setLog = setLogDTO.toModel(setMap: setMap)
-                            
-                            if setLog.unit.isEmpty {
-                                if let set = setLog.set {
-                                    setLog.unit = set.unit
-                                } else {
-                                    setLog.unit = UnitsManager.weight
-                                }
-                            }
-                            
-                            exerciseLog.setLogs.append(setLog)
-                            setLog.exerciseLog = exerciseLog
+                        if workoutExercise == nil, let exerciseId = exerciseLogDTO.exercise.exerciseId {
+                            workoutExercise = workout.exercises.first(where: { $0.exercise?.id == exerciseId })
                         }
                         
-                        workoutLog.exerciseLogs.append(exerciseLog)
+                        if let workoutExercise = workoutExercise {
+                            let exerciseLog = ExerciseLog(index: exerciseLogDTO.index, exercise: workoutExercise)
+                            exerciseLog.id = exerciseLogDTO.id
+                            exerciseLog.completed = exerciseLogDTO.completed
+                            exerciseLog.start = exerciseLogDTO.start
+                            exerciseLog.end = exerciseLogDTO.end
+                            exerciseLog.workoutLog = workoutLog
+                            
+                            exerciseLog.setLogs = []
+                            
+                            for setLogDTO in exerciseLogDTO.setLogs {
+                                let setLog = setLogDTO.toModel(setMap: setMap)
+                                
+                                if setLog.unit.isEmpty {
+                                    if let set = setLog.set {
+                                        setLog.unit = set.unit
+                                    } else {
+                                        setLog.unit = UnitsManager.weight
+                                    }
+                                }
+                                
+                                exerciseLog.setLogs.append(setLog)
+                                setLog.exerciseLog = exerciseLog
+                            }
+                            
+                            workoutLog.exerciseLogs.append(exerciseLog)
+                        }
                     }
+                    
+                    context.insert(workoutLog)
+                }
+            }
+            
+            for measurementDTO in appData.measurements {
+                context.insert(measurementDTO.toModel())
+            }
+            
+            for customFoodDTO in appData.customFoods {
+                context.insert(customFoodDTO.toModel())
+            }
+            
+            for caloriesLogDTO in appData.caloriesLogs {
+                let caloriesLog = caloriesLogDTO.toModel()
+                
+                for entry in caloriesLog.entries {
+                    entry.caloriesLog = caloriesLog
                 }
                 
-                context.insert(workoutLog)
-            }
-        }
-        
-        for measurementDTO in appData.measurements {
-            context.insert(measurementDTO.toModel())
-        }
-        
-        for customFoodDTO in appData.customFoods {
-            context.insert(customFoodDTO.toModel())
-        }
-        
-        for caloriesLogDTO in appData.caloriesLogs {
-            let caloriesLog = caloriesLogDTO.toModel()
-            
-            for entry in caloriesLog.entries {
-                entry.caloriesLog = caloriesLog
+                context.insert(caloriesLog)
             }
             
-            context.insert(caloriesLog)
-        }
-        
-        if importSettings, let userSettings = appData.userSettings {
-            userSettings.applyTo(settings: CloudSettings.shared)
-        }
-        
-        try context.save()
-        
-        if context.hasChanges {
+            if importSettings, let userSettings = appData.userSettings {
+                userSettings.applyTo(settings: CloudSettings.shared)
+            }
+            
             try context.save()
+        } catch {
+            context.rollback()
+            
+            throw error
         }
     }
     

@@ -32,7 +32,9 @@ struct MeasurementMenuPopup: View {
             }
             
             VStack(alignment: .leading, spacing: .listSpacing) {
-                ForEach(options.sorted { MeasurementType.displayOrder.firstIndex(of: $0.value)! < MeasurementType.displayOrder.firstIndex(of: $1.value)! }, id: \.key) { str, type in // swiftlint:disable:this line_length force_unwrapping
+                ForEach(options.sorted {
+                    MeasurementType.displayOrder.firstIndex(of: $0.value) ?? 0 < MeasurementType.displayOrder.firstIndex(of: $1.value) ?? 0 // swiftlint:disable:this line_length
+                }, id: \.key) { str, type in
                     Button {
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                             selection = type

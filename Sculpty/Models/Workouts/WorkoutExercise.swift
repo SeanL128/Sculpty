@@ -65,28 +65,6 @@ class WorkoutExercise: Identifiable {
         }
     }
     
-    func deleteSet(index: Int) {
-        let i = sets.firstIndex(where: { $0.index == index }) ?? -1
-        
-        if i != -1 {
-            sets.remove(at: i)
-            
-            for set in sets where set.index > index {
-                set.index -= 1
-            }
-        }
-    }
-    
-    func deleteSet(set: ExerciseSet) {
-        sets = sets.sorted { $0.index < $1.index }
-        
-        let i = sets.firstIndex(where: { $0.id == set.id }) ?? -1
-        
-        if i != -1 {
-            deleteSet(at: i)
-        }
-    }
-    
     func copy() -> WorkoutExercise {
         return WorkoutExercise(from: self)
     }

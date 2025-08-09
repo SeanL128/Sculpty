@@ -13,7 +13,6 @@ class iCloudBackupManager: ObservableObject {
     @Published var isBackingUp = false
     @Published var isLoadingBackups = false
     @Published var availableBackups: [iCloudBackup] = []
-    @Published var errorMessage: String?
     
     private let backupFolder = "SculptyBackups"
     
@@ -33,13 +32,14 @@ class iCloudBackupManager: ObservableObject {
     
     func backupToiCloud(context: ModelContext) async {
         guard let backupDirectory = backupDirectoryURL else {
-            errorMessage = "iCloud not available"
+            Popup.show(content: {
+                InfoPopup(title: "Error", text: "iCloud not available")
+            })
             
             return
         }
         
         isBackingUp = true
-        errorMessage = nil
         
         do {
             try FileManager.default.createDirectory(at: backupDirectory, withIntermediateDirectories: true)
@@ -47,8 +47,12 @@ class iCloudBackupManager: ObservableObject {
             let backupData = await createBackupData(context: context)
             
             guard let data = backupData else {
-                errorMessage = "Failed to create backup data"
+                Popup.show(content: {
+                    InfoPopup(title: "Error", text: "Failed to create backup data. Please try again later.")
+                })
+                
                 isBackingUp = false
+                
                 return
             }
             
@@ -63,7 +67,9 @@ class iCloudBackupManager: ObservableObject {
             
             isBackingUp = false
         } catch {
-            errorMessage = "Backup failed: \(error.localizedDescription)"
+            Popup.show(content: {
+                InfoPopup(title: "Error", text: "Backup failed: \(error.localizedDescription)")
+            })
             
             isBackingUp = false
         }
@@ -71,7 +77,9 @@ class iCloudBackupManager: ObservableObject {
     
     func loadAvailableBackups() async {
         guard let backupDirectory = backupDirectoryURL else {
-            errorMessage = "iCloud not available"
+            Popup.show(content: {
+                InfoPopup(title: "Error", text: "iCloud not available")
+            })
             
             return
         }
@@ -95,7 +103,9 @@ class iCloudBackupManager: ObservableObject {
             availableBackups = backups
             isLoadingBackups = false
         } catch {
-            errorMessage = "Failed to load backups: \(error.localizedDescription)"
+            Popup.show(content: {
+                InfoPopup(title: "Error", text: "Failed to load backups: \(error.localizedDescription)")
+            })
             
             isLoadingBackups = false
         }
@@ -113,7 +123,9 @@ class iCloudBackupManager: ObservableObject {
             
             return true
         } catch {
-            errorMessage = "Restore failed: \(error.localizedDescription)"
+            Popup.show(content: {
+                InfoPopup(title: "Error", text: "Restore failed: \(error.localizedDescription)")
+            })
             
             return false
         }
@@ -125,7 +137,9 @@ class iCloudBackupManager: ObservableObject {
             
             await loadAvailableBackups()
         } catch {
-            errorMessage = "Failed to delete backup: \(error.localizedDescription)"
+            Popup.show(content: {
+                InfoPopup(title: "Error", text: "Failed to delete backup: \(error.localizedDescription)")
+            })
         }
     }
     

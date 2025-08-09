@@ -224,8 +224,7 @@ struct MultiLineChart: View {
             .frame(height: 250)
             .padding()
         }
-        .animation(.easeInOut(duration: 0.4), value: allChartData.map { $0.data.count })
-        .animation(.easeInOut(duration: 0.3), value: selectedRangeIndex)
+        .animation(.easeInOut(duration: 0.5), value: selectedRangeIndex)
         .drawingGroup()
     }
     

@@ -18,5 +18,5 @@ enum ActivityLevel: String, CaseIterable {
         .sedentary, .light, .moderate, .active, .veryActive
     ]
     
-    static let stringDisplayOrder: [String] = displayOrder.map(\.self.rawValue)
+    static let stringDisplayOrder: [String] = displayOrder.map { $0.rawValue }
 }

@@ -93,12 +93,21 @@ class StoreKitManager: ObservableObject {
             
             await checkPurchasedProducts()
             
-            Popup.show(content: {
-                InfoPopup(
-                    title: "Purchases Restored",
-                    text: "Your purchases have been restored."
-                )
-            })
+            if !purchasedProducts.isEmpty {
+                Popup.show(content: {
+                    InfoPopup(
+                        title: "Purchases Restored",
+                        text: "Your purchases have been restored."
+                    )
+                })
+            } else {
+                Popup.show(content: {
+                    InfoPopup(
+                        title: "No Purchases Restored",
+                        text: "No previous purchases were found."
+                    )
+                })
+            }
         } catch {
             errorMessage = "Failed to restore purchases"
         }
@@ -135,8 +144,10 @@ class StoreKitManager: ObservableObject {
     }
     
     private func listenForTransactions() -> Task<Void, Error> {
-        return Task.detached {
+        return Task.detached { [weak self] in
             for await result in Transaction.updates {
+                guard let self = self else { break }
+                
                 do {
                     let transaction = try await self.checkVerified(result)
                     

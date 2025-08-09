@@ -127,18 +127,18 @@ class ExerciseSet: Identifiable {
     }
     
     func weight(in unit: WeightUnit) -> Double {
-        if let weight = self.weight {
-            return WeightUnit(rawValue: self.unit)! // swiftlint:disable:this force_unwrapping
-                .convert(weight, to: unit)
+        if let weight = self.weight,
+           let unit = WeightUnit(rawValue: self.unit) {
+            return unit.convert(weight, to: unit)
         }
         
         return 0
     }
     
     func distance(in unit: LongLengthUnit) -> Double {
-        if let distance = self.distance {
-            return LongLengthUnit(rawValue: self.unit)! // swiftlint:disable:this force_unwrapping
-                .convert(distance, to: unit)
+        if let distance = self.distance,
+           let unit = LongLengthUnit(rawValue: self.unit) {
+            return unit.convert(distance, to: unit)
         }
         
         return 0

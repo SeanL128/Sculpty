@@ -29,33 +29,23 @@ class Measurement: Identifiable {
         self.type = type
     }
     
-    // swiftlint:disable force_unwrapping
     func getConvertedMeasurement() -> Double {
-        // Weight
-        if type == .weight {
-            return WeightUnit(rawValue: unit)!
-                .convert(
-                    measurement,
-                    to: WeightUnit(rawValue: UnitsManager.weight)!
-                )
-        }
-        // Length
-        else if MeasurementType.lengthTypes.contains(type) {
-            return ShortLengthUnit(rawValue: unit)!
-                .convert(
-                    measurement,
-                    to: ShortLengthUnit(rawValue: UnitsManager.shortLength)!
-                )
-        }
-        // Percent/Other
-        else {
+        if type == .weight,
+           let from = WeightUnit(rawValue: unit),
+           let to = WeightUnit(rawValue: UnitsManager.weight) {
+            return from.convert(measurement, to: to)
+        } else if MeasurementType.lengthTypes.contains(type),
+                  let from = ShortLengthUnit(rawValue: unit),
+                  let to = ShortLengthUnit(rawValue: UnitsManager.shortLength) {
+            return from.convert(measurement, to: to)
+        } else {
             return measurement
         }
     }
-    // swiftlint:enable force_unwrapping
     
     private func ftToFtIn(_ ft: Double) -> String {
         let inches = ft - (ft.truncatingRemainder(dividingBy: 12))
-        return "\(Int(ft))\(inches.isZero ? "" : " \(Int(inches))")"
+        
+        return "\(Int(ft))\(inches == 0 ? "" : " \(Int(inches))")"
     }
 }
