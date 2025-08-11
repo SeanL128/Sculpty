@@ -38,7 +38,7 @@ struct OptionsCustomizationSection: View {
                                 }
                                 
                                 Image(systemName: "chevron.up.chevron.down")
-                                    .captionText(weight: .bold)
+                                    .captionText(weight: .medium)
                             }
                         }
                     }

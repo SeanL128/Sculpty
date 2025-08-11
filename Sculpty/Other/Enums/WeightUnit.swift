@@ -20,7 +20,7 @@ enum WeightUnit: String, CaseIterable {
     }
     
     func convert(_ value: Double, to unit: WeightUnit) -> Double {
-        if self == unit { return value }
+        if self.rawValue == unit.rawValue { return value }
         
         let kgValue = value * self.toKgFactor
         return round(kgValue * unit.fromKgFactor, 2)

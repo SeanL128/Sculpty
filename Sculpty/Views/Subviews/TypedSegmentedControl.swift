@@ -112,7 +112,7 @@ struct TypedSegmentedControl<T: Hashable>: View {
         .overlay(alignment: .trailing) {
             if !storeManager.hasPremiumAccess, minPremiumIndex < options.count {
                 NavigationLink {
-                    PurchasePremium()
+                    UpgradeView()
                 } label: {
                     Image(systemName: "crown.fill")
                         .secondaryText()

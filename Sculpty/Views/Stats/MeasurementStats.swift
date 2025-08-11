@@ -65,10 +65,10 @@ struct MeasurementStats: View {
                         } label: {
                             HStack(alignment: .center, spacing: .spacingXS) {
                                 Text(type?.rawValue ?? "Select Measurement")
-                                    .bodyText(weight: .regular)
+                                    .subheadingText(weight: .medium)
                                 
                                 Image(systemName: "chevron.right")
-                                    .bodyImage()
+                                    .subheadingImage()
                             }
                         }
                         .textColor()

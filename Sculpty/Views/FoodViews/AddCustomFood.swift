@@ -133,10 +133,10 @@ struct AddCustomFood: View {
                                 } label: {
                                     HStack(alignment: .center, spacing: .spacingXS) {
                                         Text(serving.desc.isEmpty ? "Serving" : serving.desc)
-                                            .bodyText(weight: .regular)
+                                            .bodyText()
                                         
-                                        Image(systemName: "chevron.right")
-                                            .bodyImage()
+                                        Image(systemName: "chevron.up.chevron.down")
+                                            .captionText(weight: .medium)
                                     }
                                 }
                                 .textColor()

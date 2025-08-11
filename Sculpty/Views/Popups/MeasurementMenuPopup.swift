@@ -12,6 +12,8 @@ struct MeasurementMenuPopup: View {
     
     private var options: [String: MeasurementType]
     
+    @State private var height: CGFloat = 0
+    
     init(options: [String: MeasurementType], selection: Binding<MeasurementType>) {
         self.options = options
         
@@ -31,37 +33,53 @@ struct MeasurementMenuPopup: View {
                 Spacer()
             }
             
-            VStack(alignment: .leading, spacing: .listSpacing) {
-                ForEach(options.sorted {
-                    MeasurementType.displayOrder.firstIndex(of: $0.value) ?? 0 < MeasurementType.displayOrder.firstIndex(of: $1.value) ?? 0 // swiftlint:disable:this line_length
-                }, id: \.key) { str, type in
-                    Button {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                            selection = type
-                        }
-                        
-                        Popup.dismissLast()
-                    } label: {
-                        HStack(alignment: .center, spacing: .spacingXS) {
-                            Text(str)
-                                .bodyText(weight: selection == type ? .bold : .regular)
-                                .multilineTextAlignment(.leading)
+            ScrollView {
+                LazyVStack(spacing: .listSpacing) {
+                    ForEach(options.sorted {
+                        MeasurementType.displayOrder.firstIndex(of: $0.value) ?? 0 < MeasurementType.displayOrder.firstIndex(of: $1.value) ?? 0 // swiftlint:disable:this line_length
+                    }, id: \.key) { str, type in
+                        Button {
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                selection = type
+                            }
                             
-                            Image(systemName: "chevron.right")
-                                .bodyImage(weight: selection == type ? .bold : .medium)
-                            
-                            Spacer()
-                            
-                            if selection == type {
-                                Image(systemName: "checkmark")
-                                    .bodyText()
+                            Popup.dismissLast()
+                        } label: {
+                            HStack(alignment: .center) {
+                                Text(str)
+                                    .bodyText(weight: selection == type ? .bold : .medium)
+                                    .multilineTextAlignment(.leading)
+                                
+                                Spacer()
+                                
+                                if selection == type {
+                                    Image(systemName: "checkmark")
+                                        .bodyText()
+                                }
                             }
                         }
+                        .textColor()
+                        .animatedButton(feedback: .selection)
                     }
-                    .textColor()
-                    .animatedButton(feedback: .selection)
                 }
+                .background(GeometryReader { geo in
+                    Color.clear
+                        .onAppear {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                height = geo.size.height
+                            }
+                        }
+                        .onChange(of: geo.size.height) {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                height = geo.size.height
+                            }
+                        }
+                })
             }
+            .frame(maxHeight: min(height, 300))
+            .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
+            .scrollIndicators(.hidden)
+            .scrollContentBackground(.hidden)
         }
     }
 }

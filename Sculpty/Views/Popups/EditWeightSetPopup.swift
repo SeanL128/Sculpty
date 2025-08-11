@@ -73,10 +73,8 @@ struct EditWeightSetPopup: View {
                 Button {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                         if log.index > -1 {
-                            let weight = Double(updatedSet.reps ?? 0) * (updatedSet.weight ?? 0)
-                            
                             log.unskip()
-                            log.finish(reps: updatedSet.reps ?? 0, weight: weight)
+                            log.finish(reps: updatedSet.reps ?? 0, weight: updatedSet.weight ?? 0)
                             
                             if let restTimer = restTimer {
                                 var time: Double = 0
@@ -151,10 +149,10 @@ struct EditWeightSetPopup: View {
                     } label: {
                         HStack(alignment: .center) {
                             Text(updatedSet.unit)
-                                .bodyText(weight: .regular)
+                                .bodyText()
                             
                             Image(systemName: "chevron.up.chevron.down")
-                                .bodyImage(weight: .medium)
+                                .captionText(weight: .medium)
                         }
                     }
                     .textColor()

@@ -57,5 +57,6 @@ struct FilledToBorderedButtonStyle: ButtonStyle {
                         isManuallyPressed = false
                     }
             )
+            .allowsHitTesting(isValid)
     }
 }

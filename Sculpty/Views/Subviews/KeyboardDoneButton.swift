@@ -19,7 +19,7 @@ struct KeyboardDoneButton: View {
                     .bodyText()
             }
             .textColor()
-            .animatedButton(feedback: .selection)
+            .animatedButton()
         }
     }
 }

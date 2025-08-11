@@ -73,26 +73,29 @@ struct Onboarding: View {
                 }
                 
                 VStack(alignment: .leading, spacing: .spacingS) {
-                    Text("YOUR FITNESS JOURNAL")
+                    Text("YOUR FITNESS COMPANION")
                         .headingText()
                         .textColor()
                     
                     Text("Simple. Powerful. Yours.")
                         .bodyText()
                         .secondaryColor()
+                    
+                    Spacer()
+                        .frame(height: 0)
                 }
                 
                 OnboardingSection(
                     title: "Workouts",
-                    description: "Log your workouts. See your progress."
+                    description: "Advanced strength training and progress tracking."
                 )
                 .opacity(sectionsVisible ? 1.0 : 0.0)
                 .offset(x: sectionsVisible ? 0 : -20)
                 .animation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.1), value: sectionsVisible)
 
                 OnboardingSection(
-                    title: "Calories",
-                    description: "Monitor your daily intake and macros."
+                    title: "Nutrition",
+                    description: "Calorie and macro tracking with barcode scanner."
                 )
                 .opacity(sectionsVisible ? 1.0 : 0.0)
                 .offset(x: sectionsVisible ? 0 : -20)
@@ -100,7 +103,7 @@ struct Onboarding: View {
 
                 OnboardingSection(
                     title: "Measurements",
-                    description: "Record body measurements. Visualize your progress."
+                    description: "Record body measurements and visualize your progress."
                 )
                 .opacity(sectionsVisible ? 1.0 : 0.0)
                 .offset(x: sectionsVisible ? 0 : -20)
@@ -108,7 +111,7 @@ struct Onboarding: View {
 
                 OnboardingSection(
                     title: "Stats",
-                    description: "View trends and insights based on your recorded data."
+                    description: "View trends based on your recorded data"
                 )
                 .opacity(sectionsVisible ? 1.0 : 0.0)
                 .offset(x: sectionsVisible ? 0 : -20)

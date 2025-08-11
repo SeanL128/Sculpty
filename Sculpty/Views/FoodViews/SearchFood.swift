@@ -94,7 +94,7 @@ struct SearchFood: View {
                         foodsToAdd: $fatSecretFoodsToAdd
                     )
                 } else {
-                    PurchasePremium()
+                    UpgradeView()
                 }
             } label: {
                 Image(systemName: "barcode.viewfinder")
@@ -125,15 +125,9 @@ struct SearchFood: View {
                                 Button {
                                     customFoodToAdd = food
                                 } label: {
-                                    HStack(alignment: .center, spacing: .spacingXS) {
-                                        Text(food.name)
-                                            .bodyText(weight: .regular)
-                                            .lineLimit(1)
-                                            .truncationMode(.tail)
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .bodyImage()
-                                    }
+                                    Text(food.name)
+                                        .bodyText()
+                                        .multilineTextAlignment(.leading)
                                 }
                                 .textColor()
                                 .hapticButton(.selection)
@@ -148,15 +142,9 @@ struct SearchFood: View {
                             Button {
                                 fatSecretFoodToAdd = food
                             } label: {
-                                HStack(alignment: .center, spacing: .spacingXS) {
-                                    Text("\(food.food_name)\(food.brand_name == nil ? "" : " (\(food.brand_name ?? ""))")") // swiftlint:disable:this line_length
-                                        .bodyText(weight: .regular)
-                                        .lineLimit(1)
-                                        .truncationMode(.tail)
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .bodyImage()
-                                }
+                                Text("\(food.food_name)\(food.brand_name == nil ? "" : " (\(food.brand_name ?? ""))")") // swiftlint:disable:this line_length
+                                    .bodyText()
+                                    .multilineTextAlignment(.leading)
                             }
                             .textColor()
                             .hapticButton(.selection)
@@ -199,7 +187,7 @@ struct SearchFood: View {
                                 .animatedButton()
                             } else {
                                 NavigationLink {
-                                    PurchasePremium()
+                                    UpgradeView()
                                 } label: {
                                     HStack(alignment: .center, spacing: .spacingXS) {
                                         Text("Add Custom Food")
@@ -248,7 +236,7 @@ struct SearchFood: View {
                             .padding(.spacingM)
                             
                             NavigationLink {
-                                PurchasePremium()
+                                UpgradeView()
                             } label: {
                                 HStack(alignment: .center, spacing: .spacingXS) {
                                     Text("Upgrade")

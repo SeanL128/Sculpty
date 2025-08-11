@@ -39,5 +39,6 @@ struct AnimatedButtonStyle: ButtonStyle {
                         isManuallyPressed = false
                     }
             )
+            .allowsHitTesting(isValid)
     }
 }

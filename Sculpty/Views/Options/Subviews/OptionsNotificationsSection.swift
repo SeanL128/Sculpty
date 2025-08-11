@@ -54,7 +54,7 @@ struct OptionsNotificationsSection: View {
                     }
                 } else {
                     NavigationLink {
-                        PurchasePremium()
+                        UpgradeView()
                     } label: {
                         HStack(alignment: .center, spacing: .spacingXS) {
                             HStack(alignment: .center, spacing: .spacingXS) {
@@ -87,7 +87,7 @@ struct OptionsNotificationsSection: View {
                 
                 if !storeManager.hasPremiumAccess {
                     NavigationLink {
-                        PurchasePremium()
+                        UpgradeView()
                     } label: {
                         HStack(alignment: .center, spacing: .spacingXS) {
                             HStack(alignment: .center, spacing: .spacingXS) {
@@ -118,7 +118,7 @@ struct OptionsNotificationsSection: View {
                     .hapticButton(.selection)
                     
                     NavigationLink {
-                        PurchasePremium()
+                        UpgradeView()
                     } label: {
                         HStack(alignment: .center, spacing: .spacingXS) {
                             HStack(alignment: .center, spacing: .spacingXS) {

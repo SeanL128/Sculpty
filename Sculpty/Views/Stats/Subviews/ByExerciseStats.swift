@@ -55,7 +55,8 @@ struct ByExerciseStats: View {
         return prData
     }
     private var oneRmData: [(date: Date, value: Double)] {
-        guard let exerciseId = exercise?.id else { return [] }
+        guard settings.show1RM,
+              let exerciseId = exercise?.id else { return [] }
         
         return dataValues
             .map {
@@ -184,10 +185,10 @@ struct ByExerciseStats: View {
             } label: {
                 HStack(alignment: .center, spacing: .spacingXS) {
                     Text(exercise?.name ?? "Select Exercise")
-                        .bodyText(weight: .regular)
+                        .subheadingText(weight: .medium)
                     
                     Image(systemName: "chevron.right")
-                        .bodyImage()
+                        .subheadingImage()
                 }
             }
             .textColor()
@@ -276,14 +277,11 @@ struct ByExerciseStats: View {
                             }
                         }
                         
-                        if let exercise = exercise,
-                           !exercise.workoutExercises
-                            .compactMap({ $0.exerciseLogs })
-                            .compactMap({
-                                $0.compactMap { $0.workoutLog }
-                            }).isEmpty {
-                            let workouts = exercise.workoutExercises.compactMap { $0.workout }.removingDuplicates()
-                            
+                        if let workouts = exercise?.workoutExercises
+                            .compactMap({ $0.workout })
+                            .filter({ !$0.hidden })
+                            .removingDuplicates(),
+                           !workouts.isEmpty {
                             VStack(alignment: .leading, spacing: .spacingXS) {
                                 Text("WORKOUTS")
                                     .subheadingText()
@@ -317,6 +315,7 @@ struct ByExerciseStats: View {
                             }
                         }
                     }
+                    .frame(maxWidth: .infinity)
                 }
                 .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
                 .scrollIndicators(.hidden)

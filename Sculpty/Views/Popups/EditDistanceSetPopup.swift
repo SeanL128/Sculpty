@@ -13,8 +13,6 @@ struct EditDistanceSetPopup: View {
     var set: ExerciseSet
     @Binding var log: SetLog
     
-    @State private var referenceHeight: CGFloat = 0
-    
     private let restTime: Double
     private let restTimer: RestTimer?
 
@@ -110,88 +108,93 @@ struct EditDistanceSetPopup: View {
                 .animatedButton(feedback: .success)
             }
             
-            HStack(alignment: .center, spacing: .spacingM) {
-                VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(alignment: .bottom, spacing: .spacingM) {
                     Text("Duration")
                         .captionText()
                         .textColor()
+                        .frame(maxWidth: 200, alignment: .leading)
                     
-                    Spacer()
-                    
-                    Button {
-                        Popup.show(content: {
-                            DurationSelectionPopup(
-                                title: "Duration",
-                                hours: $hours,
-                                minutes: $minutes,
-                                seconds: $seconds
-                            )
-                        })
-                    } label: {
-                        HStack(alignment: .center, spacing: .spacingXS) {
-                            Text("\(hours)hr \(minutes)min \(seconds)sec")
-                                .bodyText(weight: .regular)
-                            
-                            Image(systemName: "chevron.right")
-                                .bodyImage()
-                        }
-                    }
-                    .textColor()
-                    .onChange(of: hours) { updateTime() }
-                    .onChange(of: minutes) { updateTime() }
-                    .onChange(of: seconds) { updateTime() }
-                    .animatedButton(feedback: .selection)
-                    .padding(.bottom, .spacingS)
+                    Text("Distance")
+                        .captionText()
+                        .textColor()
+                        .frame(maxWidth: 150, alignment: .leading)
                 }
-                .frame(maxWidth: 200, maxHeight: referenceHeight)
                 
-                HStack(alignment: .bottom, spacing: 0) {
-                    Input(
-                        title: "Distance",
-                        text: $distanceString,
-                        isFocused: _isDistanceFocused,
-                        type: .decimalPad
-                    )
-                    .onChange(of: distanceString) {
-                        distanceString = distanceString.filteredNumeric()
-                         
-                        if distanceString.isEmpty {
-                            updatedSet.distance = 0
-                        } else if distanceString.hasSuffix(".") {
-                            updatedSet.distance = ("\(distanceString)0" as NSString).doubleValue
-                        } else {
-                            updatedSet.distance = (distanceString as NSString).doubleValue
+                HStack(alignment: .center, spacing: .spacingM) {
+                    VStack(alignment: .leading, spacing: .spacingXS) {
+                        Button {
+                            Popup.show(content: {
+                                DurationSelectionPopup(
+                                    title: "Duration",
+                                    hours: $hours,
+                                    minutes: $minutes,
+                                    seconds: $seconds
+                                )
+                            })
+                        } label: {
+                            HStack(alignment: .center, spacing: .spacingXS) {
+                                Text("\(hours)hr \(minutes)min \(seconds)sec")
+                                    .bodyText(weight: .regular)
+                                
+                                Image(systemName: "chevron.right")
+                                    .bodyImage()
+                            }
                         }
+                        .textColor()
+                        .onChange(of: hours) { updateTime() }
+                        .onChange(of: minutes) { updateTime() }
+                        .onChange(of: seconds) { updateTime() }
+                        .animatedButton(feedback: .selection)
                     }
-                    .frame(maxWidth: 150)
-                    .background(GeometryReader { geo in
-                        Color.clear
-                            .onAppear {
-                                referenceHeight = geo.size.height
-                            }
-                            .onChange(of: geo.size.height) {
-                                referenceHeight = geo.size.height
-                            }
-                    })
+                    .frame(maxWidth: 200, alignment: .leading)
                     
-                    Button {
-                        Popup.show(content: {
-                            SmallMenuPopup(title: "Units", options: ["mi", "km"], selection: $updatedSet.unit)
-                        })
-                    } label: {
-                        HStack(alignment: .center, spacing: .spacingXS) {
-                            Text(updatedSet.unit)
-                                .bodyText(weight: .regular)
-                            
-                            Image(systemName: "chevron.up.chevron.down")
-                                .bodyImage(weight: .medium)
+                    HStack(alignment: .bottom, spacing: 0) {
+                        TextField("", text: $distanceString, axis: .horizontal)
+                            .keyboardType(.decimalPad)
+                            .textInputAutocapitalization(.never)
+                            .focused($isDistanceFocused)
+                            .textFieldStyle(
+                                UnderlinedTextFieldStyle(
+                                    isFocused: Binding<Bool>(
+                                        get: { isDistanceFocused },
+                                        set: { isDistanceFocused = $0 }
+                                    ),
+                                    text: $distanceString
+                                )
+                            )
+                            .onChange(of: distanceString) {
+                                distanceString = distanceString.filteredNumeric()
+                                 
+                                if distanceString.isEmpty {
+                                    updatedSet.distance = 0
+                                } else if distanceString.hasSuffix(".") {
+                                    updatedSet.distance = ("\(distanceString)0" as NSString).doubleValue
+                                } else {
+                                    updatedSet.distance = (distanceString as NSString).doubleValue
+                                }
+                            }
+                            .frame(maxWidth: 150, alignment: .leading)
+                        
+                        Button {
+                            Popup.show(content: {
+                                SmallMenuPopup(title: "Units", options: ["mi", "km"], selection: $updatedSet.unit)
+                            })
+                        } label: {
+                            HStack(alignment: .center, spacing: .spacingXS) {
+                                Text(updatedSet.unit)
+                                    .bodyText()
+                                
+                                Image(systemName: "chevron.up.chevron.down")
+                                    .captionText(weight: .medium)
+                            }
                         }
+                        .textColor()
+                        .frame(maxWidth: 65)
+                        .animatedButton(feedback: .selection)
                     }
-                    .textColor()
-                    .frame(maxWidth: 65)
-                    .animatedButton(feedback: .selection)
+                    .frame(maxWidth: 190)
                 }
-                .frame(maxWidth: 190)
             }
             
             if !disableType {

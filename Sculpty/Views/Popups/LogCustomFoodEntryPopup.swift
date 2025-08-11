@@ -99,16 +99,10 @@ struct LogCustomFoodEntryPopup: View {
                             HStack(alignment: .center, spacing: .spacingXS) {
                                 Text(selectedServing?.desc ?? "1 serving")
                                     .bodyText()
-                                    .textColor()
                                 
                                 Image(systemName: "chevron.up.chevron.down")
-                                    .bodyImage()
-                                    .secondaryColor()
+                                    .captionText(weight: .medium)
                             }
-                            .padding(.vertical, 12)
-                            .padding(.horizontal, .spacingM)
-                            .background(ColorManager.background)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
                         .textColor()
                         .animatedButton()

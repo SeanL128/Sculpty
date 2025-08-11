@@ -73,8 +73,7 @@ struct LineChart: View {
                             )
                             .foregroundStyle(Color.accentColor)
                             
-                            if selectedRangeIndex <= 1,
-                               animationStates[item.date] == true {
+                            if animationStates[item.date] == true {
                                 PointMark(
                                     x: .value("Date", item.date),
                                     y: .value("Value", item.value)

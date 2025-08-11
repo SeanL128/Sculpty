@@ -37,22 +37,14 @@ class FatSecretAPI: ObservableObject {
             throw APIError.invalidURL
         }
         
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let response = try JSONDecoder().decode(FatSecretSearchResponse.self, from: data)
-            
-            if !StoreKitManager.shared.hasPremiumAccess {
-                CloudSettings.shared.weeklyNutritionSearches += 1
-            }
-            
-            return response.foods?.food ?? []
-        } catch {
-            await MainActor.run {
-                Toast.show("Unable to search. Please check your connection.", "wifi.slash")
-            }
-            
-            throw error
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let response = try JSONDecoder().decode(FatSecretSearchResponse.self, from: data)
+        
+        if !StoreKitManager.shared.hasPremiumAccess {
+            CloudSettings.shared.weeklyNutritionSearches += 1
         }
+        
+        return response.foods?.food ?? []
     }
     
     func getFoodDetails(_ foodId: String) async throws -> FoodDetail {

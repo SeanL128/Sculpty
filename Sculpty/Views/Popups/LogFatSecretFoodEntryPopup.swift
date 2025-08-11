@@ -94,11 +94,11 @@ struct LogFatSecretFoodEntryPopup: View {
                         } label: {
                             HStack(alignment: .center, spacing: .spacingXS) {
                                 Text(selectedServing?.fullServingDescription ?? "1 serving")
-                                    .bodyText(weight: .regular)
+                                    .bodyText()
                                     .multilineTextAlignment(.leading)
                                 
                                 Image(systemName: "chevron.up.chevron.down")
-                                    .bodyImage(weight: .bold)
+                                    .captionText(weight: .medium)
                             }
                         }
                         .textColor()

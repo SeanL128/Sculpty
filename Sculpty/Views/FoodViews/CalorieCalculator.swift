@@ -102,7 +102,7 @@ struct CalorieCalculator: View {
                         .bodyText()
                     
                     Image(systemName: "chevron.up.chevron.down")
-                        .subheadingImage()
+                        .captionText(weight: .medium)
                 }
             }
             
@@ -172,7 +172,7 @@ struct CalorieCalculator: View {
                         .multilineTextAlignment(.leading)
                     
                     Image(systemName: "chevron.up.chevron.down")
-                        .subheadingImage()
+                        .captionText(weight: .medium)
                 }
             }
             
@@ -192,7 +192,7 @@ struct CalorieCalculator: View {
                         .multilineTextAlignment(.leading)
                     
                     Image(systemName: "chevron.up.chevron.down")
-                        .subheadingImage()
+                        .captionText(weight: .medium)
                 }
             }
             

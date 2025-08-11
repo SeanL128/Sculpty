@@ -39,14 +39,9 @@ struct AccentColorMenuPopup: View {
                                 .fill(Color(hex: hex))
                                 .frame(width: 8, height: 8)
                             
-                            HStack(alignment: .center, spacing: .spacingXS) {
-                                Text(color.rawValue)
-                                    .bodyText(weight: selection == hex ? .bold : .regular)
-                                    .multilineTextAlignment(.leading)
-                                
-                                Image(systemName: "chevron.right")
-                                    .bodyImage(weight: selection == hex ? .bold : .medium)
-                            }
+                            Text(color.rawValue)
+                                .bodyText(weight: selection == hex ? .bold : .medium)
+                                .multilineTextAlignment(.leading)
                             
                             Spacer()
                             

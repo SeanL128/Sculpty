@@ -32,7 +32,7 @@ struct OptionsPickerRow<PopupContent: View>: View {
                         .bodyText()
                     
                     Image(systemName: "chevron.up.chevron.down")
-                        .captionText(weight: .bold)
+                        .captionText(weight: .medium)
                 }
             }
             .textColor()

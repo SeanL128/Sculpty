@@ -83,7 +83,7 @@ struct OptionsDataSection: View {
                                 }
                             } else {
                                 NavigationLink {
-                                    PurchasePremium()
+                                    UpgradeView()
                                 } label: {
                                     HStack(alignment: .center, spacing: .spacingXS) {
                                         HStack(alignment: .center, spacing: .spacingXS) {

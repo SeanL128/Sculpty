@@ -116,10 +116,10 @@ struct AddMeasurementPopup: View {
                     
                     HStack(alignment: .center, spacing: .spacingXS) {
                         Text(selection)
-                            .bodyText(weight: .regular)
+                            .bodyText()
                         
                         Image(systemName: "chevron.up.chevron.down")
-                            .bodyImage(weight: .medium)
+                            .captionText(weight: .medium)
                     }
                 }
                 .textColor()
@@ -139,10 +139,10 @@ struct AddMeasurementPopup: View {
                     } label: {
                         HStack(alignment: .center, spacing: .spacingXS) {
                             Text(settings.units == "Imperial" ? "Imperial (mi, ft, in, lbs)" : "Metric (km, m, cm, kg)")
-                                .bodyText(weight: .regular)
+                                .bodyText()
                             
                             Image(systemName: "chevron.up.chevron.down")
-                                .bodyImage(weight: .medium)
+                                .captionText(weight: .medium)
                         }
                     }
                     .textColor()

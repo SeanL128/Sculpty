@@ -36,13 +36,10 @@ struct UnitMenuPopup: View {
                     
                     Popup.dismissLast()
                 } label: {
-                    HStack(alignment: .center, spacing: .spacingXS) {
+                    HStack(alignment: .center) {
                         Text("Imperial (mi, ft, in, lbs)")
-                            .bodyText(weight: selection == "Imperial" ? .bold : .regular)
+                            .bodyText(weight: selection == "Imperial" ? .bold : .medium)
                             .multilineTextAlignment(.leading)
-                        
-                        Image(systemName: "chevron.right")
-                            .bodyImage(weight: selection == "Imperial" ? .bold : .medium)
                         
                         Spacer()
                         
@@ -63,13 +60,10 @@ struct UnitMenuPopup: View {
                     
                     Popup.dismissLast()
                 } label: {
-                    HStack(alignment: .center, spacing: .spacingXS) {
+                    HStack(alignment: .center) {
                         Text("Metric (km, m, cm, kg)")
-                            .bodyText(weight: selection == "Metric" ? .bold : .regular)
+                            .bodyText(weight: selection == "Metric" ? .bold : .medium)
                             .multilineTextAlignment(.leading)
-                        
-                        Image(systemName: "chevron.right")
-                            .bodyImage(weight: selection == "Metric" ? .bold : .medium)
                         
                         Spacer()
                         

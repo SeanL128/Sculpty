@@ -73,7 +73,7 @@ struct ExerciseInfo: View {
                     } label: {
                         HStack(alignment: .center, spacing: .spacingXS) {
                             Text(exercise?.name ?? "Select Exercise")
-                                .subheadingText()
+                                .subheadingText(weight: .medium)
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.8)
                                 .multilineTextAlignment(.leading)

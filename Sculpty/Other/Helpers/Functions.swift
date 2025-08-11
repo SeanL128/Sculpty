@@ -60,8 +60,8 @@ func round(_ number: Double, _ places: Double) -> Double {
 }
 
 func openSettings() {
-    if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
-        UIApplication.shared.open(settingsUrl)
+    if let url = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(url) {
+        UIApplication.shared.open(url)
     }
 }
 

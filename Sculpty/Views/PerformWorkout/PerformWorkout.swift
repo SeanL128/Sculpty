@@ -74,6 +74,8 @@ struct PerformWorkout: View {
                         .animatedButton(feedback: .warning)
                         .onChange(of: confirmDelete) {
                             if confirmDelete {
+                                restTimer.stop(cancelNotification: true)
+                                
                                 totalTimer?.invalidate()
                                 totalTimer = nil
                                 
@@ -242,6 +244,8 @@ struct PerformWorkout: View {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                         log.finishWorkout()
                     }
+                    
+                    restTimer.stop(cancelNotification: true)
                     
                     do {
                         try context.save()

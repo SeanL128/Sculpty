@@ -1,5 +1,5 @@
 //
-//  PurchasePremium.swift
+//  UpgradeView.swift
 //  Sculpty
 //
 //  Created by Sean Lindsay on 8/7/25.
@@ -8,7 +8,7 @@
 import SwiftUI
 import StoreKit
 
-struct PurchasePremium: View {
+struct UpgradeView: View {
     @Environment(\.dismiss) private var dismiss
     
     @StateObject private var storeManager: StoreKitManager = StoreKitManager.shared
@@ -94,7 +94,7 @@ struct PurchasePremium: View {
                                             .tint(!storeManager.isLoading && !storeManager.hasPremiumAccess ? ColorManager.text : ColorManager.secondary) // swiftlint:disable:this line_length
                                     }
                                     
-                                    Text("Upgrade")
+                                    Text("Upgrade - $2.99")
                                         .bodyText()
                                 }
                                 .padding(.vertical, 12)
@@ -122,15 +122,6 @@ struct PurchasePremium: View {
                             }
                         } label: {
                             Text("Restore Purchases")
-                                .bodyText()
-                        }
-                        .textColor()
-                        .animatedButton(feedback: .selection)
-                        
-                        Button {
-                            Popup.dismissLast()
-                        } label: {
-                            Text("Maybe Later")
                                 .bodyText()
                         }
                         .textColor()

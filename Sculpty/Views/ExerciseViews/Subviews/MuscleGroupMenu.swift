@@ -29,8 +29,8 @@ struct MuscleGroupMenu: View {
                     Text(selectedMuscleGroup ?? "Select")
                         .bodyText()
                     
-                    Image(systemName: "chevron.right")
-                        .bodyImage()
+                    Image(systemName: "chevron.up.chevron.down")
+                        .captionText(weight: .medium)
                 }
             }
             .textColor()

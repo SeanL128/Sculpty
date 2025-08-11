@@ -110,10 +110,10 @@ struct ByWorkoutStats: View {
             } label: {
                 HStack(alignment: .center, spacing: .spacingXS) {
                     Text(workout?.name ?? "Select Workout")
-                        .bodyText(weight: .regular)
+                        .subheadingText(weight: .medium)
                     
                     Image(systemName: "chevron.right")
-                        .bodyImage()
+                        .subheadingImage()
                 }
             }
             .textColor()
@@ -181,13 +181,12 @@ struct ByWorkoutStats: View {
                             LineChart(selectedRangeIndex: $selectedRangeIndex, data: durationData, units: "min")
                         }
                         
-                        if let workout = workout,
-                           !workout.exercises.isEmpty {
-                            let exercises = workout.exercises
-                                .filter { !($0.exercise?.hidden ?? true) }
-                                .sorted(by: { $0.index < $1.index })
-                                .compactMap({ $0.exercise }).removingDuplicates()
-                            
+                        if let exercises = workout?.exercises
+                            .filter({ $0.exercise?.hidden != true })
+                            .sorted(by: { $0.index < $1.index })
+                            .compactMap({ $0.exercise })
+                            .removingDuplicates(),
+                           !exercises.isEmpty {
                             VStack(alignment: .leading, spacing: .spacingXS) {
                                 Text("EXERCISES")
                                     .subheadingText()
@@ -221,6 +220,7 @@ struct ByWorkoutStats: View {
                             }
                         }
                     }
+                    .frame(maxWidth: .infinity)
                 }
                 .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
                 .scrollIndicators(.hidden)

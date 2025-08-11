@@ -21,7 +21,7 @@ struct OptionsAboutSection: View {
                     VStack(alignment: .leading, spacing: .spacingS) {
                         if !storeManager.hasPremiumAccess {
                             NavigationLink {
-                                PurchasePremium()
+                                UpgradeView()
                             } label: {
                                 HStack(alignment: .center, spacing: .spacingXS) {
                                     Text("Upgrade")
@@ -75,19 +75,14 @@ struct OptionsAboutSection: View {
                         .textColor()
                     }
                     
-                    NavigationLink {
-                        FeedbackView()
-                    } label: {
-                        HStack(alignment: .center, spacing: .spacingXS) {
-                            Text("Send Feedback")
-                                .bodyText()
-                            
-                            Image(systemName: "chevron.right")
-                                .bodyImage()
-                        }
-                    }
-                    .foregroundStyle(ColorManager.text)
-                    .hapticButton(.selection)
+                    OptionsButtonRow(
+                        title: "Send Feedback",
+                        isValid: true,
+                        action: {
+                            sendFeedbackEmail()
+                        },
+                        feedback: .selection
+                    )
                     
                     OptionsButtonRow(
                         title: "Acknowledgements",
@@ -127,5 +122,43 @@ struct OptionsAboutSection: View {
             }
         }
         .frame(maxWidth: .infinity)
+    }
+    
+    private func sendFeedbackEmail() {
+        let emailTo = "feedback@sculpty.app"
+        let subject = "Sculpty Feedback"
+        let body = getDeviceInfoBody()
+        
+        let mailtoString = "mailto:\(emailTo)?subject=\(subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")&body=\(body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")" // swiftlint:disable:this line_length
+        
+        if let url = URL(string: mailtoString),
+           UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url)
+        } else {
+            Popup.show(content: {
+                InfoPopup(
+                    title: "Mail Not Available",
+                    text: "Please send your feedback to feedback@sculpty.app using your preferred email app."
+                )
+            })
+        }
+    }
+    
+    private func getDeviceInfoBody() -> String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+        let device = UIDevice.current.model
+        let systemVersion = UIDevice.current.systemVersion
+        
+        return """
+        
+        
+        
+        --- Please write your feedback above this line ---
+        
+        App Version: \(version) (\(build))
+        Device: \(device)
+        iOS Version: \(systemVersion)
+        """
     }
 }
