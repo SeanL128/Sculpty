@@ -75,6 +75,34 @@ struct OptionsAboutSection: View {
                         .textColor()
                     }
                     
+                    VStack(alignment: .leading, spacing: .spacingS) {
+                        if let url = URL(string: "https://sculpty.app/privacy") {
+                            Link(destination: url) {
+                                HStack(alignment: .center, spacing: .spacingXS) {
+                                    Text("Privacy Policy")
+                                        .bodyText()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .bodyImage()
+                                }
+                            }
+                            .textColor()
+                        }
+                        
+                        if let url = URL(string: "https://sculpty.app/terms") {
+                            Link(destination: url) {
+                                HStack(alignment: .center, spacing: .spacingXS) {
+                                    Text("Terms of Use")
+                                        .bodyText()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .bodyImage()
+                                }
+                            }
+                            .textColor()
+                        }
+                    }
+                    
                     OptionsButtonRow(
                         title: "Send Feedback",
                         isValid: true,
