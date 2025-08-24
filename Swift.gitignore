@@ -61,6 +61,5 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 
-Screenshots/
-Raw Screenshots/
+Other Assets/
 build/
