@@ -130,7 +130,7 @@ struct AddFoodEntryPopup: View {
     }
     
     private func save() async {
-        entry.name = nameInput
+        entry.name = nameInput.trimmingCharacters(in: .whitespacesAndNewlines)
         entry.calories = round(Double(caloriesInput) ?? 0, 2)
         entry.carbs = round(Double(carbsInput) ?? 0, 2)
         entry.protein = round(Double(proteinInput) ?? 0, 2)

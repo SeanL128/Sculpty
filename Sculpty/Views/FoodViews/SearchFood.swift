@@ -24,7 +24,7 @@ struct SearchFood: View {
     @State private var recentCustomFoods: [CustomFood] = []
     @State private var recentFoodsLoaded: Bool = false
     
-    @State private var searchInput = ""
+    @State private var searchText = ""
     @FocusState private var isSearchFocused: Bool
     
     @State private var searchTask: Task<Void, Never>?
@@ -104,19 +104,30 @@ struct SearchFood: View {
             .animatedButton(feedback: .selection)
         }) {
             if storeManager.canPerformNutritionSearch {
-                TextField("Search Foods", text: $searchInput)
-                    .focused($isSearchFocused)
-                    .textFieldStyle(
-                        UnderlinedTextFieldStyle(
-                            isFocused: Binding<Bool>(
-                                get: { isSearchFocused },
-                                set: { isSearchFocused = $0 }
-                            ),
-                            text: $searchInput
+                HStack(alignment: .center, spacing: 12) {
+                    TextField("Search Foods", text: $searchText)
+                        .focused($isSearchFocused)
+                        .textFieldStyle(
+                            UnderlinedTextFieldStyle(
+                                isFocused: Binding<Bool>(
+                                    get: { isSearchFocused },
+                                    set: { isSearchFocused = $0 }
+                                ),
+                                text: $searchText)
                         )
-                    )
-                    .padding(.bottom, .spacingXS)
-                    .onChange(of: searchInput) { searchFoods() }
+                        .onChange(of: searchText) { searchFoods() }
+                    
+                    Button {
+                        searchText = ""
+                    } label: {
+                        Image(systemName: "xmark")
+                            .secondaryText()
+                    }
+                    .foregroundStyle(searchText.isEmpty ? ColorManager.secondary : ColorManager.text)
+                    .disabled(searchText.isEmpty)
+                    .animatedButton(isValid: !searchText.isEmpty)
+                }
+                .padding(.bottom, .spacingXS)
                 
                 if hasResults {
                     VStack(alignment: .leading, spacing: .listSpacing) {
@@ -359,7 +370,7 @@ struct SearchFood: View {
             
         searchTask = Task { @MainActor in
             do {
-                let length = searchInput.count
+                let length = searchText.count
                 
                 guard length >= 2 else {
                     if !hasResults || length == 0 {
@@ -377,8 +388,8 @@ struct SearchFood: View {
                 api.isLoading = true
                 api.loaded = false
                 
-                let customResults = storeManager.hasPremiumAccess ? customFoods.search(searchInput, by: \.name).sorted { $0.name < $1.name } : [] // swiftlint:disable:this line_length
-                let fatSecretResults = try await api.searchFoods(searchInput)
+                let customResults = storeManager.hasPremiumAccess ? customFoods.search(searchText, by: \.name).sorted { $0.name < $1.name } : [] // swiftlint:disable:this line_length
+                let fatSecretResults = try await api.searchFoods(searchText)
                 
                 guard !Task.isCancelled else { return }
                 

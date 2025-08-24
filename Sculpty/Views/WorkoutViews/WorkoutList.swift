@@ -59,17 +59,29 @@ struct WorkoutList: View {
             .textColor()
             .animatedButton()
         }) {
-            TextField("Search Workouts", text: $searchText)
-                .focused($isSearchFocused)
-                .textFieldStyle(
-                    UnderlinedTextFieldStyle(
-                        isFocused: Binding<Bool>(
-                            get: { isSearchFocused },
-                            set: { isSearchFocused = $0 }
-                        ),
-                        text: $searchText)
-                )
-                .padding(.bottom, .spacingXS)
+            HStack(alignment: .center, spacing: 12) {
+                TextField("Search Workouts", text: $searchText)
+                    .focused($isSearchFocused)
+                    .textFieldStyle(
+                        UnderlinedTextFieldStyle(
+                            isFocused: Binding<Bool>(
+                                get: { isSearchFocused },
+                                set: { isSearchFocused = $0 }
+                            ),
+                            text: $searchText)
+                    )
+                
+                Button {
+                    searchText = ""
+                } label: {
+                    Image(systemName: "xmark")
+                        .secondaryText()
+                }
+                .foregroundStyle(searchText.isEmpty ? ColorManager.secondary : ColorManager.text)
+                .disabled(searchText.isEmpty)
+                .animatedButton(isValid: !searchText.isEmpty)
+            }
+            .padding(.bottom, .spacingXS)
             
             if filteredWorkouts.isEmpty {
                 EmptyState(

@@ -219,6 +219,7 @@ struct AddCustomFood: View {
         guard storeManager.hasPremiumAccess else { return }
         
         let servings = servingOptions.filter { !$0.desc.trimmingCharacters(in: .whitespaces).isEmpty }
+        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
         
         if let food = food {
             food.name = name

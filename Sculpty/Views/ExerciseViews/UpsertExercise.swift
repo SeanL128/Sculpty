@@ -175,17 +175,20 @@ struct UpsertExercise: View {
     }
     
     private func save() async {
+        let name = exerciseName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let notes = exerciseNotes.trimmingCharacters(in: .whitespacesAndNewlines)
+         
         if let exercise = exercise {
-            exercise.name = exerciseName
-            exercise.notes = exerciseNotes
+            exercise.name = name
+            exercise.notes = notes
             exercise.muscleGroup = MuscleGroup(rawValue: selectedMuscleGroup ?? "Other") ?? .other
             exercise.type = selectedExerciseType
             
             self.exercise = exercise
         } else {
             let exercise = Exercise(
-                name: exerciseName,
-                notes: exerciseNotes,
+                name: name,
+                notes: notes,
                 muscleGroup: MuscleGroup(
                     rawValue: selectedMuscleGroup ?? "Other"
                 ) ?? .other,

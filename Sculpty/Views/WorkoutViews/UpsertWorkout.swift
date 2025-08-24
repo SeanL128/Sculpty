@@ -298,11 +298,14 @@ struct UpsertWorkout: View {
             
         guard !validExercises.isEmpty else { return }
         
+        let name = workoutName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let notes = workoutNotes.trimmingCharacters(in: .whitespacesAndNewlines)
+        
         cleanExercises()
         
         if let workout = workout {
-            workout.name = workoutName
-            workout.notes = workoutNotes
+            workout.name = name
+            workout.notes = notes
             
             let existingIds = Set(workout.exercises.map { $0.id })
             let updatedIds = Set(exercises.map { $0.id })
@@ -326,9 +329,9 @@ struct UpsertWorkout: View {
             }
             
             let workout = Workout(
-                name: workoutName,
+                name: name,
                 exercises: validExercises,
-                notes: workoutNotes
+                notes: notes
             )
             workout.index = index
             
@@ -338,7 +341,7 @@ struct UpsertWorkout: View {
         do {
             try context.save()
             
-            Toast.show("\(workoutName) saved", "checkmark")
+            Toast.show("\(name) saved", "checkmark")
         } catch {
             debugLog("Failed to save workout: \(error.localizedDescription)")
         }
@@ -352,6 +355,9 @@ struct UpsertWorkout: View {
     
     private func copyWorkout() {
         if workout != nil {
+            let name = workoutName.trimmingCharacters(in: .whitespacesAndNewlines)
+            let notes = workoutNotes.trimmingCharacters(in: .whitespacesAndNewlines)
+            
             var index = -1
             
             do {
@@ -364,9 +370,9 @@ struct UpsertWorkout: View {
             
             let workoutCopy = Workout(
                 index: index,
-                name: "Copy of \(workoutName)",
+                name: "Copy of \(name)",
                 exercises: [],
-                notes: workoutNotes
+                notes: notes
             )
 
             for exercise in exercises {
