@@ -13,7 +13,6 @@ struct BorderedToFilledButtonStyle: ButtonStyle {
     let isValid: Bool
     
     @State private var triggerCount: Int = 0
-    @State private var isManuallyPressed: Bool = false
     
     init(scale: Double = 0.98, feedback: SensoryFeedback = .impact(weight: .light), isValid: Bool = true) {
         self.feedback = feedback
@@ -34,21 +33,16 @@ struct BorderedToFilledButtonStyle: ButtonStyle {
                     .stroke(ColorManager.secondary, lineWidth: 2)
             )
             .foregroundStyle(configuration.isPressed ? ColorManager.background : ColorManager.text)
-            .scaleEffect(isValid && (configuration.isPressed || isManuallyPressed) ? scale : 1.0)
+            .scaleEffect(isValid && configuration.isPressed ? scale : 1.0)
             .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
-            .hapticFeedback(feedback, trigger: triggerCount)
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        if isValid && !isManuallyPressed {
-                            isManuallyPressed = true
-                            triggerCount += 1
-                        }
-                    }
-                    .onEnded { _ in
-                        isManuallyPressed = false
-                    }
-            )
+            .sensoryFeedback(feedback, trigger: triggerCount) { _, _ in
+                CloudSettings.shared.enableHaptics
+            }
+            .onChange(of: configuration.isPressed) {
+                if configuration.isPressed {
+                    triggerCount += 1
+                }
+            }
             .allowsHitTesting(isValid)
     }
 }

@@ -27,11 +27,6 @@ enum UserKeys: String, CaseIterable {
     case targetWeeklyWorkouts = "TARGET_WEEKLY_WORKOUTS"
     case units = "UNITS"
     
-    // FatSecret Limits
-    case lastNutritionResetDate = "LAST_NUTRITION_RESET_DATE"
-    case weeklyBarcodeScans = "WEEKLY_BARCODE_SCANS"
-    case weeklyNutritionSearches = "WEEKLY_NUTRITION_SEARCHES"
-    
     // Notifications
     case enableNotifications = "ENABLE_NOTIFICATIONS"
     

@@ -53,9 +53,6 @@ class CloudSettings: ObservableObject {
             UserKeys.showTempo.rawValue: false,
             UserKeys.targetWeeklyWorkouts.rawValue: 3,
             UserKeys.units.rawValue: "Imperial",
-            UserKeys.lastNutritionResetDate.rawValue: Date(),
-            UserKeys.weeklyBarcodeScans.rawValue: 0,
-            UserKeys.weeklyNutritionSearches.rawValue: 0,
             UserKeys.enableNotifications.rawValue: false,
             UserKeys.enableCaloriesNotifications.rawValue: false,
             UserKeys.calorieReminderHour.rawValue: 19,
@@ -439,26 +436,26 @@ class CloudSettings: ObservableObject {
     }
     
     var weeklyNutritionSearches: Int {
-        get { userDefaults.integer(forKey: UserKeys.weeklyNutritionSearches.rawValue) }
+        get { userDefaults.integer(forKey: "WEEKLY_NUTRITION_SEARCHES") }
         set {
             objectWillChange.send()
-            userDefaults.set(newValue, forKey: UserKeys.weeklyNutritionSearches.rawValue)
+            userDefaults.set(newValue, forKey: "WEEKLY_NUTRITION_SEARCHES")
         }
     }
     
     var weeklyBarcodeScans: Int {
-        get { userDefaults.integer(forKey: UserKeys.weeklyBarcodeScans.rawValue) }
+        get { userDefaults.integer(forKey: "WEEKLY_BARCODE_SCANS") }
         set {
             objectWillChange.send()
-            userDefaults.set(newValue, forKey: UserKeys.weeklyBarcodeScans.rawValue)
+            userDefaults.set(newValue, forKey: "WEEKLY_BARCODE_SCANS")
         }
     }
     
     var lastNutritionResetDate: Date? {
-        get { userDefaults.object(forKey: UserKeys.lastNutritionResetDate.rawValue) as? Date }
+        get { userDefaults.object(forKey: "LAST_NUTRITION_RESET_DATE") as? Date }
         set {
             objectWillChange.send()
-            userDefaults.set(newValue, forKey: UserKeys.lastNutritionResetDate.rawValue)
+            userDefaults.set(newValue, forKey: "LAST_NUTRITION_RESET_DATE")
         }
     }
     
@@ -475,7 +472,7 @@ class CloudSettings: ObservableObject {
         let calendar = Calendar.current
         let weeksSinceReset = calendar.dateComponents([.weekOfYear], from: lastReset, to: now).weekOfYear ?? 0
         
-        if weeksSinceReset >= 1 {
+        if weeksSinceReset > 1 {
             weeklyNutritionSearches = 0
             weeklyBarcodeScans = 0
             lastNutritionResetDate = now
