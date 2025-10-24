@@ -21,7 +21,6 @@ To install this app, you can download it on the [App Store](https://apps.apple.c
 2. Open the project in Xcode
 3. Set your team and provisioning profile under "Signing & Capabilities"
 4. Build and run the app on your iOS device or simulator
-- Workout templates for quicker startup
 
 ## License
 This project is licensed under the [MIT License](LICENSE). See the LICENSE file for full details.
